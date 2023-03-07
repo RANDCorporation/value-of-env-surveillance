@@ -1,0 +1,4 @@
+
+# Use this file to set global project settings:
+
+data_file: "./data/model_inputs.xlsx"
