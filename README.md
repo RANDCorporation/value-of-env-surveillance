@@ -1,5 +1,12 @@
 # genomic-surveillance-voi
 
+## About this repository
+
+This repository contains code to explore the Value of Information of Genomic sequencing technologies using infectious disease models.
+
+## Dependencies
+
+Install the R package [c19model](https://gitlab.com/covidpaths/c19model). Before using this repository.
 
 
 ## Getting started
