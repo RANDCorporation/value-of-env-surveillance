@@ -105,7 +105,7 @@ sir_a <- sir_generator$new(S_ini = 100000,
                          days_to_adjust_NPI = 7)$
   run(0:365) %>%
   as.data.frame() %>%
-  mutate(Scenario = "Policy Lag = 1 day")
+  mutate(Scenario = "Policy Lag = 7 days")
 
 set.seed(1)
 sir_b <- sir_generator$new(S_ini = 100000,
