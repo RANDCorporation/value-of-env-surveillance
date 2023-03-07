@@ -30,7 +30,7 @@ sir_generator <- odin::odin({
   # Use this to debug the model
   # print("target_NPI: {target_NPI}")
 
-  # beta parameter is infulenced by policy dynamically
+  # beta parameter is influenced by policy dynamically
   beta_policy <- max(beta * (1-(round(NPI, 0) * beta_effect)), 0)
 
   ## Individual probabilities of transition:
@@ -114,7 +114,6 @@ consolidated_long_results <-rbind(sir_a, sir_b) %>%
   mutate(TotalCases = cumsum(I),
          TotalNPICost = cumsum(NPI) * 1) %>% # Where 1 is the NPI cost
   tidyr::pivot_longer(cols = c(S,I,R,NPI,TotalCases,TotalNPICost))
-
 
 
 consolidated_long_results %>%
