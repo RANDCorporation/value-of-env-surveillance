@@ -1,4 +1,4 @@
-# Value of Information of Genomic Surveillance Proof of Concept
+# Genomic Surveillance Value of Information Code Repository
 
 ## About this repository
 
