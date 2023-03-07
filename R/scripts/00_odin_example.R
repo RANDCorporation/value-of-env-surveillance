@@ -21,12 +21,14 @@ sir_generator <- odin::odin({
   # Actual intervention updates with a delay
   update(NPI) <- NPI + (target_NPI - NPI) / days_to_adjust_NPI
 
-  # Intervention level, assuming instant policy update
 
-  # targer intervention level
+  # target intervention level depends on prevalence
+  # this might be modified to better represent alternative surveillance methods
+  # for instance, tests take longer to investigate
   target_NPI <- min((I/N) * stringency * 100, max_intervention_level)
 
-  print("target_NPI: {target_NPI}")
+  # Use this to debug the model
+  # print("target_NPI: {target_NPI}")
 
   # beta parameter is infulenced by policy dynamically
   beta_policy <- max(beta * (1-(round(NPI, 0) * beta_effect)), 0)
@@ -34,9 +36,9 @@ sir_generator <- odin::odin({
   ## Individual probabilities of transition:
   p_SI <- 1 - exp(-beta_policy * I / N) # S to I
   p_IR <- 1 - exp(-gamma) # I to R
-  p_RS <- 1 - exp(-theta) # R to S (waning of immunity)
 
-  # Would have to account for loss of immunity to capture oscilations.
+  # Assume complete loss of immunity
+  p_RS <- 1 - exp(-theta) # R to S (waning of immunity)
 
   ## Draws from binomial distributions for numbers changing between
   ## compartments:
@@ -60,11 +62,11 @@ sir_generator <- odin::odin({
   gamma <- user(1/10)
 
   # immunity waning rate
-  theta <- user(1/120)
+  theta <- user(1/180)
 
   # inbound net migration (i.e., re-seeding)
-  # people per day
-  d_reseeding <- user(5)
+  # people per day entering with an infection
+  d_reseeding <- user(2)
 
   days_to_adjust_NPI <- user(7)
 
