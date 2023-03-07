@@ -1,13 +1,22 @@
 
 
-# originally from
-# http://epirecip.es/epicookbook/chapters/sir-stochastic-discretestate-discretetime/r_odin
 
+# Author: Pedro Nascimento de Lima
+# Proof of concept model to explore VOI of Genomic Surveillance
+
+# This file implements a stochastic SIR model with a dynamic controller
+# akin to the one seen in our "Reopening California" paper.
+
+# This example uses the odin package.
+# I built this example starting from this SIR stochastic
+# http://epirecip.es/epicookbook/chapters/sir-stochastic-discretestate-discretetime/r_odin
 
 #if (!require("drat")) install.packages("drat")
 #drat:::add("mrc-ide")
 #install.packages("dde")
 #install.packages("odin")
+# LAtest version from github is also recommended:
+# remotes::install_github("https://github.com/mrc-ide/odin/")
 
 library(odin)
 library(dplyr)
@@ -18,13 +27,17 @@ sir_generator <- odin::odin({
   update(S) <- S - n_SI + n_RS
   update(I) <- I + n_SI - n_IR + d_reseeding
   update(R) <- R + n_IR - n_RS
+
+  # NPI level is a stock variable from 0 to max_intervention_level (5)
+  # 0 means business as usual, and 5 should mean something close to a lockdown.
   # Actual intervention updates with a delay
   update(NPI) <- NPI + (target_NPI - NPI) / days_to_adjust_NPI
 
-
   # target intervention level depends on prevalence
   # this might be modified to better represent alternative surveillance methods
-  # for instance, tests take longer to investigate
+  # for instance, tests take longer to obtain test information
+  # and there is also case ascertainment bias from tests
+  # we might want to incorporate that information here.
   target_NPI <- min((I/N) * stringency * 100, max_intervention_level)
 
   # Use this to debug the model
@@ -117,7 +130,7 @@ consolidated_long_results <-rbind(sir_a, sir_b) %>%
 
 
 consolidated_long_results %>%
-  filter(name %in% c("I", "NPI", "TotalCases", "TotalNPICost")) %>%
+  filter(name %in% c("I", "NPI")) %>%
   ggplot(mapping = aes(x = step, y = value, color = Scenario)) +
   geom_line() +
   xlab("Days") +
