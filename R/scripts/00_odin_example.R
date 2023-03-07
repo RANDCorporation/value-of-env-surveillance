@@ -29,6 +29,8 @@ sir_generator <- odin::odin({
   p_SI <- 1 - exp(-beta_policy * I / N) # S to I
   p_IR <- 1 - exp(-gamma) # I to R
 
+  # Would have to account for loss of immunity to capture oscilations.
+
   ## Draws from binomial distributions for numbers changing between
   ## compartments:
   n_SI <- rbinom(S, p_SI)
@@ -69,7 +71,7 @@ sir_generator <- odin::odin({
 
 }, verbose = FALSE)
 
-sir <- sir_generator$new(S_ini = 10000, I_ini = 10, beta = 0.1, beta_effect = 0.15, stringency = 2)
+sir <- sir_generator$new(S_ini = 10000, I_ini = 10, beta = 0.1, beta_effect = 0.15, stringency = 10)
 
 
 set.seed(1)
@@ -80,14 +82,6 @@ par(mar = c(4.1, 5.1, 0.5, 0.5), las = 1)
 matplot(res[, 1], res[, -1], xlab = "Time", ylab = "Number of individuals",
         type = "l", col = sir_col, lty = 1)
 legend("topright", lwd = 1, col = sir_col, legend = c("S", "I", "R"), bty = "n")
-
-
-
-
-
-
-
-
 
 
 res_200 <- sir$run(0:100, replicate = 1000)
