@@ -101,6 +101,7 @@ sir_a <- sir_generator$new(S_ini = 100000,
                          I_ini = 10,
                          beta = 0.2,
                          beta_effect = 0.2,
+                         theta = 1/365,
                          stringency = 3,
                          days_to_adjust_NPI = 7)$
   run(0:365) %>%
@@ -112,16 +113,29 @@ sir_b <- sir_generator$new(S_ini = 100000,
                            I_ini = 10,
                            beta = 0.2,
                            beta_effect = 0.2,
+                           theta = 1/365,
                            stringency = 3,
                            days_to_adjust_NPI = 21)$
                       run(0:365) %>% as.data.frame() %>%
   mutate(Scenario = "Policy Lag = 21 days")
 
 
+set.seed(1)
+sir_c <- sir_generator$new(S_ini = 100000,
+                           I_ini = 10,
+                           beta = 0.2,
+                           beta_effect = 0.2,
+                           theta = 1/365,
+                           stringency = 3,
+                           days_to_adjust_NPI = 35)$
+  run(0:365) %>% as.data.frame() %>%
+  mutate(Scenario = "Policy Lag = 35 days")
+
+
 
 # Comparing one trajectory:
 
-consolidated_long_results <-rbind(sir_a, sir_b) %>%
+consolidated_long_results <-rbind(sir_a, sir_b, sir_c) %>%
   mutate(NPI = round(NPI, 0)) %>%
   group_by(Scenario) %>%
   mutate(TotalCases = cumsum(I),
