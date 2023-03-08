@@ -23,15 +23,15 @@ library(dplyr)
 library(ggplot2)
 
 sir_generator <- odin::odin({
+
+  # I don't know how to access a time-step variable, so I'm creating a stock variable
+  update(Time) <- Time + 1
+
   ## Core equations for transitions between compartments:
   update(S) <- S - n_SI + n_RS
-  update(I) <- I + n_SI - n_IR + d_reseeding
+  update(I) <- I + n_SI - n_IR + n_re_seeding
   update(R) <- R + n_IR - n_RS
-
-  # NPI level is a stock variable from 0 to max_intervention_level (5)
-  # 0 means business as usual, and 5 should mean something close to a lockdown.
-  # Actual intervention updates with a delay
-  update(NPI) <- NPI + (target_NPI - NPI) / days_to_adjust_NPI
+  update(TimeLastNPIChange) <- if(new_NPI == NPI) TimeLastNPIChange else Time
 
   # target intervention level depends on prevalence
   # this might be modified to better represent alternative surveillance methods
@@ -39,6 +39,20 @@ sir_generator <- odin::odin({
   # and there is also case ascertainment bias from tests
   # we might want to incorporate that information here.
   target_NPI <- min((I/N) * stringency * 100, max_intervention_level)
+
+  # we only update NPI
+  can_update_NPI <- if(Time >= TimeLastNPIChange + days_to_adjust_NPI) 1 else 0
+
+  new_NPI <- if(can_update_NPI) target_NPI else NPI
+  # NPI level is a stock variable from 0 to max_intervention_level (5)
+  # 0 means business as usual, and 5 should mean something close to a lockdown.
+  # Actual intervention updates with a delay
+
+  # This implies continuous, smooth adjustment:
+  update(NPI) <- NPI + (target_NPI - NPI) / days_to_adjust_NPI
+
+  # this implies discrete-time periodic adjustment:
+  #update(NPI) <- new_NPI
 
   # Use this to debug the model
   # print("target_NPI: {target_NPI}")
@@ -59,6 +73,10 @@ sir_generator <- odin::odin({
   n_IR <- rbinom(I, p_IR)
   n_RS <- rbinom(R, p_RS)
 
+  # The new case importation follows a poisson distribution
+
+  n_re_seeding <- rpois(d_reseeding)
+
   ## Total population size
   N <- S + I + R
 
@@ -67,6 +85,8 @@ sir_generator <- odin::odin({
   initial(I) <- I_ini
   initial(R) <- 0
   initial(NPI) <- 0
+  initial(Time) <- 0
+  initial(TimeLastNPIChange) <- 0
 
   ## User defined parameters - default in parentheses:
   S_ini <- user(1000)
