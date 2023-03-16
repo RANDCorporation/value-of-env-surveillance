@@ -1,11 +1,28 @@
 
+# Author: Pedro Nascimento de Lima
+# Proof of concept model to explore VOI of Genomic Surveillance
 
-# Metapopulation model
-# Originally from:
-# http://epirecip.es/epicookbook/chapters/lloydjansen2004/r_odin
+# This is a model of multiple jurisdictions, describing both
+# mixing and travel between them.
+# In principle, travel restrictions policies would have to be represented by
+# additional time-series limiting travel from exposed or infectious
+
+# This file still implements a deterministic model.
+# If we want to allow disease elimination, we would have to re-write this
+# as a discrete-time and test it as a stochastic model.
+
+# This example uses the odin package, using the epirecipes website as a starting point.
+
+
+# Install required packages if needed.
+#if (!require("drat")) install.packages("drat")
+#drat:::add("mrc-ide")
+#install.packages("dde")
+#install.packages("odin")
+# LAtest version from github is also recommended:
+# remotes::install_github("https://github.com/mrc-ide/odin/")
 
 library(odin)
-
 
 # Helper functions:
 
