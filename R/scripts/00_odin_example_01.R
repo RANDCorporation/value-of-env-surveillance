@@ -4,11 +4,13 @@
 # Author: Pedro Nascimento de Lima
 # Proof of concept model to explore VOI of Genomic Surveillance
 
+# This is a model of a single jurisdiction.
+
 # This file implements a stochastic SIR model with a dynamic controller
-# akin to the one seen in our "Reopening California" paper.
+# similar to the one seen in our "Reopening California" paper.
 
 # This example uses the odin package.
-# I built this example starting from this SIR stochastic
+# I built this example starting from this SIR stochastic model.
 # http://epirecip.es/epicookbook/chapters/sir-stochastic-discretestate-discretetime/r_odin
 
 #if (!require("drat")) install.packages("drat")
@@ -39,6 +41,9 @@ sir_generator <- odin::odin({
   # and there is also case ascertainment bias from tests
   # we might want to incorporate that information here.
   target_NPI <- min((I/N) * stringency * 100, max_intervention_level)
+
+  # Output
+  output(target_NPI) <- TRUE
 
   # we only update NPI
   can_update_NPI <- if(Time >= TimeLastNPIChange + days_to_adjust_NPI) 1 else 0
@@ -99,7 +104,7 @@ sir_generator <- odin::odin({
 
   # inbound net migration (i.e., re-seeding)
   # people per day entering with an infection
-  d_reseeding <- user(2)
+  d_reseeding <- user(0)
 
   days_to_adjust_NPI <- user(7)
 
@@ -113,10 +118,11 @@ sir_generator <- odin::odin({
   # maximum intervention level
   max_intervention_level <- user(5)
 
-}, verbose = T, debug_enable = T)
+}, verbose = T, debug_enable = T, workdir = "./cpp")
 
 
 set.seed(1)
+
 sir_a <- sir_generator$new(S_ini = 100000,
                          I_ini = 10,
                          beta = 0.2,
