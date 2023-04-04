@@ -104,10 +104,6 @@ SEIR_cont <- odin::odin({
   nr_patches <- user(2)
   n <- nr_patches
 
-  # Differential Equations:
-
-
-
   ## Params
   lambda_prod[ , ] <- beta[i, j] * I[j]
   lambda[] <- sum(lambda_prod[i, ]) # rowSums
@@ -125,12 +121,19 @@ SEIR_cont <- odin::odin({
 
   # I think this outputs N
   output(N[]) <- TRUE
+  output(S_E[]) <- TRUE
+  output(mob_S[]) <- TRUE
+
+  ## Epidemiological Flows
+  S_E[] <- S[i] * lambda[i]
+  E_I[] <- sigma * E[i]
+  I_R[] <- gamma * I[i]
 
   ## Derivatives
-  update(S[]) <- mu - mu*S[i] - S[i]*lambda[i]         + M[1] * mob_S[i]
-  update(E[]) <- S[i]*lambda[i] - (mu + sigma) * E[i]  + M[2] * mob_E[i]
-  update(I[]) <- sigma*E[i] - (mu + gamma)*I[i]        + M[3] * mob_I[i]
-  update(R[]) <- gamma*I[i] - mu*R[i]                  + M[4] * mob_R[i]
+  deriv(S[]) <- - S_E[i]         + M[1] * mob_S[i]
+  deriv(E[]) <- S_E[i] - E_I[i]  + M[2] * mob_E[i]
+  deriv(I[]) <- E_I[i] - I_R[i]  + M[3] * mob_I[i]
+  deriv(R[]) <- I_R[i]           + M[4] * mob_R[i]
 
   ## Initial conditions
   initial(S[]) <- 1.0 - 1E-6
@@ -142,16 +145,15 @@ SEIR_cont <- odin::odin({
   beta[,] <- user()   # effective contact rate
   sigma   <- 1/3      # rate of breakdown to active disease
   gamma   <- 1/3      # rate of recovery from active disease
-  mu      <- 1/10     # background mortality
   C[,]    <- user()   # origin-destination matrix of proportion of population that travels
   M[]     <- user()   # relative migration propensity by disease status
 
   ## dimensions
-  dim(beta)        <- c(n, n)
-  dim(C)           <- c(n, n)
-  dim(M)           <- 4
-  dim(lambda_prod) <- c(n, n)
-  dim(lambda)      <- n
+  dim(beta)        <- c(n, n) # contact matrix
+  dim(C)           <- c(n, n) # Mobility matrix
+  dim(M)           <- 4       # Relative Mobility vector
+  dim(lambda_prod) <- c(n, n) # Force of infection matrix
+  dim(lambda)      <- n       # Force of infection vector
   dim(mob_prod)    <- c(n, n)
   dim(mob_S)       <- n
   dim(mob_E)       <- n
@@ -162,7 +164,9 @@ SEIR_cont <- odin::odin({
   dim(I)           <- n
   dim(R)           <- n
   dim(N)           <- n
-
+  dim(S_E)         <- n
+  dim(E_I)         <- n
+  dim(I_R)         <- n
 })
 
 
@@ -172,19 +176,51 @@ set.seed(1)
 
 # SEIR free parameters --------------------------------------------------------#
 ## total number of patches in the model
-nr_patches = 10
+nr_patches = 2
 ## relative migration propensity by disease status (S, E, I, R)
 M <- c(1, 0.5, 1, 1)
 ## matrix of effective contact rates
-beta <- beta.mat(nr_patches)
-## mobility matrix
+# using the function above
+#beta <- beta.mat(nr_patches)
+# Or assigning the beta matrix directly
+beta <- diag(1.5, nrow = nr_patches, ncol = nr_patches)
+
+
+
+## mobility matrix using the random function
+
 C <- mob.mat(nr_patches)
+
+## A symetric mobility matrix:
+# 1 % of the population travels every day in every jurisdiction
+# It represents people leaving from each row, entering each
+daily_travel <- 0.01
+
+# Divide that by the number of destinations
+travel_per_destination <- daily_travel / (nr_patches-1)
+
+# Create the mobility matrix
+mob <- matrix(data = daily_travel, nrow = nr_patches, ncol = nr_patches)
+
+# The diagonal of the mobility matrix must be the number of people leaving
+# So we first set it to zero:
+diag(mob) <- 0
+
+# Assign it to the Column sums
+# row sums would also work because everything is symetric in this example.
+# But the sum
+diag(mob) <- -rowSums(mob)
+
+# Is the mobility matrix balanced?
+sum(mob) == 0
 
 
 # run SEIR model --------------------------------------------------------------#
-mod <- SEIR_cont$new(nr_patches=nr_patches, beta=beta, C=C, M=M)
-t <- seq(0, 50, 1)
+mod <- SEIR_cont$new(nr_patches=nr_patches, beta=beta, C=mob, M=M)
+t <- seq(0, 100, 1)
 out <- mod$run(t)
+
+View(out)
 out <- mod$transform_variables(out)
 
 
@@ -199,3 +235,4 @@ plot.pretty(out, nr_patches, "total")
 
 # plot densities of some patches by disease status ----------------------------#
 plot.pretty(out, nr_patches, "panels")
+

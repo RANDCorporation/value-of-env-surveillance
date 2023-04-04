@@ -27,10 +27,14 @@ library(odin)
 # Helper functions:
 
 # beta matrix: random initialisation -----------------------------------------------------
+
+# This function creates a sample beta matrix with mixing across jurisdictions
+# Instead,
 beta.mat <- function (nr_patches) {
   ## beta: positive, non-symmetric matrix of effective contact rates
   ## values are higher on the diagonal (transmission is higher *within*-patch),
   ## values decrease gradually further away from the diagonal (*between*-patch transmission)
+  # PNL note: we may want to set those to zero
   beta <- matrix(0, nrow=nr_patches, ncol=nr_patches)
   for (i in 0:(nr_patches-1)) {
     ## superdiagonal: scale vector s.t. numbers decrease further away from diagonal
@@ -190,7 +194,16 @@ nr_patches = 10
 ## relative migration propensity by disease status (S, E, I, R)
 M <- c(1, 0.5, 1, 1)
 ## matrix of effective contact rates
-beta <- beta.mat(nr_patches)
+#  Here, one might use the function to create a beta matrix randomly using
+# Using the function provided
+# beta <- beta.mat(nr_patches)
+
+# Or, one might use a diagonal matrix with beta values for each jurisdiction
+
+# This implies 10 contacts per day
+# This might be specified as an user input
+beta <- diag(10, nrow = nr_patches, ncol = nr_patches)
+
 ## mobility matrix
 C <- mob.mat(nr_patches)
 
