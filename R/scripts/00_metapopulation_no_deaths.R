@@ -49,6 +49,7 @@ plot.pretty <- function(out, nr_patches, what) {
     ## compute total densities by disease status
     S_tot <- rowSums(out$S) / nr_patches
     E_tot <- rowSums(out$E) / nr_patches
+    P_tot <- rowSums(out$P) / nr_patches
     I_tot <- rowSums(out$I) / nr_patches
     R_tot <- rowSums(out$R) / nr_patches
 
@@ -57,12 +58,13 @@ plot.pretty <- function(out, nr_patches, what) {
     plot( t, S_tot, col="green",
           type="l", xlab="Days", ylab="Densities",
           main="Total densities by disease status")
-    lines(t, E_tot, col="orange")
+    lines(t, E_tot, col="yellow")
+    lines(t, P_tot, col="orange")
     lines(t, I_tot, col="red")
     lines(t, R_tot, col="blue")
     legend(-8.5, -0.3, title="Disease statuses", horiz=TRUE,
-           legend=c("Susceptible", "Exposed", "Infectious", "Recovered"),
-           col=c("green", "orange", "red", "blue"), lty=1)
+           legend=c("Susceptible", "Exposed", "Pre-Symptomatic", "Infectious", "Recovered"),
+           col=c("green", "yellow", "orange", "red", "blue"), lty=1)
   }
 
   # plot densities of some patches by disease status ----------------------------#
@@ -105,45 +107,58 @@ SEIR_cont <- odin::odin({
   n <- nr_patches
 
   ## Params
-  lambda_prod[ , ] <- beta[i, j] * I[j]
+  # Assignments in arrays are translated by odin to for loops in C
+  # See https://mrc-ide.github.io/odin/articles/functions.html
+
+  lambda_prod[ , ] <- beta[i, j] * (I[j] + P[j])
   lambda[] <- sum(lambda_prod[i, ]) # rowSums
 
   mob_prod[ , ] <- S[i] * C[i, j]
   mob_S[] <- sum(mob_prod[, i])     # colSums
+
   mob_prod[ , ] <- E[i] * C[i, j]
   mob_E[] <- sum(mob_prod[, i])
+
+  mob_prod[ , ] <- P[i] * C[i, j]
+  mob_P[] <- sum(mob_prod[, i])
+
   mob_prod[ , ] <- I[i] * C[i, j]
   mob_I[] <- sum(mob_prod[, i])
+
   mob_prod[ , ] <- R[i] * C[i, j]
   mob_R[] <- sum(mob_prod[, i])
 
-  N[] <- S[i] + E[i] + I[i] + R[i]
+  N[] <- S[i] + E[i] + P[i] + I[i] + R[i]
 
   # I think this outputs N
   output(N[]) <- TRUE
-  output(S_E[]) <- TRUE
-  output(mob_S[]) <- TRUE
+  output(lambda_prod[]) <- TRUE
+  output(lambda[]) <- TRUE
 
   ## Epidemiological Flows
   S_E[] <- S[i] * lambda[i]
-  E_I[] <- sigma * E[i]
+  E_P[] <- sigma * E[i]
+  P_I[] <- delta * P[i]
   I_R[] <- gamma * I[i]
 
   ## Derivatives
   deriv(S[]) <- - S_E[i]         + M[1] * mob_S[i]
-  deriv(E[]) <- S_E[i] - E_I[i]  + M[2] * mob_E[i]
-  deriv(I[]) <- E_I[i] - I_R[i]  + M[3] * mob_I[i]
-  deriv(R[]) <- I_R[i]           + M[4] * mob_R[i]
+  deriv(E[]) <- S_E[i] - E_P[i]  + M[2] * mob_E[i]
+  deriv(P[]) <- E_P[i] - P_I[i]  + M[3] * mob_P[i]
+  deriv(I[]) <- P_I[i] - I_R[i]  + M[4] * mob_I[i]
+  deriv(R[]) <- I_R[i]           + M[5] * mob_R[i]
 
   ## Initial conditions
   initial(S[]) <- 1.0 - 1E-6
   initial(E[]) <- 0.0
+  initial(P[]) <- 0.0
   initial(I[]) <- 1E-6
   initial(R[]) <- 0.0
 
   ## parameters
-  beta[,] <- user()   # effective contact rate
-  sigma   <- 1/3      # rate of breakdown to active disease
+  beta[,] <- user()   # effective contact rate (S to e)
+  sigma   <- 1/6      # progression rate from Exposed to Pre-symptomatic
+  delta   <- 1/6      # rate of progression from pre-symptomatic to Infected
   gamma   <- 1/3      # rate of recovery from active disease
   C[,]    <- user()   # origin-destination matrix of proportion of population that travels
   M[]     <- user()   # relative migration propensity by disease status
@@ -151,21 +166,24 @@ SEIR_cont <- odin::odin({
   ## dimensions
   dim(beta)        <- c(n, n) # contact matrix
   dim(C)           <- c(n, n) # Mobility matrix
-  dim(M)           <- 4       # Relative Mobility vector
+  dim(M)           <- 5       # Relative Mobility vector
   dim(lambda_prod) <- c(n, n) # Force of infection matrix
   dim(lambda)      <- n       # Force of infection vector
   dim(mob_prod)    <- c(n, n)
   dim(mob_S)       <- n
   dim(mob_E)       <- n
+  dim(mob_P)       <- n
   dim(mob_I)       <- n
   dim(mob_R)       <- n
   dim(S)           <- n
   dim(E)           <- n
+  dim(P)           <- n
   dim(I)           <- n
   dim(R)           <- n
   dim(N)           <- n
   dim(S_E)         <- n
-  dim(E_I)         <- n
+  dim(E_P)         <- n
+  dim(P_I)         <- n
   dim(I_R)         <- n
 })
 
@@ -178,12 +196,12 @@ set.seed(1)
 ## total number of patches in the model
 nr_patches = 2
 ## relative migration propensity by disease status (S, E, I, R)
-M <- c(1, 0.5, 1, 1)
+M <- c(1, 1, 0.5, 1, 1)
 ## matrix of effective contact rates
 # using the function above
 #beta <- beta.mat(nr_patches)
 # Or assigning the beta matrix directly
-beta <- diag(1.5, nrow = nr_patches, ncol = nr_patches)
+beta <- diag(3, nrow = nr_patches, ncol = nr_patches)
 
 
 
@@ -234,5 +252,5 @@ if ( ! all( abs(rowSums(out$N) - nr_patches) < 1E-10 ) )
 plot.pretty(out, nr_patches, "total")
 
 # plot densities of some patches by disease status ----------------------------#
-plot.pretty(out, nr_patches, "panels")
+#plot.pretty(out, nr_patches, "panels")
 
