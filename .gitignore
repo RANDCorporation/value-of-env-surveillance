@@ -2,3 +2,16 @@
 .Rhistory
 .RData
 .Ruserdata
+*.csv
+*.docx
+*.html
+*.pdf
+*.tex
+*.png
+*.spl
+paper/model-documentation_files/*
+*.DS_Store
+cpp/*
+paper/style-guide/*
+*.log
+*.aux

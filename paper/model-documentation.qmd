@@ -1,6 +1,6 @@
 ---
 title: Modeling costs and benefits of genomic wastewater surveillance
-subtitle: Model appendix draft
+subtitle: Supplementary appendix draft
 #author:
 #  - name: Pedro Nascimento de Lima
 #    email: plima@rand.org
@@ -94,14 +94,16 @@ $$ {#eq-actualnpi}
 
 where $a$ represents the adjustment time for NPIs (i.e., one or two weeks) using conventional measures.
 
-## Genomic surveillance
 
-Genomic surveillance might provide an early signal to decision makers by providing information about current disease prevalence, hence effectively reducing $a$. One might also represent genomic surveillance using a mechanistic formulation where
 
 ```{=html}
 <!-- 
 Sections to complete
 
+
+## Genomic surveillance
+
+Genomic surveillance might provide an early signal to decision makers by providing an early signal of prevalence, hence effectively reducing $a$.
 
 ## Travel
 
