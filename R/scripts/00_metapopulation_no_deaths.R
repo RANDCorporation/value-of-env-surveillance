@@ -12,7 +12,6 @@
 
 library(odin)
 
-
 # Helper functions:
 
 SEIR_cont <- odin::odin({
@@ -23,10 +22,19 @@ SEIR_cont <- odin::odin({
   # Assignments in arrays are translated by odin to for loops in C
   # See https://mrc-ide.github.io/odin/articles/functions.html
 
+
+  # Disease transmission equation
   lambda_prod[ , ] <- beta[i, j] * (I[j] + P[j])
   lambda[] <- sum(lambda_prod[i, ]) # rowSums
 
+
+  # Mobility equations
+  # mob_prod object is re-used for each disease status.
+
+  # Calculate the number of people leaving each state
   mob_prod[ , ] <- S[i] * C[i, j]
+
+  # and compute net flow of mobility to S
   mob_S[] <- sum(mob_prod[, i])     # colSums
 
   mob_prod[ , ] <- E[i] * C[i, j]
@@ -43,10 +51,12 @@ SEIR_cont <- odin::odin({
 
   N[] <- S[i] + E[i] + P[i] + I[i] + R[i]
 
-  # I think this outputs N
+  # output desired variables for debugging
   output(N[]) <- TRUE
   output(lambda_prod[]) <- TRUE
   output(lambda[]) <- TRUE
+  output(S_E[]) <- TRUE
+  output(mob_prod[]) <- TRUE
 
   ## Epidemiological Flows
   S_E[] <- S[i] * lambda[i]
@@ -55,11 +65,11 @@ SEIR_cont <- odin::odin({
   I_R[] <- gamma * I[i]
 
   ## Derivatives
-  deriv(S[]) <- - S_E[i]         + M[1] * mob_S[i]
-  deriv(E[]) <- S_E[i] - E_P[i]  + M[2] * mob_E[i]
-  deriv(P[]) <- E_P[i] - P_I[i]  + M[3] * mob_P[i]
-  deriv(I[]) <- P_I[i] - I_R[i]  + M[4] * mob_I[i]
-  deriv(R[]) <- I_R[i]           + M[5] * mob_R[i]
+  deriv(S[]) <- - S_E[i]         + mp[1] * mob_S[i]
+  deriv(E[]) <- S_E[i] - E_P[i]  + mp[2] * mob_E[i]
+  deriv(P[]) <- E_P[i] - P_I[i]  + mp[3] * mob_P[i]
+  deriv(I[]) <- P_I[i] - I_R[i]  + mp[4] * mob_I[i]
+  deriv(R[]) <- I_R[i]           + mp[5] * mob_R[i]
 
   ## Initial conditions
   initial(S[]) <- 1.0 - 1E-6
@@ -74,12 +84,12 @@ SEIR_cont <- odin::odin({
   delta   <- 1/6      # rate of progression from pre-symptomatic to Infected
   gamma   <- 1/3      # rate of recovery from active disease
   C[,]    <- user()   # origin-destination matrix of proportion of population that travels
-  M[]     <- user()   # relative migration propensity by disease status
+  mp[]     <- user()  # relative migration propensity by disease status
 
   ## dimensions
   dim(beta)        <- c(n, n) # contact matrix
   dim(C)           <- c(n, n) # Mobility matrix
-  dim(M)           <- 5       # Relative Mobility vector
+  dim(mp)           <- 5       # Relative Mobility vector
   dim(lambda_prod) <- c(n, n) # Force of infection matrix
   dim(lambda)      <- n       # Force of infection vector
   dim(mob_prod)    <- c(n, n)
@@ -107,15 +117,22 @@ set.seed(1)
 
 # SEIR free parameters --------------------------------------------------------#
 ## total number of patches in the model
-nr_patches = 2
-## relative migration propensity by disease status (S, E, I, R)
-M <- c(1, 1, 0.5, 1, 1)
+nr_patches = 6
+## relative migration propensity by disease status (S, P, E, I, R)
+mp_S = 1
+mp_P = 1
+mp_E = 0.5
+mp_I = 1
+mp_R = 1
+
+mp <- c(1, 1, 0.5, 1, 1)
 ## matrix of effective contact rates
 # using the function above
 #beta <- beta.mat(nr_patches)
 # Or assigning the beta matrix directly
-beta <- diag(3, nrow = nr_patches, ncol = nr_patches)
+beta <- diag(1, nrow = nr_patches, ncol = nr_patches)
 
+write.csv(beta, file = "mixing.csv")
 
 
 ## mobility matrix using the random function
@@ -145,9 +162,10 @@ diag(mob) <- -rowSums(mob)
 # Is the mobility matrix balanced?
 sum(mob) == 0
 
+write.csv(mob, file = "mobility.csv")
 
 # run SEIR model --------------------------------------------------------------#
-mod <- SEIR_cont$new(nr_patches=nr_patches, beta=beta, C=mob, M=M)
+mod <- SEIR_cont$new(nr_patches=nr_patches, beta=beta, C=mob, mp=mp)
 t <- seq(0, 100, 1)
 out <- mod$run(t)
 

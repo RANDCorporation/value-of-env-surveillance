@@ -1,0 +1,136 @@
+---
+title: Modeling costs and benefits of genomic wastewater surveillance
+subtitle: Model appendix draft
+#author:
+#  - name: Pedro Nascimento de Lima
+#    email: plima@rand.org
+#    affiliations: 
+#        - id: rand
+#          name: RAND Corporation
+#          department: Engineering and Applied Sciences
+#          address: 1776 Main Street
+#          city: Santa Monica
+#          state: CA
+#          postal-code: 90401
+#    attributes:
+#        corresponding: true
+#  - name: and colleagues
+#    email: others@rand.org
+#    affiliations:
+#        - ref: rand
+abstract: |
+  Introduces a model to assess the value provided by wastewater genomic surveillance network. This document is meant to be used as a supplementary appendix of the paper.
+keywords: 
+  - Genomic Surveillance
+  - Pandemic Response
+date: last-modified
+bibliography: bibliography.bib
+format:
+  elsevier-pdf:
+    keep-tex: true
+    journal:
+      #name: Journal Name
+      formatting: preprint
+      model: 3p
+      cite-style: super
+  elsevier-html:
+    keep-tex: true
+    journal:
+      #name: Journal Name
+      formatting: preprint
+      model: 3p
+      cite-style: super
+  docx:
+      cite-style: super
+---
+
+<!-- Template source: https://github.com/quarto-journals/elsevier download repository and place it within this folder.-->
+
+# Model
+
+We start with a standard disease transmission model describing person-to-person transmission of an infectious pathogen across $n$ jurisdictions. The state-space of the model is comprised of a set of health statuses $\mathbf{S}, \mathbf{E}, \mathbf{P}, \mathbf{I}, \mathbf{R}$, each a $1 \times n$ vector representing the population within each compartment, respectively representing the number of Susceptibles, Exposed, Pre-Symptomatic, Infected and Removed[^1]. @eq-ode1 describes a system of differential equations representing the model, and @tbl-parameters contains parameter definitions, values and their sources.
+
+[^1]: We start with a simplified version including only a minimal set of disease states before expanding the state-space of the model to include asymptomatic, mildy symptomatic and severely symptomatic compartments
+
+$$ 
+\begin{align}
+\dot{\mathbf{S}} &=\ - \boldsymbol{\lambda}_t \odot \mathbf{S} + p_S \mathbf{m}_S \\
+\dot{\mathbf{E}} &=\ \boldsymbol{\lambda}_t \odot \mathbf{S} - \sigma \mathbf{E} + p_E \mathbf{m}_E \\
+\dot{\mathbf{P}} &=\ \sigma \mathbf{E} - \delta \mathbf{P} + p_P \mathbf{m}_P \\
+\dot{\mathbf{I}} &=\ \delta \mathbf{P} - \gamma \mathbf{I} + p_I \mathbf{m}_I \\
+\dot{\mathbf{R}} &=\ \gamma \mathbf{I} + p_R \mathbf{m}_R \\
+\end{align}
+$$ {#eq-ode1}
+
+where $\dot{\mathbf{S}}, \dot{\mathbf{E}}, \dot{\mathbf{P}}, \dot{\mathbf{I}}, \dot{\mathbf{R}}$ represent the time derivatives of each disease status, greek letters represent progression rates and $p_x\mathbf{m}_x$ terms represent migration flows $\mathbf{m}_x$ modulated by propensity to travel $p_x$ at disease state $x \in \{S, E, P, I, R\}$. Force of infection $\boldsymbol{\lambda}_t$ is computed using a time-varying effective contact-rate vector $\boldsymbol{\beta}_t$ which will depend on contact rates within each strata as well as nonpharmaceutical interventions (discussed later). Infectiousness of each disease status $\mathbf{P}$ and $\mathbf{I}$ are modulated by constants $c_p$ and $c_i$.
+
+$$ 
+\boldsymbol{\lambda}_t = \boldsymbol{\beta}_t (c_p\mathbf{P}_t + c_i\mathbf{I}_t)
+$$ {#eq-force-inf}
+
+## Nonpharmaceutical interventions {#npi}
+
+Following mitigation plans adopted during the COVID-19 pandemic, nonpharmaceutical interventions (NPIs) are modeled as a set of intervention portfolios organized within intensity levels with a pre-specified marginal effectiveness $\tau$ at each intervention level $l \in L = \{1,2,3,...,l_{max}\}$. In this analysis, $\tau$ is specified as a percent reduction in infectious contacts induced by a set of interventions introduced by public health decision-makers. In principle, $\tau_l$ can be specified so that it is dependent on the intervention level as in [@nascimentodelima2021], but this analysis assumes a constant, additive marginal effectiveness of interventions. For instance, if $\tau = 0.15$, then introducing the first intervention level reduces potential infectious contacts by 15% relative to a no-intervention scenario and introducing the second intervention level reduces infectious contacts by 30%. Under this specification, $l_{max} \tau \in (0,1)$.
+
+$$ 
+\boldsymbol{\beta}_t = (1-\mathbf{l}_t\tau) \boldsymbol{\beta}_b
+$$ {#eq-betat}
+
+and the intervention level $\mathbf{l}_t$ is a jurisdiction-dependent nonpharmaceutical intervention level. $\mathbf{l}_t$ can be either specified as an exogenous variable or an endogenous variable controlled by local publich health departments.
+
+## Introducing and removing NPIs
+
+In this model, local public health decision-makers follow epidemiological outcomes that are proportional to $\mathbf{I_t}$ (such as case counts) to decide the appropriate level of intervention. Thus, we specify a target NPI level $\mathbf{l}_t^*$ as a function of the disease state.
+
+$$ 
+\mathbf{l}_t^* = cI
+$$ {#eq-targetnpi}
+
+This formulation approximates phased mitigation plans where policymakers introduce or remove interventions depending on disease prevalence. While public health decision-makers strive to use up-to-date information to introduce and remove NPIs, they do not have perfect and instantaneous information about the disease state. In continuous time, we represent this process with a stock vector $\mathbf{L}$ representing the NPI level in effect
+
+$$ 
+\dot{\mathbf{L}} = \frac{1}{a}(\mathbf{l}_t^*-\mathbf{L})
+$$ {#eq-actualnpi}
+
+where $a$ represents the adjustment time for NPIs (i.e., one or two weeks) using conventional measures.
+
+## Genomic surveillance
+
+Genomic surveillance might provide an early signal to decision makers by providing information about current disease prevalence, hence effectively reducing $a$. One might also represent genomic surveillance using a mechanistic formulation where
+
+```{=html}
+<!-- 
+Sections to complete
+
+
+## Travel
+
+Individuals travel from jurisdiction $i$ to $j$ at a daily rate $r_{ij}$. This baseline rate is multiplied by a factor  by a factor  The daily travel flows $t_{ij} \sim Pois(\lambda_{ij})$. We used data from {blank} to estimate travel flows between 
+
+### Information sharing and coordination
+
+Jurisdictions can share information and use each other's epidemiological indicators to decide when to introduce and remove Nonpharmaceutical interventions. 
+
+## Effect of genomic surveillance
+
+Genomic surveillance is assumed to provide benefits to public health decision makers by providing an early signal of surges that would be otherwise detected later via testing of symptomatic individuals.
+
+# Model parameters {#parameters}
+
+@tbl-parameters presents the set of model parameters used in this analysis, their meaning, and their baseline values and sources used.
+
+-->
+```
+# Tables
+
+```{r}
+#| label: tbl-parameters
+#| tbl-cap: Parameters and values
+#| echo: false
+
+params <- data.frame(Parameter = "$\\lambda_{ij}$ Travel rate", `Value` = "Mobility Matrix A", Source = "[@Feynman1963118]")
+
+knitr::kable(params)
+```
+
+# References {.unnumbered}
