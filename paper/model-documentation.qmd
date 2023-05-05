@@ -35,6 +35,8 @@ format:
       cite-style: super
   elsevier-html:
     keep-tex: true
+    mermaid:
+      theme: neutral
     journal:
       #name: Journal Name
       formatting: preprint
@@ -42,6 +44,10 @@ format:
       cite-style: super
   docx:
       cite-style: super
+  html:
+    keep-tex: true
+    mermaid:
+      theme: neutral
 ---
 
 <!-- Template source: https://github.com/quarto-journals/elsevier download repository and place it within this folder.-->
@@ -62,7 +68,19 @@ $$
 \end{align}
 $$ {#eq-ode1}
 
-where $\dot{\mathbf{S}}, \dot{\mathbf{E}}, \dot{\mathbf{P}}, \dot{\mathbf{I}}, \dot{\mathbf{R}}$ represent the time derivatives of each disease status, greek letters represent progression rates and $p_x\mathbf{m}_x$ terms represent migration flows $\mathbf{m}_x$ modulated by propensity to travel $p_x$ at disease state $x \in \{S, E, P, I, R\}$. Force of infection $\boldsymbol{\lambda}_t$ is computed using a time-varying effective contact-rate vector $\boldsymbol{\beta}_t$ which will depend on contact rates within each strata as well as nonpharmaceutical interventions (discussed later). Infectiousness of each disease status $\mathbf{P}$ and $\mathbf{I}$ are modulated by constants $c_p$ and $c_i$.
+where $\dot{\mathbf{S}}, \dot{\mathbf{E}}, \dot{\mathbf{P}}, \dot{\mathbf{I}}, \dot{\mathbf{R}}$ represent the time derivatives of each disease status, greek letters represent progression rates and $p_x\mathbf{m}_x$ terms represent migration flows $\mathbf{m}_x$ modulated by propensity to travel $p_x$ at disease state $x \in \{S, E, P, I, R\}$. @fig-model-diagram illustrates the model.
+
+```{mermaid}
+%%| label: fig-model-diagram
+%%| fig-cap: Model diagram
+%%| fig-width: 6.5
+%%| fig-align: center
+flowchart LR
+  S --> E --> P --> I --> R
+  I --> l --> E
+```
+
+Force of infection $\boldsymbol{\lambda}_t$ is computed using a time-varying effective contact-rate vector $\boldsymbol{\beta}_t$ which will depend on contact rates within each strata as well as nonpharmaceutical interventions (discussed later). Infectiousness of each disease status $\mathbf{P}$ and $\mathbf{I}$ are modulated by constants $c_p$ and $c_i$.
 
 $$ 
 \boldsymbol{\lambda}_t = \boldsymbol{\beta}_t (c_p\mathbf{P}_t + c_i\mathbf{I}_t)
