@@ -1,6 +1,6 @@
 ---
 title: Modeling costs and benefits of genomic wastewater surveillance
-subtitle: Supplementary appendix draft
+# subtitle: Supplementary appendix draft
 #author:
 #  - name: Pedro Nascimento de Lima
 #    email: plima@rand.org
@@ -52,6 +52,12 @@ format:
 
 <!-- Template source: https://github.com/quarto-journals/elsevier download repository and place it within this folder.-->
 
+# Background
+
+While researchers have demonstrated that wastewater-based surveillance (WBS) systems can provide an early warning system for pandemic response [@zhu2021] and be used to support estimation of the latent number of infections in COVID-19 transmission models [@soller2022], the value of information provided by WBS has yet to be demonstrated.
+
+This paper develops a stochastic metapopulation disease transmission model and uses it to assess the conditions under which WBS systems can provide value to local public health decision makers who respond to a pandemic using surveillance data. We evaluate a range of scenarios that represent different potential pathogens and highlight scenarios under which WBS systems may or may not be cost-effective.
+
 # Model
 
 We start with a standard disease transmission model describing person-to-person transmission of an infectious pathogen across $n$ jurisdictions. The state-space of the model is comprised of a set of health statuses $\mathbf{S}, \mathbf{E}, \mathbf{P}, \mathbf{I}, \mathbf{R}$, each a $1 \times n$ vector representing the population within each compartment, respectively representing the number of Susceptibles, Exposed, Pre-Symptomatic, Infected and Removed[^1]. @eq-ode1 describes a system of differential equations representing the model, and @tbl-parameters contains parameter definitions, values and their sources.
@@ -96,7 +102,7 @@ $$ {#eq-betat}
 
 and the intervention level $\mathbf{l}_t$ is a jurisdiction-dependent nonpharmaceutical intervention level. $\mathbf{l}_t$ can be either specified as an exogenous variable or an endogenous variable controlled by local publich health departments.
 
-## Introducing and removing NPIs
+## Controlling NPIs
 
 In this model, local public health decision-makers follow epidemiological outcomes that are proportional to $\mathbf{I_t}$ (such as case counts) to decide the appropriate level of intervention. Thus, we specify a target NPI level $\mathbf{l}_t^*$ as a function of the disease state.
 
@@ -112,7 +118,15 @@ $$ {#eq-actualnpi}
 
 where $a$ represents the adjustment time for NPIs (i.e., one or two weeks) using conventional measures.
 
+## Cost of interventions
 
+The cost of reducing infectious contacts over a time period $t_0$ to $t_f$ may be defined as a function of the effect of interventions
+
+$$
+C = \int_{t_0}^{t_f}{f(\mathbf{l}_t\tau)}
+$${#eq-cost} 
+
+where $f(x)$ is a function that maps a percent reduction in potentially infectious contacts to a monetary value. At the time of the intervention, decision-makers do not have precise information about the costs of interventions $\tau$ or its costs represented by function $f(x)$.
 
 ```{=html}
 <!-- 
