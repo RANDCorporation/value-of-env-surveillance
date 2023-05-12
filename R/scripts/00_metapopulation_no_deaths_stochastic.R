@@ -28,7 +28,7 @@ SEIR_cont <- odin::odin({
   lambda[] <- sum(lambda_prod[i, ]) # rowSums
 
   # This is the probability of infection | susceptible
-  p_SI[] <- 1 - exp(-lambda[i]/N[i])
+  p_SE[] <- 1 - exp(-lambda[i]/N[i])
 
 
 
@@ -63,7 +63,7 @@ SEIR_cont <- odin::odin({
   output(mob_prod[]) <- TRUE
 
   ## Epidemiological Flows
-  S_E[] <- rbinom(S[i], p_SI[i]) # S[i] * lambda[i]
+  S_E[] <- rbinom(S[i], p_SE[i]) # S[i] * lambda[i]
   E_P[] <- rbinom(E[i], 1-exp(-sigma))
   P_I[] <- rbinom(P[i], 1-exp(-delta))
   I_R[] <- rbinom(I[i], 1-exp(-gamma))
@@ -112,7 +112,7 @@ SEIR_cont <- odin::odin({
   dim(E_P)         <- n
   dim(P_I)         <- n
   dim(I_R)         <- n
-  dim(p_SI)         <- n
+  dim(p_SE)        <- n
 })
 
 
