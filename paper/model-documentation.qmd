@@ -60,6 +60,7 @@ This paper develops a stochastic metapopulation disease transmission model and u
 <!--
 Our results highlight that the value of WBS systems is contingent on a set of biological and societal parameters, including pathogen characteristics (i.e., transmissibility and severity), as well as the geographic scale of 
 -->
+
 # Methods
 
 ## Disease Transmission Model
