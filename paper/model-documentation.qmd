@@ -52,13 +52,17 @@ format:
 
 <!-- Template source: https://github.com/quarto-journals/elsevier download repository and place it within this folder.-->
 
-# Background
+# Introduction
 
 While researchers have demonstrated that wastewater-based surveillance (WBS) systems can provide an early warning system for pandemic response [@zhu2021] and be used to support estimation of the latent number of infections in COVID-19 transmission models [@soller2022], the value of information provided by WBS has yet to be demonstrated.
 
 This paper develops a stochastic metapopulation disease transmission model and uses it to assess the conditions under which WBS systems can provide value to local public health decision makers who respond to a pandemic using surveillance data. We evaluate a range of scenarios that represent different potential pathogens and highlight scenarios under which WBS systems may or may not be cost-effective.
+<!--
+Our results highlight that the value of WBS systems is contingent on a set of biological and societal parameters, including pathogen characteristics (i.e., transmissibility and severity), as well as the geographic scale of 
+-->
+# Methods
 
-# Model
+## Disease Transmission Model
 
 We start with a standard disease transmission model describing person-to-person transmission of an infectious pathogen across $n$ jurisdictions. The state-space of the model is comprised of a set of health statuses $\mathbf{S}, \mathbf{E}, \mathbf{P}, \mathbf{I}, \mathbf{R}$, each a $1 \times n$ vector representing the population within each compartment, respectively representing the number of Susceptibles, Exposed, Pre-Symptomatic, Infected and Removed[^1]. @eq-ode1 describes a system of differential equations representing the model, and @tbl-parameters contains parameter definitions, values and their sources.
 
@@ -83,7 +87,7 @@ where $\dot{\mathbf{S}}, \dot{\mathbf{E}}, \dot{\mathbf{P}}, \dot{\mathbf{I}}, \
 %%| fig-align: center
 flowchart LR
   S --> E --> P --> I --> R
-  I --> l --> E
+  I --> D
 ```
 
 Force of infection $\boldsymbol{\lambda}_t$ is computed using a time-varying effective contact-rate vector $\boldsymbol{\beta}_t$ which will depend on contact rates within each strata as well as nonpharmaceutical interventions (discussed later). Infectiousness of each disease status $\mathbf{P}$ and $\mathbf{I}$ are modulated by constants $c_p$ and $c_i$.
@@ -92,7 +96,7 @@ $$
 \boldsymbol{\lambda}_t = \boldsymbol{\beta}_t (c_p\mathbf{P}_t + c_i\mathbf{I}_t)
 $$ {#eq-force-inf}
 
-## Nonpharmaceutical interventions {#npi}
+### Nonpharmaceutical interventions {#npi}
 
 Following mitigation plans adopted during the COVID-19 pandemic, nonpharmaceutical interventions (NPIs) are modeled as a set of intervention portfolios organized within intensity levels with a pre-specified marginal effectiveness $\tau$ at each intervention level $l \in L = \{1,2,3,...,l_{max}\}$. In this analysis, $\tau$ is specified as a percent reduction in infectious contacts induced by a set of interventions introduced by public health decision-makers. In principle, $\tau_l$ can be specified so that it is dependent on the intervention level as in [@nascimentodelima2021], but this analysis assumes a constant, additive marginal effectiveness of interventions. For instance, if $\tau = 0.15$, then introducing the first intervention level reduces potential infectious contacts by 15% relative to a no-intervention scenario and introducing the second intervention level reduces infectious contacts by 30%. Under this specification, $l_{max} \tau \in (0,1)$.
 
@@ -100,17 +104,13 @@ $$
 \boldsymbol{\beta}_t = (1-\mathbf{l}_t\tau) \boldsymbol{\beta}_b
 $$ {#eq-betat}
 
-and the intervention level $\mathbf{l}_t$ is a jurisdiction-dependent nonpharmaceutical intervention level. $\mathbf{l}_t$ can be either specified as an exogenous variable or an endogenous variable controlled by local publich health departments.
-
-## Controlling NPIs
-
-In this model, local public health decision-makers follow epidemiological outcomes that are proportional to $\mathbf{I_t}$ (such as case counts) to decide the appropriate level of intervention. Thus, we specify a target NPI level $\mathbf{l}_t^*$ as a function of the disease state.
+and the intervention level $\mathbf{l}_t$ is a jurisdiction-dependent nonpharmaceutical intervention level. $\mathbf{l}_t$ can be either specified as an exogenous variable or an endogenous variable controlled by local public health departments. Public health decision-makers follow epidemiological outcomes that are proportional to $\mathbf{I_t}$ (such as case counts) to decide the appropriate level of intervention. Thus, we specify a target NPI level $\mathbf{l}_t^*$ as a linear function of disease prevalence.
 
 $$ 
-\mathbf{l}_t^* = cI
+\mathbf{l}_t^* = \min{(cI, l_{max})}
 $$ {#eq-targetnpi}
 
-This formulation approximates phased mitigation plans where policymakers introduce or remove interventions depending on disease prevalence. While public health decision-makers strive to use up-to-date information to introduce and remove NPIs, they do not have perfect and instantaneous information about the disease state. In continuous time, we represent this process with a stock vector $\mathbf{L}$ representing the NPI level in effect
+This formulation approximates phased mitigation plans adopted during the COVID-19 pandemic, where policymakers introduce or remove interventions depending on disease prevalence or other severity indicators. While public health decision-makers strive to use up-to-date information to introduce and remove NPIs, they do not have perfect and instantaneous information on disease prevalence; hence actual policy behaviors lag epidemiological indicators. In continuous time, we represent this process with a stock vector $\mathbf{L}$ representing the NPI level in effect
 
 $$ 
 \dot{\mathbf{L}} = \frac{1}{a}(\mathbf{l}_t^*-\mathbf{L})
@@ -123,10 +123,28 @@ where $a$ represents the adjustment time for NPIs (i.e., one or two weeks) using
 The cost of reducing infectious contacts over a time period $t_0$ to $t_f$ may be defined as a function of the effect of interventions
 
 $$
-C = \int_{t_0}^{t_f}{f(\mathbf{l}_t\tau)}
+C_{npi} = \int_{t_0}^{t_f}{f(\mathbf{l}_t\tau)}
 $${#eq-cost} 
 
-where $f(x)$ is a function that maps a percent reduction in potentially infectious contacts to a monetary value. At the time of the intervention, decision-makers do not have precise information about the costs of interventions $\tau$ or its costs represented by function $f(x)$.
+where $f(x)$ is a function that maps a percent reduction in potentially infectious contacts to a monetary cost. At the time of the intervention, decision-makers do not have precise information on either the effects of interventions (expressed in our model as a percent reduction $100 * \tau$ in infectious contacts) or its costs represented by function $f(x)$. Even if public health decision makers could estimate the instantaneous costs of nonpharmaceutical interventions in real-time, they would not be able to observe the full costs of interventions that do not manifest during the time-frame of interventions (i.e., the life-time effect of school closures). Nevertheless, any attempt to value the benefits of surveillance systems require the specification of the costs of nonpharmaceutical interventions.
+
+## Net monetary benefit (NMB)
+
+The net monetary benefit of interventions can be expressed as 
+
+$$
+E[NMB] = E[QALYs] * WTP - E[C_{npi}] - C_{surv} 
+$${#eq-nbm}
+
+where $QALYs$ represent the quality-adjusted life-years gained from non-pharmaceutical interventions, $WTP$ is the willingness-to-pay for one quality-adjusted life_year, $C_{npi}$ are the total costs of NPIs and $C_{surv}$ is the total cost of surveillance system employed.
+
+# Valuing Wastewater surveillance information
+
+In this analysis, WBS systems are not assumed to resolve uncertainty of an exogenous model parameter $\boldsymbol \theta$. If WBS systems did resolve those uncertainties, then it would be possible to estimate the value of information (VOI) provided by wastewater surveillance systems using an expected value of partial perfect information (EVPPI) approach. Rather, we assume that WBS systems change what signals are available to policymakers and hence *how* they respond to an endogenous model quantity. Hence, we define the value of wastewater surveillance information as simply the difference between the net monetary benefit of with and without surveillance
+
+$$
+V = E[NMB|WBS=1] - E[NMB|WBS=0]
+$$ {#eq-wbsvalue}
 
 ```{=html}
 <!-- 
@@ -155,7 +173,26 @@ Genomic surveillance is assumed to provide benefits to public health decision ma
 
 -->
 ```
-# Tables
+
+
+# Results
+
+What follows is an outline of the results section.
+
+- Disease Elimination Scenarios
+
+First, we demonstrate the value of genomic surveillance scenarios in conditions under which temporary disease elimination is possible. These scenarios represent disease dynamics observed in small geographic regions (cite https://www.nejm.org/doi/full/10.1056/NEJMc2025203 New Zealand).
+
+{Figure with model dynamics with and without genomic surveillance system}
+
+- Disease Control Scenarios
+
+Early-warning systems can also be valuable in jurisdictions that do not achieve disease elimination.
+
+
+# Appendix
+
+## Tables
 
 ```{r}
 #| label: tbl-parameters
