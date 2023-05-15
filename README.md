@@ -10,9 +10,13 @@ This repository contains code to explore the Value of Information of Genomic seq
 
 **Introduction**
 
-- [] Review 
+- [] One paragraph reviewing prior modeling work on genomic surveillance.
 
 **Methods**
+
+- [] Model Section [Pedro]
+- [] Data section [Jing]
+- [] Code table of parameters [Jing]
 
 **Results**
 
@@ -20,17 +24,16 @@ This repository contains code to explore the Value of Information of Genomic seq
 
 **Supplementary Appendix**
 
-- [] Model Section
-- [] Table of parameters
+
 
 *Model Implementation*
 
 - [] Implement c19model R6 class for the odin model [Pedro]
-- [] Implement first version of a multi-jurisdiction stochastic model.
-- [] Implement NPIs on the multi-jurisdiction model.
+- [] Implement first version of a multi-jurisdiction stochastic model [Pedro]
+- [] Implement NPIs on the multi-jurisdiction model. [Pedro]
 
-TBD tasks:
-- [] Possibly implement testing and wastewater surveillance explicitly (it is unclear if that will be useful. It might be useful we we impose a testing constraint, but it may have a negligible effect during the onset of a surge).
+POssible tasks:
+- [] Implement testing and wastewater surveillance explicitly (it is unclear if that will be useful. It might be useful we we impose a testing constraint, but it may have a negligible effect during the onset of a surge).
 
 *Model Inputs*
 

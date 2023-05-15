@@ -42,8 +42,6 @@ format:
       formatting: preprint
       model: 3p
       cite-style: super
-  docx:
-      cite-style: super
   html:
     keep-tex: true
     mermaid:
@@ -81,6 +79,8 @@ $$ {#eq-ode1}
 
 where $\dot{\mathbf{S}}, \dot{\mathbf{E}}, \dot{\mathbf{P}}, \dot{\mathbf{I}}, \dot{\mathbf{R}}$ represent the time derivatives of each disease status, greek letters represent progression rates and $p_x\mathbf{m}_x$ terms represent migration flows $\mathbf{m}_x$ modulated by propensity to travel $p_x$ at disease state $x \in \{S, E, P, I, R\}$. @fig-model-diagram illustrates the model.
 
+
+
 ```{mermaid}
 %%| label: fig-model-diagram
 %%| fig-cap: Model diagram
@@ -96,6 +96,13 @@ Force of infection $\boldsymbol{\lambda}_t$ is computed using a time-varying eff
 $$ 
 \boldsymbol{\lambda}_t = \boldsymbol{\beta}_t (c_p\mathbf{P}_t + c_i\mathbf{I}_t)
 $$ {#eq-force-inf}
+
+<!--
+### Discrete-time stochastic implementation
+
+The model described above is implemented as a discrete-time stochastic model using the following approach. We simulate outflows for each disease state vector $\mathbf{X}$ using a stochastic  $\mathbf{X_t} = \mathbf{X_{t-1}} \sim Binomial(\mathbf{X}, 1-exp(\mathbf{p}))$ hence.
+
+-->
 
 ### Nonpharmaceutical interventions {#npi}
 
@@ -127,7 +134,7 @@ $$
 C_{npi} = \int_{t_0}^{t_f}{f(\mathbf{l}_t\tau)}
 $${#eq-cost} 
 
-where $f(x)$ is a function that maps a percent reduction in potentially infectious contacts to a monetary cost. At the time of the intervention, decision-makers do not have precise information on either the effects of interventions (expressed in our model as a percent reduction $100 * \tau$ in infectious contacts) or its costs represented by function $f(x)$. Even if public health decision makers could estimate the instantaneous costs of nonpharmaceutical interventions in real-time, they would not be able to observe the full costs of interventions that do not manifest during the time-frame of interventions (i.e., the life-time effect of school closures). Nevertheless, any attempt to value the benefits of surveillance systems require the specification of the costs of nonpharmaceutical interventions.
+where $f(x)$ is a function that maps a percent reduction in potentially infectious contacts to a monetary cost. $f(x)$ is monotonically increasing with $\mathbf{l}_t\tau$, and may exhibity decreasing marginal returns to a reduction in transmissibility. At the time of the intervention, decision-makers do not have precise information on either the effects of interventions (expressed in our model as a percent reduction $100 * \tau$ in infectious contacts) or its costs represented by function $f(x)$. Even if public health decision makers could estimate the instantaneous costs of nonpharmaceutical interventions in real-time, they would not be able to observe the full costs of interventions that do not manifest during the time-frame of interventions (i.e., the life-time effect of school closures). Nevertheless, any attempt to value the benefits of surveillance systems requires the specification of the costs of nonpharmaceutical interventions.
 
 ## Net monetary benefit (NMB)
 
@@ -139,6 +146,8 @@ $${#eq-nbm}
 
 where $QALYs$ represent the quality-adjusted life-years gained from non-pharmaceutical interventions, $WTP$ is the willingness-to-pay for one quality-adjusted life_year, $C_{npi}$ are the total costs of NPIs and $C_{surv}$ is the total cost of surveillance system employed.
 
+<!--
+
 # Valuing Wastewater surveillance information
 
 In this analysis, WBS systems are not assumed to resolve uncertainty of an exogenous model parameter $\boldsymbol \theta$. If WBS systems did resolve those uncertainties, then it would be possible to estimate the value of information (VOI) provided by wastewater surveillance systems using an expected value of partial perfect information (EVPPI) approach. Rather, we assume that WBS systems change what signals are available to policymakers and hence *how* they respond to an endogenous model quantity. Hence, we define the value of wastewater surveillance information as simply the difference between the net monetary benefit of with and without surveillance
@@ -146,6 +155,8 @@ In this analysis, WBS systems are not assumed to resolve uncertainty of an exoge
 $$
 V = E[NMB|WBS=1] - E[NMB|WBS=0]
 $$ {#eq-wbsvalue}
+
+-->
 
 ```{=html}
 <!-- 
