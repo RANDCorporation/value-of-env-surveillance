@@ -65,7 +65,7 @@ Our results highlight that the value of WBS systems is contingent on a set of bi
 
 We start with a standard disease transmission model describing person-to-person transmission of an infectious pathogen across $n$ jurisdictions. The state-space of the model is comprised of a set of health statuses $\mathbf{S}, \mathbf{E}, \mathbf{P}, \mathbf{I}, \mathbf{R}$, each a $1 \times n$ vector representing the population within each compartment, respectively representing the number of Susceptibles, Exposed, Pre-Symptomatic, Infected and Removed[^1]. @eq-ode1 describes a system of differential equations representing the model, and @tbl-parameters contains parameter definitions, values and their sources.
 
-[^1]: We start with a simplified version including only a minimal set of disease states before expanding the state-space of the model to include asymptomatic, mildy symptomatic and severely symptomatic compartments
+[^1]: This model specification includes only a minimal set of disease states before expanding the state-space of the model to include asymptomatic, mildly symptomatic and severely symptomatic compartments.
 
 $$ 
 \begin{align}
@@ -77,19 +77,7 @@ $$
 \end{align}
 $$ {#eq-ode1}
 
-where $\dot{\mathbf{S}}, \dot{\mathbf{E}}, \dot{\mathbf{P}}, \dot{\mathbf{I}}, \dot{\mathbf{R}}$ represent the time derivatives of each disease status, greek letters represent progression rates and $p_x\mathbf{m}_x$ terms represent migration flows $\mathbf{m}_x$ modulated by propensity to travel $p_x$ at disease state $x \in \{S, E, P, I, R\}$. @fig-model-diagram illustrates the model.
-
-
-
-```{mermaid}
-%%| label: fig-model-diagram
-%%| fig-cap: Model diagram
-%%| fig-width: 6.5
-%%| fig-align: center
-flowchart LR
-  S --> E --> P --> I --> R
-  I --> D
-```
+where $\dot{\mathbf{S}}, \dot{\mathbf{E}}, \dot{\mathbf{P}}, \dot{\mathbf{I}}, \dot{\mathbf{R}}$ represent the time derivatives of each disease status, greek letters represent progression rates and $p_x\mathbf{m}_x$ terms represent migration flows $\mathbf{m}_x$ modulated by propensity to travel $p_x$ at disease state $x \in \{S, E, P, I, R\}$.
 
 Force of infection $\boldsymbol{\lambda}_t$ is computed using a time-varying effective contact-rate vector $\boldsymbol{\beta}_t$ which will depend on contact rates within each strata as well as nonpharmaceutical interventions (discussed later). Infectiousness of each disease status $\mathbf{P}$ and $\mathbf{I}$ are modulated by constants $c_p$ and $c_i$.
 
@@ -200,7 +188,6 @@ First, we demonstrate the value of genomic surveillance scenarios in conditions 
 - Disease Control Scenarios
 
 Early-warning systems can also be valuable in jurisdictions that do not achieve disease elimination.
-
 
 # Appendix
 
