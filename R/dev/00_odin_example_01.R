@@ -1,5 +1,17 @@
 
 
+#------------------------------------------------------------------------------#
+# Code repository for Analysis of Genomic Sequencing information
+#
+# Author: Pedro Nascimento de Lima
+# See README.md for information on usage and licensing
+#------------------------------------------------------------------------------#
+
+#------------------------------------------------------------------------------#
+# Script/function name
+#
+# Script/function purpose
+#------------------------------------------------------------------------------#
 
 # Author: Pedro Nascimento de Lima
 # Proof of concept model to explore VOI of Genomic Surveillance
@@ -35,12 +47,15 @@ sir_generator <- odin::odin({
   update(R) <- R + n_IR - n_RS
   update(TimeLastNPIChange) <- if(new_NPI == NPI) TimeLastNPIChange else Time
 
+  # trying to use a lagged variable
+  Ilag <- delay(I, 5)
+
   # target intervention level depends on prevalence
   # this might be modified to better represent alternative surveillance methods
   # for instance, tests take longer to obtain test information
   # and there is also case ascertainment bias from tests
   # we might want to incorporate that information here.
-  target_NPI <- min((I/N) * stringency * 100, max_intervention_level)
+  target_NPI <- min((Ilag/N) * stringency * 100, max_intervention_level)
 
   # Output
   output(target_NPI) <- TRUE

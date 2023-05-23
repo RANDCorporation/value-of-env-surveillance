@@ -1,0 +1,102 @@
+
+#------------------------------------------------------------------------------#
+# Code repository for Analysis of Genomic Sequencing information
+#
+# Author: Pedro Nascimento de Lima
+# See README.md for information on usage and licensing
+#------------------------------------------------------------------------------#
+
+#------------------------------------------------------------------------------#
+# Use this file to test single model runs
+#
+#------------------------------------------------------------------------------#
+
+source("./R/library.R")
+
+# stochastic SIR with NPIs ------------------------------------------------
+
+set.seed(1234)
+
+# Test models
+stoc_SIR <- odinpbm$new("stochastic_SIR_NPIs.R", stringency = 1)
+
+# run model in first time-step
+stoc_SIR_res <- stoc_SIR$o$run(1:100)
+
+
+head(stoc_SIR_res)
+
+stoc_SIR_res %>%
+  as.data.frame() %>%
+  mutate(NPI = round(NPI, 0)) %>%
+  mutate(TotalCases = cumsum(I),
+         TotalNPICost = cumsum(NPI) * 1) %>% # Where 1 is the NPI cost
+  tidyr::pivot_longer(cols = c(S,I,R,NPI,TotalCases,TotalNPICost)) %>%
+  filter(name %in% c("I", "NPI")) %>%
+  ggplot(mapping = aes(x = step, y = value)) +
+  geom_line() +
+  xlab("Days") +
+  facet_wrap(facets = ~name, scales = "free")
+
+
+
+# metapopulation ode ------------------------------------------------------
+
+
+# SEIR free parameters --------------------------------------------------------#
+## total number of patches in the model
+nr_patches = 2
+## relative migration propensity by disease status (S, P, E, I, R)
+mp_S = 1
+mp_P = 1
+mp_E = 0.5
+mp_I = 1
+mp_R = 1
+
+mp <- c(1, 1, 0.5, 1, 1)
+## matrix of effective contact rates
+# using the function above
+#beta <- beta.mat(nr_patches)
+# Or assigning the beta matrix directly
+beta <- diag(1, nrow = nr_patches, ncol = nr_patches)
+
+
+## Creating a symmetric mobility matrix:
+# 1 % of the population travels every day in every jurisdiction
+# It represents people leaving from each row, entering each
+daily_travel <- 0.01
+
+# Divide that by the number of destinations
+travel_per_destination <- daily_travel / (nr_patches-1)
+
+# Create the mobility matrix
+mob <- matrix(data = daily_travel, nrow = nr_patches, ncol = nr_patches)
+
+# The diagonal of the mobility matrix must be the number of people leaving
+# So we first set it to zero:
+diag(mob) <- 0
+
+# Assign it to the Column sums
+# row sums would also work because everything is symetric in this example.
+# But the sum
+diag(mob) <- -rowSums(mob)
+
+# Is the mobility matrix balanced?
+sum(mob) == 0
+
+# run SEIR model --------------------------------------------------------------#
+meta_SIR <- odinpbm$new("deterministic_metapopulation.R",
+                        nr_patches=nr_patches, beta=beta, C=mob, mp=mp)
+meta_SIR_res <- meta_SIR$o$run(0:100)
+
+head(meta_SIR_res)
+
+
+
+# stochastic metapopulation model -----------------------------------------
+
+meta_SIR_stoc <- odinpbm$new("stochastic_metapopulation.R",
+                             nr_patches=nr_patches, beta=beta, C=mob, mp=mp)
+meta_SIR_stoc_res <- meta_SIR_stoc$o$run(0:100)
+
+head(meta_SIR_stoc_res)
