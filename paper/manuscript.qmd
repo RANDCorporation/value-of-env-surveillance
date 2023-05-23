@@ -97,13 +97,13 @@ The model described above is implemented as a discrete-time stochastic model usi
 Following mitigation plans adopted during the COVID-19 pandemic, nonpharmaceutical interventions (NPIs) are modeled as a set of intervention portfolios organized within intensity levels with a pre-specified marginal effectiveness $\tau$ at each intervention level $l \in L = \{1,2,3,...,l_{max}\}$. In this analysis, $\tau$ is specified as a percent reduction in infectious contacts induced by a set of interventions introduced by public health decision-makers. In principle, $\tau_l$ can be specified so that it is dependent on the intervention level as in [@nascimentodelima2021], but this analysis assumes a constant, additive marginal effectiveness of interventions. For instance, if $\tau = 0.15$, then introducing the first intervention level reduces potential infectious contacts by 15% relative to a no-intervention scenario and introducing the second intervention level reduces infectious contacts by 30%. Under this specification, $l_{max} \tau \in (0,1)$.
 
 $$ 
-\boldsymbol{\beta}_t = (1-\mathbf{l}_t\tau) \boldsymbol{\beta}_b
+\boldsymbol{\beta}_t = (1-\mathbf{L}_t\tau) \boldsymbol{\beta}_b
 $$ {#eq-betat}
 
 and the intervention level $\mathbf{l}_t$ is a jurisdiction-dependent nonpharmaceutical intervention level. $\mathbf{l}_t$ can be either specified as an exogenous variable or an endogenous variable controlled by local public health departments. Public health decision-makers follow epidemiological outcomes that are proportional to $\mathbf{I_t}$ (such as case counts) to decide the appropriate level of intervention. Thus, we specify a target NPI level $\mathbf{l}_t^*$ as a linear function of disease prevalence.
 
 $$ 
-\mathbf{l}_t^* = \min{(cI, l_{max})}
+\mathbf{L}_t^* = \min{(cI, l_{max})}
 $$ {#eq-targetnpi}
 
 This formulation approximates phased mitigation plans adopted during the COVID-19 pandemic, where policymakers introduce or remove interventions depending on disease prevalence or other severity indicators. While public health decision-makers strive to use up-to-date information to introduce and remove NPIs, they do not have perfect and instantaneous information on disease prevalence; hence actual policy behaviors lag epidemiological indicators. In continuous time, we represent this process with a stock vector $\mathbf{L}$ representing the NPI level in effect

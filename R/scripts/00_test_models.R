@@ -21,7 +21,7 @@ set.seed(1234)
 stoc_SIR <- odinpbm$new("stochastic_SIR_NPIs.R", stringency = 1)
 
 # run model in first time-step
-stoc_SIR_res <- stoc_SIR$o$run(1:100)
+stoc_SIR_res <- stoc_SIR$o$run(1:700)
 
 
 head(stoc_SIR_res)

@@ -68,7 +68,7 @@ update(Time) <- Time + 1
 # nonpharmaceutical interventions -----------------------------------------
 
 # lagged epidemiological outcome to use for controlling NPIs.
-Ilag <- delay(I, 5)
+Ilag <- delay(I, 20)
 
 # target intervention level depends on prevalence
 # this might be modified to better represent alternative surveillance methods

@@ -34,7 +34,10 @@ delta   <- 1/6      # rate of progression from pre-symptomatic to Infected
 gamma   <- 1/3      # rate of recovery from active disease
 C[,]    <- user()   # origin-destination matrix of proportion of population that travels
 mp[]     <- user()  # relative migration propensity by disease status
-
+tau     <- user(0.1)     # policy effectiveness
+c       <- user(1) # stringency
+obs_lag <- user(5) # days
+days_to_adjust_NPI <- user(7)
 
 # initial conditions ------------------------------------------------------
 
@@ -43,6 +46,7 @@ initial(E[]) <- 0.0
 initial(P[]) <- 0.0
 initial(I[]) <- 1
 initial(R[]) <- 0.0
+initial(L[]) <- 0
 
 
 # dimensions --------------------------------------------------------------
@@ -69,6 +73,9 @@ dim(E_P)         <- n
 dim(P_I)         <- n
 dim(I_R)         <- n
 dim(p_SE)        <- n
+dim(L)           <- n
+dim(L_star)      <- n
+dim(I_lag)       <- n
 
 # additional outputs ------------------------------------------------------
 
@@ -80,8 +87,17 @@ output(mob_prod[]) <- TRUE
 
 # equations ---------------------------------------------------------------
 
+# nonpharmaceutical interventions -----------------------------------------
+
+I_lag[] <- delay(I[i], obs_lag) # i'm not sure this works
+output(I_lag) <- TRUE
+
+L_star[] <- c*I_lag[i] # implies same stringency for everyone
+
+update(L[]) <- L[i] + (L_star[i] - L[i]) / days_to_adjust_NPI
+
 # Disease transmission equation
-lambda_prod[ , ] <- beta[i, j] * (I[j] + P[j])
+lambda_prod[ , ] <- (1-L[i]*tau) * beta[i, j] * (I[j] + P[j])
 lambda[] <- sum(lambda_prod[i, ]) # rowSums
 
 # This is the probability of infection | susceptible
@@ -108,6 +124,10 @@ mob_prod[ , ] <- R[i] * C[i, j]
 mob_R[] <- sum(mob_prod[, i])
 
 N[] <- S[i] + E[i] + P[i] + I[i] + R[i]
+
+
+
+
 
 # difference equations ----------------------------------------------------
 
