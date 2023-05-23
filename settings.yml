@@ -2,3 +2,10 @@
 # Use this file to set global project settings:
 
 data_file: "./data/model_inputs.xlsx"
+
+# load c19model package with devtools::load_all?
+# if FALSE load from installed package
+c19model_load_all: FALSE
+
+
+lib_path: "./R/functions"
