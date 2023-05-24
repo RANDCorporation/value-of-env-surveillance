@@ -8,6 +8,8 @@ This repository contains code to explore the Value of Information of Genomic seq
 
 Clone the [c19model](https://code.rand.org/vaccination-research/c19model) R package and install it first. Then, open the `R/library.R` file and let Rstudio install your missing packages.
 
+An `renv.lock` file is provided as a courtesy and to ensure we have a registry of the dependencies used. If you prefer to use `renv`, see the `.Rprofile` file and re-start your R session.
+
 ## Next Tasks
 
 *Manuscript*
