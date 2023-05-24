@@ -98,7 +98,7 @@ meta_SIR <- odinpbm$new("deterministic_metapopulation.R",
 
 
 
-meta_SIR_res <- meta_SIR$o$run(0:100)
+meta_SIR_res <- meta_SIR$run(0:100)
 
 head(meta_SIR_res)
 
@@ -108,6 +108,6 @@ head(meta_SIR_res)
 
 meta_SIR_stoc <- odinpbm$new("stochastic_metapopulation.R",
                              nr_patches=nr_patches, beta=beta, C=mob, mp=mp)
-meta_SIR_stoc_res <- meta_SIR_stoc$o$run(0:100)
+meta_SIR_stoc_res <- meta_SIR_stoc$run(0:100, reps = 100)
 
 head(meta_SIR_stoc_res)

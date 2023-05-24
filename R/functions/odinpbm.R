@@ -50,7 +50,7 @@ odinpbm <- R6::R6Class(
     run = function(step, y = NULL, use_names = TRUE, reps = 1){
 
       # result comes as an array of matrices
-      res <- replicate(n = reps, expr = self$o$run(step = step, y = y, use_names = use_names))
+      res <- replicate(n = reps, expr = self$o$run(step, y = y, use_names = use_names))
 
       # convert to a nice list
       res_list <- lapply(seq(dim(res)[3]), function(x) res[ , , x] %>% as.data.frame(.) %>% mutate(rep = x))
