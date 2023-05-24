@@ -54,9 +54,5 @@ An `renv.lock` file is provided as a courtesy and to ensure we have a registry o
 - [ ] Create table of model parameters following Laura's document. Find References whenever appropriate. This table should be read into the model appendix file. [Jing]
 - [ ] Code mobility matrix creation using Derek's mobility information. [Jing]
 
-## Code Dependencies
-
-Install the R package [c19model](https://code.rand.org/vaccination-research/c19model) before using this repository.
-
 ## License
 TBD.
