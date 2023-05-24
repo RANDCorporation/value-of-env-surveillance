@@ -21,7 +21,7 @@
 
 S_ini <- user(1000)
 I_ini <- user(1)
-beta <- user(1/5)
+beta <- user(1/4)
 gamma <- user(1/10)
 
 # immunity waning rate
@@ -43,6 +43,9 @@ stringency <- user(3)
 
 # maximum intervention level
 max_intervention_level <- user(5)
+
+# surveillance delay
+surv_delay <- user(5)
 
 # initial_conditions ------------------------------------------------------
 
@@ -68,7 +71,7 @@ update(Time) <- Time + 1
 # nonpharmaceutical interventions -----------------------------------------
 
 # lagged epidemiological outcome to use for controlling NPIs.
-Ilag <- delay(I, 20)
+Ilag <- delay(I, surv_delay)
 
 # target intervention level depends on prevalence
 # this might be modified to better represent alternative surveillance methods
