@@ -47,6 +47,7 @@ odinpbm <- R6::R6Class(
     },
 
 
+    # document
     run = function(step, y = NULL, use_names = TRUE, reps = 1){
 
       # result comes as an array of matrices

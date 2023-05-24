@@ -4,6 +4,9 @@
 
 This repository contains code to explore the Value of Information of Genomic sequencing technologies using infectious disease models.
 
+## Housekeeping
+This repository will likely be released to github upon submission of the paper, so please commit only what you would be comfortable showing the world. Do not commit html or large files.
+
 ## Dependencies:
 
 Clone the [c19model](https://code.rand.org/vaccination-research/c19model) R package and install it first. Then, open the `R/library.R` file and let Rstudio install your missing packages.

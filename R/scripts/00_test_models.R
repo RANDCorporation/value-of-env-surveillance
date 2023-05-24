@@ -111,3 +111,18 @@ meta_SIR_stoc <- odinpbm$new("stochastic_metapopulation.R",
 meta_SIR_stoc_res <- meta_SIR_stoc$run(0:100, reps = 100)
 
 head(meta_SIR_stoc_res)
+
+
+
+# setting inputs from file ------------------------------------------------
+
+# any model can set inputs from a spreadsheet file
+
+meta_SIR_stoc$get_inputs(s$data_file)
+
+# See the inputs table:
+meta_SIR_stoc$inputs_table
+
+# model inputs are available here
+meta_SIR_stoc$inputs
+
