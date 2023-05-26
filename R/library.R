@@ -17,7 +17,7 @@ library(randplot)
 library(ggplot2)
 library(showtext)
 library(yaml)
-
+library(odin)
 
 # Load settings:
 s <- yaml::read_yaml("settings.yml")
