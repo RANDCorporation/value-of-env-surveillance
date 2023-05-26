@@ -15,29 +15,37 @@ source("./R/library.R")
 
 # stochastic SIR with NPIs ------------------------------------------------
 
-set.seed(1234)
+#set.seed(1234)
+
+# Here we provide a proof of concept that the decision delay affects
+# model outcomes.
 
 # Test models
-stoc_SIR <- odinpbm$new("stochastic_SIR_NPIs.R", stringency = 1)
-
-# run model in first time-step
-stoc_SIR_res <- stoc_SIR$o$run(1:700)
-
-
-head(stoc_SIR_res)
-
-stoc_SIR_res %>%
+res_2_delay <- odinpbm$new("stochastic_SIR_NPIs.R", surv_delay = 2)$run(1:100, reps = 20) %>%
   as.data.frame() %>%
+  mutate(Scenario = "02-day delay")
+
+res_5_delay <- odinpbm$new("stochastic_SIR_NPIs.R", surv_delay = 5)$run(1:100, reps = 20) %>%
+  as.data.frame() %>%
+  mutate(Scenario = "05-day delay")
+
+res_10_delay <- odinpbm$new("stochastic_SIR_NPIs.R", surv_delay = 10)$run(1:100, reps = 20) %>%
+  as.data.frame() %>%
+  mutate(Scenario = "10-day delay")
+
+
+rbind(res_2_delay, res_5_delay, res_10_delay) %>%
+  as.data.frame() %>%
+  group_by(Scenario, rep) %>%
   mutate(NPI = round(NPI, 0)) %>%
   mutate(TotalCases = cumsum(I),
          TotalNPICost = cumsum(NPI) * 1) %>% # Where 1 is the NPI cost
   tidyr::pivot_longer(cols = c(S,I,R,NPI,TotalCases,TotalNPICost)) %>%
-  filter(name %in% c("I", "NPI")) %>%
-  ggplot(mapping = aes(x = step, y = value)) +
+  filter(name %in% c("I")) %>%
+  ggplot(mapping = aes(x = step, y = value, color = Scenario, group = rep)) +
   geom_line() +
   xlab("Days") +
-  facet_wrap(facets = ~name, scales = "free")
-
+  facet_wrap(facets = ~name + Scenario)
 
 
 # metapopulation ode ------------------------------------------------------
@@ -87,7 +95,10 @@ sum(mob) == 0
 # run SEIR model --------------------------------------------------------------#
 meta_SIR <- odinpbm$new("deterministic_metapopulation.R",
                         nr_patches=nr_patches, beta=beta, C=mob, mp=mp)
-meta_SIR_res <- meta_SIR$o$run(0:100)
+
+
+
+meta_SIR_res <- meta_SIR$run(0:100)
 
 head(meta_SIR_res)
 
@@ -97,6 +108,21 @@ head(meta_SIR_res)
 
 meta_SIR_stoc <- odinpbm$new("stochastic_metapopulation.R",
                              nr_patches=nr_patches, beta=beta, C=mob, mp=mp)
-meta_SIR_stoc_res <- meta_SIR_stoc$o$run(0:100)
+meta_SIR_stoc_res <- meta_SIR_stoc$run(0:100, reps = 100)
 
 head(meta_SIR_stoc_res)
+
+
+
+# setting inputs from file ------------------------------------------------
+
+# any model can set inputs from a spreadsheet file
+
+meta_SIR_stoc$get_inputs(s$data_file)
+
+# See the inputs table:
+meta_SIR_stoc$inputs_table
+
+# model inputs are available here
+meta_SIR_stoc$inputs
+
