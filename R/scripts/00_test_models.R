@@ -41,7 +41,7 @@ rbind(res_2_delay, res_5_delay, res_10_delay) %>%
   mutate(TotalCases = cumsum(I),
          TotalNPICost = cumsum(NPI) * 1) %>% # Where 1 is the NPI cost
   tidyr::pivot_longer(cols = c(S,I,R,NPI,TotalCases,TotalNPICost)) %>%
-  filter(name %in% c("I")) %>%
+  filter(name %in% c("I", "NPI")) %>%
   ggplot(mapping = aes(x = step, y = value, color = Scenario, group = rep)) +
   geom_line() +
   xlab("Days") +
@@ -106,8 +106,10 @@ head(meta_SIR_res)
 
 # stochastic metapopulation model -----------------------------------------
 
-meta_SIR_stoc <- odinpbm$new("stochastic_metapopulation.R",
-                             nr_patches=nr_patches, beta=beta, C=mob, mp=mp)
+source("./R/library.R")
+
+meta_SIR_stoc <- odinpbm$new("stochastic_metapopulation.R", s$data_file)
+
 meta_SIR_stoc_res <- meta_SIR_stoc$run(0:100, reps = 100)
 
 head(meta_SIR_stoc_res)
@@ -118,11 +120,7 @@ head(meta_SIR_stoc_res)
 
 # any model can set inputs from a spreadsheet file
 
-meta_SIR_stoc$get_inputs(s$data_file)
 
-# See the inputs table:
-meta_SIR_stoc$inputs_table
 
-# model inputs are available here
-meta_SIR_stoc$inputs
+
 

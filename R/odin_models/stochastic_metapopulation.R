@@ -29,15 +29,17 @@ n <- nr_patches
 
 ## parameters
 beta[,] <- user()   # effective contact rate (S to e)
-sigma   <- 1/6      # progression rate from Exposed to Pre-symptomatic
-delta   <- 1/6      # rate of progression from pre-symptomatic to Infected
-gamma   <- 1/3      # rate of recovery from active disease
+sigma   <- user(1/6)      # progression rate from Exposed to Pre-symptomatic
+delta   <- user(1/6)      # rate of progression from pre-symptomatic to Infected
+gamma   <- user(1/3)      # rate of recovery from active disease
 C[,]    <- user()   # origin-destination matrix of proportion of population that travels
 mp[]     <- user()  # relative migration propensity by disease status
-tau     <- user(0.1)     # policy effectiveness
+tau     <- user(0)     # policy effectiveness
 c       <- user(1) # stringency
 obs_lag <- user(5) # days
 days_to_adjust_NPI <- user(7)
+
+output(tau) <- TRUE
 
 # initial conditions ------------------------------------------------------
 
