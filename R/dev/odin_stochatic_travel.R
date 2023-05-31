@@ -27,7 +27,7 @@ t_final <- 500
 # Diagonal (proportion who don't travel is set to zero).
 # m_ij: proportion of population that travels from row i to column j
 # everyone has a daily chance of traveling ~ 1%
-M <- matrix(data = 0.001,
+M <- matrix(data = 0.01,
             byrow = T, nrow = length(P), ncol = length(P), dimnames = list(loc_names, loc_names))
 
 diag(M) <- 0
@@ -136,6 +136,4 @@ res %>%
   geom_line(mapping = aes(y = `P[2]`), color = "red") +
   geom_line(mapping = aes(y = `P[3]`), color = "green") +
   geom_hline(yintercept = 0)
-
-
 
