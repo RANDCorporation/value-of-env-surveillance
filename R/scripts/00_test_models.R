@@ -8,14 +8,11 @@
 
 #------------------------------------------------------------------------------#
 # Use this file to test single model runs
-#
 #------------------------------------------------------------------------------#
 
 source("./R/library.R")
 
 # stochastic metapopulation model -----------------------------------------
-
-source("./R/library.R")
 
 meta_SIR_stoc <- odinmetapop$new("stochastic_metapopulation.R", s$data_file)
 
