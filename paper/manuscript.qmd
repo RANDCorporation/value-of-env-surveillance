@@ -1,6 +1,6 @@
 ---
-title: Modeling costs and benefits of genomic wastewater surveillance
-# subtitle: Supplementary appendix draft
+title: On the value of genomic wastewater surveillance information for pandemic response
+subtitle: A model-based analysis
 #author:
 #  - name: Pedro Nascimento de Lima
 #    email: plima@rand.org
@@ -19,11 +19,11 @@ title: Modeling costs and benefits of genomic wastewater surveillance
 #    affiliations:
 #        - ref: rand
 abstract: |
-  Introduces a model to assess the value provided by wastewater genomic surveillance network. This document is meant to be used as a supplementary appendix of the paper.
+  While wastewater-based genomic surveillance (WBS) systems may provide an early warning system for pandemic response, its adoption is still incomplete and it is unclear whether public health departments should allocate a larger budget to those systems. This paper introduces a model to assess the value provided by wastewater genomic surveillance network and clarifies the conditions under which WBS systems provide the most value to public health decision makers.
 keywords: 
   - Genomic Surveillance
   - Pandemic Response
-date: last-modified
+# date: last-modified
 bibliography: bibliography.bib
 format:
   elsevier-pdf:
@@ -54,7 +54,7 @@ format:
 
 While researchers have demonstrated that wastewater-based surveillance (WBS) systems can provide an early warning system for pandemic response [@zhu2021] and be used to support estimation of the latent number of infections in COVID-19 transmission models [@soller2022], the value of information provided by WBS has yet to be demonstrated.
 
-This paper develops a stochastic metapopulation disease transmission model and uses it to assess the conditions under which WBS systems can provide value to local public health decision makers who respond to a pandemic using surveillance data. We evaluate a range of scenarios that represent different potential pathogens and highlight scenarios under which WBS systems may or may not be cost-effective.
+This paper develops a stochastic metapopulation disease transmission model and uses it to assess the conditions under which WBS systems can provide value to local public health decision makers who respond to a pandemic using surveillance data. In the model, WBS systems help decision-makers by reducing the lag between the latent disease prevalence and the epidemiological time-series (i.e., case counts) decision-makers often use to introduce interventions targeted to reduce disease transmission. We evaluate a range of scenarios that represent different potential pathogens and highlight scenarios under which WBS systems may or may not be cost-effective.
 <!--
 Our results highlight that the value of WBS systems is contingent on a set of biological and societal parameters, including pathogen characteristics (i.e., transmissibility and severity), as well as the geographic scale of 
 -->
@@ -63,7 +63,7 @@ Our results highlight that the value of WBS systems is contingent on a set of bi
 
 ## Disease Transmission Model
 
-We start with a standard disease transmission model describing person-to-person transmission of an infectious pathogen across $n$ jurisdictions. The state-space of the model is comprised of a set of health statuses $\mathbf{S}, \mathbf{E}, \mathbf{P}, \mathbf{I}, \mathbf{R}$, each a $1 \times n$ vector representing the population within each compartment, respectively representing the number of Susceptibles, Exposed, Pre-Symptomatic, Infected and Removed[^1]. @eq-ode1 describes a system of differential equations representing the model, and @tbl-parameters contains parameter definitions, values and their sources.
+Our analysis starts with a standard disease transmission model describing person-to-person transmission of an infectious pathogen across $n$ jurisdictions. The state-space of the model is comprised of a set of health statuses $\mathbf{S}, \mathbf{E}, \mathbf{P}, \mathbf{I}, \mathbf{R}$, each a $1 \times n$ vector representing the population within each compartment, respectively representing the number of Susceptibles, Exposed, Pre-Symptomatic, Infected and Removed[^1]. @eq-ode1 describes a system of differential equations representing the model, and @tbl-parameters contains parameter definitions, values and their sources.
 
 [^1]: This model specification includes only a minimal set of disease states before expanding the state-space of the model to include asymptomatic, mildly symptomatic and severely symptomatic compartments.
 
@@ -134,15 +134,15 @@ $$ {#eq-betat}
 and the intervention level $\mathbf{l}_t$ is a jurisdiction-dependent nonpharmaceutical intervention level. $\mathbf{l}_t$ can be either specified as an exogenous variable or an endogenous variable controlled by local public health departments. Public health decision-makers follow epidemiological outcomes that are proportional to $\mathbf{I_t}$ (such as case counts) to decide the appropriate level of intervention. Thus, we specify a target NPI level $\mathbf{l}_t^*$ as a linear function of disease prevalence.
 
 $$ 
-\mathbf{L}_t^* = \min{(cI_{t-\Delta}, l_{max})}
+\mathbf{L}_t^* = \min{(cI_{t-s_{lag}}, l_{max})}
 $$ {#eq-targetnpi}
-where $\Delta$ is the delay imposed by the surveillance method used to monitor the disease. This formulation approximates phased mitigation plans adopted during the COVID-19 pandemic, where policymakers introduce or remove interventions depending on disease prevalence or other severity indicators. While public health decision-makers strive to use up-to-date information to introduce and remove NPIs, they do not have perfect and instantaneous information on disease prevalence; hence actual policy behaviors lag epidemiological indicators. In continuous time, we represent this process with a stock vector $\mathbf{L}$ representing the NPI level in effect
+where $s_{lag}$ is a surveillance lag imposed by the surveillance method used to monitor the disease. This formulation approximates phased mitigation plans adopted during the COVID-19 pandemic, where policymakers introduce or remove interventions depending on disease prevalence or other severity indicators. While public health decision-makers strive to use up-to-date information to introduce and remove NPIs, they do not have perfect and instantaneous information on disease prevalence; hence actual policy behaviors lag epidemiological indicators. In continuous time, we represent this process with a stock vector $\mathbf{L}$ representing the NPI level in effect
 
 $$ 
 \dot{\mathbf{L}} = \frac{1}{a}(\mathbf{l}_t^*-\mathbf{L})
 $$ {#eq-actualnpi}
 
-where $a$ represents the adjustment time for NPIs for decision making reasons, whereas $\Delta$ represents the lag imposed by surveillance methods.
+where $a$ represents the adjustment time for NPIs for decision making and implementation reasons, whereas $s_{lag}$ represents the lag imposed by surveillance methods.
 
 ## Cost of interventions
 
