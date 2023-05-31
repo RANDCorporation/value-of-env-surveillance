@@ -13,7 +13,25 @@
 
 source("./R/library.R")
 
-# stochastic SIR with NPIs ------------------------------------------------
+# stochastic metapopulation model -----------------------------------------
+
+source("./R/library.R")
+
+meta_SIR_stoc <- odinmetapop$new("stochastic_metapopulation.R", s$data_file)
+
+meta_SIR_stoc_res <- meta_SIR_stoc$run(0:100, reps = 100)
+
+head(meta_SIR_stoc_res)
+
+# deterministic metapopulation ode ----------------------------------------
+
+meta_SIR <- odinmetapop$new("deterministic_metapopulation.R", s$data_file)
+
+meta_SIR_res <- meta_SIR$run(0:100)
+
+head(meta_SIR_res)
+
+# 1-strata stochastic SIR with NPIs ---------------------------------------
 
 # This is a test model
 #set.seed(1234)
@@ -23,7 +41,7 @@ source("./R/library.R")
 
 # Test models
 res_2_delay <- odinpbm$new("stochastic_SIR_NPIs.R", surv_delay = 2
-                           )$run(1:100, reps = 20) %>%
+)$run(1:100, reps = 20) %>%
   as.data.frame() %>%
   mutate(Scenario = "02-day delay")
 
@@ -48,36 +66,4 @@ rbind(res_2_delay, res_5_delay, res_10_delay) %>%
   geom_line() +
   xlab("Days") +
   facet_wrap(facets = ~name + Scenario)
-
-
-# metapopulation ode ------------------------------------------------------
-
-
-# run SEIR model --------------------------------------------------------------#
-meta_SIR <- odinmetapop$new("deterministic_metapopulation.R", s$data_file)
-
-meta_SIR_res <- meta_SIR$run(0:100)
-
-head(meta_SIR_res)
-
-
-# stochastic metapopulation model -----------------------------------------
-
-source("./R/library.R")
-
-meta_SIR_stoc <- odinmetapop$new("stochastic_metapopulation.R", s$data_file)
-
-meta_SIR_stoc_res <- meta_SIR_stoc$run(0:100, reps = 100)
-
-head(meta_SIR_stoc_res)
-
-
-
-# setting inputs from file ------------------------------------------------
-
-# any model can set inputs from a spreadsheet file
-
-
-
-
 
