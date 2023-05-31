@@ -26,6 +26,7 @@ odinpbm <- R6::R6Class(
     #' Create a new `odinpbm` object.
     #' @param odin_file odin model file under R/odin_models. Should have an .R extension.
     #' @param inputs_file spreadsheet with model inputs
+    #' @param ... additional inputs to te odin model.
     #' @return s new `odinpbm` object.
     initialize = function(odin_file, inputs_file, ...) {
 
@@ -36,24 +37,29 @@ odinpbm <- R6::R6Class(
       odin_workdir <- paste0("./cpp/", substr(odin_file,start = 1,
                                               stop = nchar(odin_file)-2), "/")
 
-      self$get_inputs(inputs_file)
+      if(!missing(inputs_file)) {
+        # get inputs from the spreadsheet
+        self$get_inputs(inputs_file)
+      }
 
+      # collect odin inputs from the inputs file
       inputs <- self$collect_default_inputs()
 
+      # add custom inputs and override original inputs by name
+      inputs <- modifyList(inputs, list(...))
+
       # create the odin constructor
-      # We may not need to save this, so I don't.
+      # We don't use the constructor after this step, so I don't save it
       odin_constructor <- odin::odin(model_path, workdir = odin_workdir)
 
-
       # initialize the model with default parameters, and additional parameters
-      # we may want to provide additional wrappers around odin functions
+      # we may want to provide additional wrappers around other odin functions
       # in the future
       self$o <- do.call(odin_constructor$new, inputs)
 
     },
 
-
-    # document
+    # runs the model for a set of replications
     run = function(step, y = NULL, use_names = TRUE, reps = 1){
 
       # result comes as an array of matrices
@@ -69,30 +75,18 @@ odinpbm <- R6::R6Class(
 
     collect_default_inputs = function() {
 
-      # set model inputs from spreadsheet
-
+      # by default, we get all parameters from the inputs spreadsheet:
       # for parameters, I can put all parameters into a named list:
-      p_list <- list()
-      for(i in 1:nrow(self$inputs$parameters)) {
-        p_list[self$inputs$parameters$parameter[i]] = self$inputs$parameters$baseline[i]
+      inputs <- list()
+
+      if(!is.null(self$inputs$parameters)) {
+        for(i in 1:nrow(self$inputs$parameters)) {
+          inputs[self$inputs$parameters$parameter[i]] = self$inputs$parameters$baseline[i]
+        }
       }
 
-      # beta matrix
-      # read from spreadsheet
-      p_list$beta <- structure(c(1, 0, 0, 1), dim = c(2L, 2L))
-
-      p_list$C <- structure(c(-0.01, 0.01, 0.01, -0.01), dim = c(2L, 2L))
-
-      p_list$nr_patches <- 2
-
-      p_list$mp <- c(1, 1, 0.5, 1, 1)
-
-      # p_list should be a named list of all the user() inputs the model needs
-      return(p_list)
-
+      # inputs should be a named list, containing the user() inputs the model needs
+      return(inputs)
     }
-
   )
 )
-
-

@@ -39,10 +39,11 @@ An `renv.lock` file is provided as a courtesy and to ensure we have a registry o
 - [x] Implement first version of a multi-jurisdiction stochastic model [Pedro]
 - [x] Implement NPIs on the multi-jurisdiction model. [Pedro]
 - [x] Test lagged NPI control suggested by Henry [Pedro]
-- [ ] Have the model use non-scalar inputs from inputs object.
-- [ ] Translate all parameters from Laura into model inputs and use those as baseline.
-- [ ] Implement travel in the stochastic model.
-- [ ] integrate parameter inputs into the model.
+- [x] Have the model use non-scalar inputs from inputs object. [Pedro]
+- [ ] Translate all parameters from Laura into model inputs and use those as baseline. [Jing]
+- [ ] Implement travel in the stochastic model. [Pedro, WIP]
+- [ ] integrate parameter inputs into the model. [Jing]
+- [ ] Fix stochastic metapopulation Model NaN's.
 - [ ] Create function to compute derived inputs (ie, R0 = beta/gamma)
 - [ ] Integrate Derek’s data on travel into the model.
 - [ ] Code experimental design function.
