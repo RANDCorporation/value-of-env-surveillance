@@ -112,7 +112,7 @@ $$
 \end{align}
 $$ {#eq-stochastic}
 
-where $B(\mathbf{n},p)$ results in a binomial draw from population vector $n$ with probability $p$. The model simulates outflows and inflows such that the outflows from one disease state are the same as the inflows to a different state.
+where $B(\mathbf{n},p)$ results in a binomial draw from population vector $\mathbf{n}$ with probability $p$. The model simulates outflows and inflows such that the outflows from one disease state are the same as the inflows to a different state.
 
 ### Travel
 
