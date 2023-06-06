@@ -24,9 +24,9 @@ odinmetapop <- R6::R6Class(
       # add in inputs that are unique to this model.
       # TODO: Jing, set additional inputs here.
       inputs$beta <- structure(c(1, 0, 0, 1), dim = c(2L, 2L))
-      inputs$C <- structure(c(-0.01, 0.01, 0.01, -0.01), dim = c(2L, 2L))
+      #inputs$C <- structure(c(-0.01, 0.01, 0.01, -0.01), dim = c(2L, 2L))
       inputs$nr_patches <- 2
-      inputs$mp <- c(1, 1, 0.5, 1, 1)
+      #inputs$mp <- c(1, 1, 0.5, 1, 1)
       return(inputs)
     }
   )

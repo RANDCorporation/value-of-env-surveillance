@@ -35,6 +35,7 @@ c       <- user(1) # stringency
 obs_lag <- user(5) # days
 days_to_adjust_NPI <- user(7)
 output(tau) <- TRUE
+L_max <- 5 # max intervention level
 
 # initial conditions ------------------------------------------------------
 
@@ -81,7 +82,9 @@ I_lag[] <- delay(I[i], obs_lag)
 output(I_lag) <- TRUE
 
 # need to use min(L_star, l_max), but we need to verify it's a parallel minimum.
-L_star[] <- c*I_lag[i] # implies same stringency for everyone
+L_star[] <- min(c*I_lag[i], L_max) # implies same stringency for everyone
+
+output(L_star) <- TRUE
 
 update(L[]) <- L[i] + (L_star[i] - L[i]) / days_to_adjust_NPI
 

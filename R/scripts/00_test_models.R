@@ -18,6 +18,8 @@ meta_SIR_stoc <- odinmetapop$new("stochastic_metapopulation.R", s$data_file)
 
 meta_SIR_stoc_res <- meta_SIR_stoc$run(0:100, reps = 100)
 
+View(meta_SIR_stoc_res)
+
 head(meta_SIR_stoc_res)
 
 # deterministic metapopulation ode ----------------------------------------
@@ -62,5 +64,5 @@ rbind(res_2_delay, res_5_delay, res_10_delay) %>%
   ggplot(mapping = aes(x = step, y = value, color = Scenario, group = rep)) +
   geom_line() +
   xlab("Days") +
-  facet_wrap(facets = ~name + Scenario)
+  facet_wrap(facets = ~name + Scenario, scales = "free")
 
