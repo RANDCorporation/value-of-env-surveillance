@@ -31,7 +31,7 @@ sigma   <- user()      # progression rate from Exposed to Pre-symptomatic
 delta   <- user()      # rate of progression from pre-symptomatic to Infected
 gamma   <- user()      # rate of recovery from active disease
 tau     <- user()     # policy effectiveness
-c       <- user(1) # stringency
+c       <- user() # stringency
 obs_lag <- user() # days
 days_to_adjust_NPI <- user()
 output(tau) <- TRUE
