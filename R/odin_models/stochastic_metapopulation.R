@@ -27,13 +27,13 @@ n <- nr_patches
 
 ## parameters
 beta[,] <- user()   # effective contact rate (S to e)
-sigma   <- user(1/6)      # progression rate from Exposed to Pre-symptomatic
-delta   <- user(1/6)      # rate of progression from pre-symptomatic to Infected
-gamma   <- user(1/3)      # rate of recovery from active disease
-tau     <- user(0)     # policy effectiveness
-c       <- user(1) # stringency
-obs_lag <- user(5) # days
-days_to_adjust_NPI <- user(7)
+sigma   <- user()      # progression rate from Exposed to Pre-symptomatic
+delta   <- user()      # rate of progression from pre-symptomatic to Infected
+gamma   <- user()      # rate of recovery from active disease
+tau     <- user()     # policy effectiveness
+c       <- user() # stringency
+obs_lag <- user() # days
+days_to_adjust_NPI <- user()
 output(tau) <- TRUE
 L_max <- 5 # max intervention level
 
