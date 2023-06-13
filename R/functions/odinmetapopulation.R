@@ -28,6 +28,32 @@ odinmetapop <- R6::R6Class(
       inputs$nr_patches <- 2
       #inputs$mp <- c(1, 1, 0.5, 1, 1)
       return(inputs)
+    },
+
+    #' Computes replication-level summaries based on model results
+    #'
+    #' @export
+    post_process = function() {
+
+      # hard-coded for first jurisdiction
+      # Sarah to generalize
+      # Compute time-varying costs:
+      self$res <- self$res %>%
+        # This is a linear function from now, it can be non-linear
+        mutate(CNPI = `L[1]` * self$oi$tau * self$inputs$jurisdiction$cost.npi[1])
+
+      # This is where we summarize costs:
+      self$summary <- self$res %>%
+        group_by(rep) %>%
+        summarise(CNPI = sum(CNPI),
+                  R = max(`R[1]`)) %>%
+        # Compute other costs:
+        mutate(CH = R * (self$oi$r*self$oi$w + self$oi$o),
+               CSURV = self$oi$C_surv,
+               C = CH + CSURV + CNPI)
+
     }
+
+
   )
 )

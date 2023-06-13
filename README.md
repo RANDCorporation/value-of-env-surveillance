@@ -41,16 +41,16 @@ An `renv.lock` file is provided as a courtesy and to ensure we have a registry o
 - [x] Test lagged NPI control suggested by Henry [Pedro]
 - [x] Have the model use non-scalar inputs from inputs object. [Pedro]
 - [ ] Translate all parameters from Laura into model inputs and use those as baseline. [Jing]
-- [ ] Implement travel in the stochastic model. [Pedro, WIP]
-- [ ] integrate parameter inputs into the model. [Jing]
-- [ ] Fix stochastic metapopulation Model NaN's.
-- [ ] Create function to compute derived inputs (ie, R0 = beta/gamma)
-- [ ] Integrate Derek’s data on travel into the model.
-- [ ] Code experimental design function.
 - [ ] Code post-processing functions to compute net monetary benefit of surveillance considering:
 - [ ] Epi costs of intervention (as a function of IFR * I, and aggregate cost of infection)
 - [ ] NPIs and a cost function.
 - [ ] Costs of surveillance.
+- [ ] Implement travel in the stochastic model. [Sarah, WIP]
+- [ ] integrate parameter inputs into the model. [Jing]
+- [x] Fix stochastic metapopulation Model NaN's.
+- [ ] Create function to compute derived inputs (ie, R0 = beta/gamma)
+- [ ] Integrate Derek’s data on travel into the model.
+- [ ] Code experimental design function.
 - [ ] Run boundary case experiments to verify model and explore model behavior to refine the paper experimental design.
 
 *Model Inputs*

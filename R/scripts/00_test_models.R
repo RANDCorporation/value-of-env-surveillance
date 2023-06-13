@@ -14,13 +14,28 @@ source("./R/library.R")
 
 # stochastic metapopulation model -----------------------------------------
 
-meta_SIR_stoc <- odinmetapop$new("stochastic_metapopulation.R", s$data_file)
+meta_SIR_stoc <- odinmetapop$new("stochastic_metapopulation.R", s$data_file,obs_lag = 5)
 
-meta_SIR_stoc_res <- meta_SIR_stoc$run(0:100, reps = 100)
+meta_SIR_stoc$run(0:100, reps = 100)
+
+meta_SIR_stoc$post_process()
+
+
+summary(meta_SIR_stoc$summary)
 
 View(meta_SIR_stoc_res)
 
+
+
+
 head(meta_SIR_stoc_res)
+
+
+
+
+
+
+
 
 # deterministic metapopulation ode ----------------------------------------
 
@@ -60,9 +75,9 @@ rbind(res_2_delay, res_5_delay, res_10_delay) %>%
   mutate(TotalCases = cumsum(I),
          TotalNPICost = cumsum(NPI) * 1) %>% # Where 1 is the NPI cost
   tidyr::pivot_longer(cols = c(S,I,R,NPI,TotalCases,TotalNPICost)) %>%
-  filter(name %in% c("I", "NPI")) %>%
+  filter(name %in% c("I")) %>%
   ggplot(mapping = aes(x = step, y = value, color = Scenario, group = rep)) +
   geom_line() +
   xlab("Days") +
-  facet_wrap(facets = ~name + Scenario, scales = "free")
+  facet_wrap(facets = ~name + Scenario)
 

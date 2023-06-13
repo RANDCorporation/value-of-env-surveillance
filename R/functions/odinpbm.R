@@ -22,6 +22,15 @@ odinpbm <- R6::R6Class(
     #' @field o odin model object
     o = NULL,
 
+    #' @field oi odin model inputs
+    oi = NULL,
+
+    #' @field res day-level results
+    res = NULL,
+
+    #' @field res rep-level results
+    summary = NULL,
+
     #' @description
     #' Create a new `odinpbm` object.
     #' @param odin_file odin model file under R/odin_models. Should have an .R extension.
@@ -46,7 +55,7 @@ odinpbm <- R6::R6Class(
       inputs <- self$collect_default_inputs()
 
       # add custom inputs and override original inputs by name
-      inputs <- modifyList(inputs, list(...))
+      self$oi <- modifyList(inputs, list(...))
 
       # create the odin constructor
       # We don't use the constructor after this step, so I don't save it
@@ -55,7 +64,7 @@ odinpbm <- R6::R6Class(
       # initialize the model with default parameters, and additional parameters
       # we may want to provide additional wrappers around other odin functions
       # in the future
-      self$o <- do.call(odin_constructor$new, inputs)
+      self$o <- do.call(odin_constructor$new, self$oi)
 
     },
 
@@ -69,7 +78,7 @@ odinpbm <- R6::R6Class(
       res_list <- lapply(seq(dim(res)[3]), function(x) res[ , , x] %>% as.data.frame(.) %>% mutate(rep = x))
 
       # return as a data.frame
-      do.call(rbind, res_list)
+      self$res <- do.call(rbind, res_list)
 
     },
 

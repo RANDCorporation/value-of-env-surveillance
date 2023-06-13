@@ -1,5 +1,5 @@
 ---
-title: On the value of genomic wastewater surveillance information for pandemic response
+title: On the value of early warning systems for outbreak response
 subtitle: A model-based analysis
 #author:
 #  - name: Pedro Nascimento de Lima
@@ -46,6 +46,8 @@ format:
     keep-tex: true
     mermaid:
       theme: neutral
+  docx:
+      keep-tex: true
 ---
 
 <!-- Template source: https://github.com/quarto-journals/elsevier download repository and place it within this folder.-->
@@ -154,27 +156,26 @@ $${#eq-cost}
 
 where $f(x)$ is a function that maps a percent reduction in potentially infectious contacts to a monetary cost. $f(x)$ is monotonically increasing with $\mathbf{l}_t\tau$, and may exhibity decreasing marginal returns to a reduction in transmissibility. At the time of the intervention, decision-makers do not have precise information on either the effects of interventions (expressed in our model as a percent reduction $100 * \tau$ in infectious contacts) or its costs represented by function $f(x)$. Even if public health decision makers could estimate the instantaneous costs of nonpharmaceutical interventions in real-time, they would not be able to observe the full costs of interventions that do not manifest during the time-frame of interventions (i.e., the life-time effect of school closures). Nevertheless, any attempt to value the benefits of surveillance systems requires the specification of the costs of nonpharmaceutical interventions.
 
-## Net monetary benefit (NMB)
+## Net monetary benefit (NMB) of the surveillance system
 
-The net monetary benefit of interventions can be expressed as 
-
-$$
-E[NMB] = E[QALYs] * WTP - E[C_{npi}] - C_{surv} 
-$${#eq-nbm}
-
-where $QALYs$ represent the quality-adjusted life-years gained from non-pharmaceutical interventions, $WTP$ is the willingness-to-pay for one quality-adjusted life_year, $C_{npi}$ are the total costs of NPIs and $C_{surv}$ is the total cost of surveillance system employed.
-
-<!--
-
-# Valuing Wastewater surveillance information
-
-In this analysis, WBS systems are not assumed to resolve uncertainty of an exogenous model parameter $\boldsymbol \theta$. If WBS systems did resolve those uncertainties, then it would be possible to estimate the value of information (VOI) provided by wastewater surveillance systems using an expected value of partial perfect information (EVPPI) approach. Rather, we assume that WBS systems change what signals are available to policymakers and hence *how* they respond to an endogenous model quantity. Hence, we define the value of wastewater surveillance information as simply the difference between the net monetary benefit of with and without surveillance
+The total expected cost the outbreak for a given set of parameters $\mathbf{\theta}$ and surveillance system $i$ can be expressed as the sum of health costs $E[CH_{i}|\mathbf{\theta}]$, nonpharmaceutical intervention costs $E[CNPI_{ti}|\mathbf{\theta}]$ and surveillance costs $CSURV_{it}|\mathbf{\theta}$, where the expectation is taken across stochastic model realizations. Note that we chose to condition the expected cost of the pandemic on $\mathbf{\theta}$ rather than assuming a probability distribution over it.
 
 $$
-V = E[NMB|WBS=1] - E[NMB|WBS=0]
+E[C_{i}|\mathbf{\theta}] = E[CH_{i}|\mathbf{\theta}] + \sum_t{E[CNPI_{ti}|\mathbf{\theta}] + CSURV_{it}|\mathbf{\theta} } 
+$${#eq-costs}
+
+Health costs $CH_{i}$ are computed as a function of number of removed individuals $R$ in the simulation
+$$
+E[CH_{i}|\mathbf{\theta}] = E[R(rw+o) |\mathbf{\theta}]
+$${#eq-costs}
+where $r$ is the infection fatality rate, $w$ is the average cost per death (assuming a set willingness to pay), and $o$ are other costs per infection, including days absent from work and any potential long-term disability.
+
+In this analysis, WBS systems are not assumed not resolve uncertainty of any exogenous model parameter in $\boldsymbol \theta$. If WBS systems did resolve at least one of those uncertainties,  it would be possible to estimate the value of information (VOI) provided by wastewater surveillance systems using an expected value of partial perfect information (EVPPI) method. Rather, we assume that WBS systems change what signals are available to policymakers and hence *how* they respond to the pandemic. Hence, we define the net monetary benefit of wastewater surveillance information as the difference between the total cost of the pandemic with and without WBS surveillance.
+
+$$
+NMB_{surv} |\mathbf{\theta} = E[C_{conv surv}|\mathbf{\theta}]  - E[C_{meta surv}|\mathbf{\theta}]
 $$ {#eq-wbsvalue}
 
--->
 
 ```{=html}
 <!-- 
