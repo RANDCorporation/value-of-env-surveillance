@@ -45,13 +45,16 @@ An `renv.lock` file is provided as a courtesy and to ensure we have a registry o
 - [ ] Epi costs of intervention (as a function of IFR * I, and aggregate cost of infection)
 - [ ] NPIs and a cost function.
 - [ ] Costs of surveillance.
-- [ ] Implement travel in the stochastic model. [Sarah, WIP]
 - [ ] integrate parameter inputs into the model. [Jing]
 - [x] Fix stochastic metapopulation Model NaN's.
-- [ ] Create function to compute derived inputs (ie, R0 = beta/gamma)
+- [ ] Create function to compute derived inputs (ie, R0 = beta/gamma). We will scale the beta matrix such that 
+ - R0 = tau.eff * k * beta_pop
+   beta_pop = k * p' beta_matrix p. 
+   Tau.eff is the weighted sum of the infectious durations under this simple model, or can be obtained with the next-matrix generation for a more involved model with branches.
 - [ ] Integrate Derek’s data on travel into the model.
 - [ ] Code experimental design function.
 - [ ] Run boundary case experiments to verify model and explore model behavior to refine the paper experimental design.
+- [ ] Implement travel in the stochastic model. [Sarah, WIP]
 
 *Model Inputs*
 
