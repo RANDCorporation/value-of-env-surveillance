@@ -21,11 +21,12 @@ odinmetapop <- R6::R6Class(
     collect_default_inputs = function() {
       # start from the inputs collected by the parent class
       inputs <- super$collect_default_inputs()
+      print(inputs)
       # add in inputs that are unique to this model.
       # TODO: Jing, set additional inputs here.
-      inputs$beta <- structure(c(1, 0, 0, 1), dim = c(2L, 2L))
+      nr_patches <- as.integer(inputs$nr_patches)
+      inputs$beta <- structure(diag(nr_patches), dim = c(nr_patches,  nr_patches))
       #inputs$C <- structure(c(-0.01, 0.01, 0.01, -0.01), dim = c(2L, 2L))
-      inputs$nr_patches <- 2
       #inputs$mp <- c(1, 1, 0.5, 1, 1)
       return(inputs)
     },
