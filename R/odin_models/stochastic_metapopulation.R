@@ -18,8 +18,8 @@
 
 # parameters --------------------------------------------------------------
 
-nr_patches <- user(2)
-n <- nr_patches
+nr_patches <- user()
+n <- nr_patches # the number of regions is equal to the length of most inputs
 
 ## Params
 # Assignments in arrays are translated by odin to for loops in C
