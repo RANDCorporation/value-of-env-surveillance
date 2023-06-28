@@ -57,7 +57,6 @@ odinpbm <- R6::R6Class(
       # collect settings inputs
 
       inputs_settings <- self$collect_inputs(tab_name="settings", key_name="setting", val_name="value")
-      print(inputs_settings)
 
 
       # add custom inputs and override original inputs by name
@@ -109,16 +108,15 @@ odinpbm <- R6::R6Class(
       # by default, we get all parameters from the inputs spreadsheet:
       # for parameters, I can put all parameters into a named list:
       inputs <- list()
-      if(!is.null(self$inputs[tab_name])) {
-        outer <- eval(parse(text = paste("self$inputs[tab_name]", "$", key_name, sep="")))
-        key_val = eval(parse(text = paste("self$inputs[tab_name]", "$", key_name, "$", key_name, sep="")))
-        val_val = eval(parse(text = paste("self$inputs[tab_name]", "$", key_name, "$", val_name, sep="")))
+
+      outer <- self$inputs[[tab_name]]
+      if(!is.null(outer)) {
+        keys = outer[[key_name]]
+        vals = outer[[val_name]]
         for(ix in 1:nrow(outer)) {
-          inputs[key_val[ix]] = val_val[ix]
+          inputs[keys[ix]] = vals[ix]
         }
-
       }
-
       # inputs should be a named list, containing the user() inputs the model needs
       return(inputs)
     }
