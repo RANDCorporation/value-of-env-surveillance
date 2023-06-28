@@ -24,9 +24,9 @@ odinmetapop <- R6::R6Class(
       print(inputs)
       # add in inputs that are unique to this model.
       # TODO: Jing, set additional inputs here.
-      nr_patches <- as.integer((self$inputs$settings %>% filter(setting=="nr_patches"))$value)
+      inputs$nr_patches <- as.integer((self$inputs$settings %>% filter(setting=="nr_patches"))$value)
       #print(self$inputs$settings["nr_patches",2])
-      inputs$beta <- structure(diag(nr_patches), dim = c(nr_patches,  nr_patches))
+      inputs$beta <- structure(diag(inputs$nr_patches), dim = c(inputs$nr_patches,  inputs$nr_patches))
       #inputs$C <- structure(c(-0.01, 0.01, 0.01, -0.01), dim = c(2L, 2L))
       #inputs$mp <- c(1, 1, 0.5, 1, 1)
       return(inputs)
