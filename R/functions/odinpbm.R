@@ -120,8 +120,6 @@ odinpbm <- R6::R6Class(
       # inputs should be a named list, containing the user() inputs the model needs
       return(inputs)
     }
-
-
   )
 )
 
