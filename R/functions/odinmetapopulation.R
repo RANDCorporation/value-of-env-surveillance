@@ -44,7 +44,7 @@ odinmetapop <- R6::R6Class(
 
       # This is an example only for L:
 
-      browser()
+
 
       # res_long <- self$res %>%
       #   select(starts_with(required_jurisdiction_variables, ignore.case = FALSE)) %>%
@@ -58,9 +58,12 @@ odinmetapop <- R6::R6Class(
         select(-starts_with("L_star")) %>%
         tidyr::pivot_longer(cols = -c(rep, step), names_to = "variable", values_to = "value") %>%
         as.data.frame() %>%
-        tidyr::separate(col = variable,into = c("variable", "jurisdiction"), sep = "\\[") %>%
-        tidyr::extract(col = jurisdiction,into = "jurisdiction", regex = "([0-9]+)") %>%
+        #tidyr::separate(col = variable,into = c("variable", "jurisdiction"), sep = "\\[") %>%
+        tidyr::extract(col = variable,into = c("variable", "jurisdiction"), regex = "([A-Z]+)\\[([0-9]+)") %>%
         tidyr::pivot_wider(id_cols = c(rep, step, jurisdiction), names_from = "variable", values_from = "value")
+
+      View(self$res_long)
+      browser()
 
       # hard-coded for first jurisdiction
       # Sarah to generalize
