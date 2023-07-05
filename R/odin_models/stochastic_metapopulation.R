@@ -82,6 +82,7 @@ I_lag[] <- delay(I[i], obs_lag)
 output(I_lag) <- TRUE
 
 # need to use min(L_star, l_max), but we need to verify it's a parallel minimum.
+# L_star is target NPI level?
 L_star[] <- min(c*I_lag[i], L_max) # implies same stringency for everyone
 
 output(L_star) <- TRUE
