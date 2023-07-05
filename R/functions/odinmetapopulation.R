@@ -65,21 +65,21 @@ odinmetapop <- R6::R6Class(
       # However, we need to convert to numeric i.e. jurisdiction == 1 instead of jurisdiction == "1"
       self$res_long$jurisdiction <- as.numeric(self$res_long$jurisdiction)
 
-      View(self$res_long)
+
       # Do a left join on the long table and the jurisdiction information
-      joined_long <- left_join(self$res_long, self$inputs$jurisdiction, self$inputs$jurisdiction, by = c("jurisdiction"="jurisdiction.id"))
-      browser()
+      self$res_long <- left_join(self$res_long, self$inputs$jurisdiction, self$inputs$jurisdiction, by = c("jurisdiction"="jurisdiction.id"))
+
 
       # hard-coded for first jurisdiction
       # Sarah to generalize
       # Compute time-varying costs:
-      joined_long <- joined_long %>%
+      self$res_long <- self$res_long %>%
         # merge jurisdiction-level costs here with dplyr.
         # This is a linear function from now, it can be non-linear
-        mutate(CNPI = L * self$oi$tau * joined_long$cost.npi)
+        mutate(CNPI = L * self$oi$tau * self$res_long$cost.npi)
 
       # This is where we summarize costs:
-      self$summary <- joined_long %>%
+      self$summary <- self$res_long %>%
         group_by(rep, jurisdiction) %>%
         summarise(CNPI = sum(CNPI),
                   R = max(R)) %>%

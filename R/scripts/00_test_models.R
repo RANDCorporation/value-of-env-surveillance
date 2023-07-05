@@ -20,6 +20,8 @@ meta_SIR_stoc$run(0:100, reps = 100)
 
 meta_SIR_stoc$post_process()
 
+View(meta_SIR_stoc$res_long)
+
 View(meta_SIR_stoc$res)
 
 View(meta_SIR_stoc$summary)
