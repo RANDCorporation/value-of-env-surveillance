@@ -28,6 +28,9 @@ odinpbm <- R6::R6Class(
     #' @field res day-level results
     res = NULL,
 
+    #' @field res jurisdiction level results
+    res_long = NULL,
+
     #' @field res rep-level results
     summary = NULL,
 

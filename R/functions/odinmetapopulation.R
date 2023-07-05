@@ -37,12 +37,38 @@ odinmetapop <- R6::R6Class(
     #' @export
     post_process = function() {
 
+      # select only the variables we want for the summary variable
+
+      required_jurisdiction_variables = c("rep", "step", "L", "R")
+
+
+      # This is an example only for L:
+
+      browser()
+
+      # res_long <- self$res %>%
+      #   select(starts_with(required_jurisdiction_variables, ignore.case = FALSE)) %>%
+      #   select(-starts_with("L_star")) %>% # not a clean thing to do
+      #   pivot_longer(cols = starts_with("L"),values_to = "L", names_to = "jurisdiction", names_pattern = "L.*([0-9]+).*")
+
+      # convert data.frame to long format adding a jurisdiction column
+
+      self$res_long <- self$res %>%
+        select(starts_with(required_jurisdiction_variables, ignore.case = FALSE)) %>%
+        select(-starts_with("L_star")) %>%
+        tidyr::pivot_longer(cols = -c(rep, step), names_to = "variable", values_to = "value") %>%
+        as.data.frame() %>%
+        tidyr::separate(col = variable,into = c("variable", "jurisdiction"), sep = "\\[") %>%
+        tidyr::extract(col = jurisdiction,into = "jurisdiction", regex = "([0-9]+)") %>%
+        tidyr::pivot_wider(id_cols = c(rep, step, jurisdiction), names_from = "variable", values_from = "value")
+
       # hard-coded for first jurisdiction
       # Sarah to generalize
       # Compute time-varying costs:
-      self$res <- self$res %>%
+      self$res_long <- self$res_long %>%
+        # merge jurisdiction-level costs here with dplyr.
         # This is a linear function from now, it can be non-linear
-        mutate(CNPI = `L[1]` * self$oi$tau * self$inputs$jurisdiction$cost.npi[1])
+        mutate(CNPI = L * self$oi$tau * self$inputs$jurisdiction$cost.npi[1])
 
       # This is where we summarize costs:
       self$summary <- self$res %>%
