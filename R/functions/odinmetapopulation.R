@@ -58,7 +58,6 @@ odinmetapop <- R6::R6Class(
         select(-starts_with("L_star")) %>%
         tidyr::pivot_longer(cols = -c(rep, step), names_to = "variable", values_to = "value") %>%
         as.data.frame() %>%
-        #tidyr::separate(col = variable,into = c("variable", "jurisdiction"), sep = "\\[") %>%
         tidyr::extract(col = variable,into = c("variable", "jurisdiction"), regex = "([A-Z]+)\\[([0-9]+)") %>%
         tidyr::pivot_wider(id_cols = c(rep, step, jurisdiction), names_from = "variable", values_from = "value")
 
@@ -88,3 +87,4 @@ odinmetapop <- R6::R6Class(
 
   )
 )
+
