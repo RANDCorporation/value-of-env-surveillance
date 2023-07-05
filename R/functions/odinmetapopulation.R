@@ -61,22 +61,28 @@ odinmetapop <- R6::R6Class(
         tidyr::extract(col = variable,into = c("variable", "jurisdiction"), regex = "([A-Z]+)\\[([0-9]+)") %>%
         tidyr::pivot_wider(id_cols = c(rep, step, jurisdiction), names_from = "variable", values_from = "value")
 
+      # We pulled the number from the variable names (e.g. L[1] == 43.42 -> jurisdiction == "1" L == 43.42)
+      # However, we need to convert to numeric i.e. jurisdiction == 1 instead of jurisdiction == "1"
+      self$res_long$jurisdiction <- as.numeric(self$res_long$jurisdiction)
+
       View(self$res_long)
+      # Do a left join on the long table and the jurisdiction information
+      joined_long <- left_join(self$res_long, self$inputs$jurisdiction, self$inputs$jurisdiction, by = c("jurisdiction"="jurisdiction.id"))
       browser()
 
       # hard-coded for first jurisdiction
       # Sarah to generalize
       # Compute time-varying costs:
-      self$res_long <- self$res_long %>%
+      joined_long <- joined_long %>%
         # merge jurisdiction-level costs here with dplyr.
         # This is a linear function from now, it can be non-linear
-        mutate(CNPI = L * self$oi$tau * self$inputs$jurisdiction$cost.npi[1])
+        mutate(CNPI = L * self$oi$tau * joined_long$cost.npi)
 
       # This is where we summarize costs:
-      self$summary <- self$res %>%
-        group_by(rep) %>%
+      self$summary <- joined_long %>%
+        group_by(rep, jurisdiction) %>%
         summarise(CNPI = sum(CNPI),
-                  R = max(`R[1]`)) %>%
+                  R = max(R)) %>%
         # Compute other costs:
         mutate(CH = R * (self$oi$r*self$oi$w + self$oi$o),
                CSURV = self$oi$C_surv,
@@ -87,4 +93,3 @@ odinmetapop <- R6::R6Class(
 
   )
 )
-
