@@ -24,9 +24,11 @@ View(meta_SIR_stoc$res_long)
 
 View(meta_SIR_stoc$res)
 
-View(meta_SIR_stoc$summary)
+View(meta_SIR_stoc$summary_jurisdiction)
 
-summary(meta_SIR_stoc$summary)
+View(meta_SIR_stoc$summary_all)
+
+summary(meta_SIR_stoc$summary_all)
 
 
 

@@ -78,8 +78,8 @@ odinmetapop <- R6::R6Class(
         # This is a linear function from now, it can be non-linear
         mutate(CNPI = L * self$oi$tau * self$res_long$cost.npi)
 
-      # This is where we summarize costs:
-      self$summary <- self$res_long %>%
+      # This is where we summarize costs by jurisdiction:
+      self$summary_jurisdiction <- self$res_long %>%
         group_by(rep, jurisdiction) %>%
         summarise(CNPI = sum(CNPI),
                   R = max(R)) %>%
@@ -87,6 +87,19 @@ odinmetapop <- R6::R6Class(
         mutate(CH = R * (self$oi$r*self$oi$w + self$oi$o),
                CSURV = self$oi$C_surv,
                C = CH + CSURV + CNPI)
+
+
+      # This is where we summarize costs overall:
+      self$summary_all <- self$res_long %>%
+        group_by(rep) %>%
+        summarise(CNPI = sum(CNPI),
+                  R = max(R)) %>%
+        # Compute other costs:
+        mutate(CH = R * (self$oi$r*self$oi$w + self$oi$o),
+               CSURV = self$oi$C_surv,
+               C = CH + CSURV + CNPI)
+
+
 
     }
 

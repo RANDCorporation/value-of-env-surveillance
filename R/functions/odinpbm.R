@@ -32,7 +32,9 @@ odinpbm <- R6::R6Class(
     res_long = NULL,
 
     #' @field res rep-level results
-    summary = NULL,
+    #summary = NULL,
+    summary_jurisdiction = NULL,
+    summary_all = NULL,
 
     #' @description
     #' Create a new `odinpbm` object.
