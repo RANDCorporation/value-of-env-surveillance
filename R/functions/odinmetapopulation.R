@@ -58,16 +58,15 @@ odinmetapop <- R6::R6Class(
         select(-starts_with("L_star")) %>%
         tidyr::pivot_longer(cols = -c(rep, step), names_to = "variable", values_to = "value") %>%
         as.data.frame() %>%
-        tidyr::extract(col = variable,into = c("variable", "jurisdiction"), regex = "([A-Z]+)\\[([0-9]+)") %>%
-        tidyr::pivot_wider(id_cols = c(rep, step, jurisdiction), names_from = "variable", values_from = "value")
+        tidyr::extract(col = variable,into = c("variable", "jurisdiction.id"), regex = "([A-Z]+)\\[([0-9]+)") %>%
+        tidyr::pivot_wider(id_cols = c(rep, step, jurisdiction.id), names_from = "variable", values_from = "value")
 
       # We pulled the number from the variable names (e.g. L[1] == 43.42 -> jurisdiction == "1" L == 43.42)
       # However, we need to convert to numeric i.e. jurisdiction == 1 instead of jurisdiction == "1"
-      self$res_long$jurisdiction <- as.numeric(self$res_long$jurisdiction)
-
+      self$res_long$jurisdiction.id <- as.numeric(self$res_long$jurisdiction.id)
 
       # Do a left join on the long table and the jurisdiction information
-      self$res_long <- left_join(self$res_long, self$inputs$jurisdiction, self$inputs$jurisdiction, by = c("jurisdiction"="jurisdiction.id"))
+      self$res_long <- left_join(self$res_long, self$inputs$jurisdiction, self$inputs$jurisdiction, by = "jurisdiction.id")
 
 
       # hard-coded for first jurisdiction
@@ -80,26 +79,20 @@ odinmetapop <- R6::R6Class(
 
       # This is where we summarize costs by jurisdiction:
       self$summary_jurisdiction <- self$res_long %>%
-        group_by(rep, jurisdiction) %>%
+        group_by(rep, jurisdiction.id) %>%
         summarise(CNPI = sum(CNPI),
-                  R = max(R)) %>%
+                  R_final = max(R)) %>%
         # Compute other costs:
-        mutate(CH = R * (self$oi$r*self$oi$w + self$oi$o),
+        mutate(CH = R_final * (self$oi$r*self$oi$w + self$oi$o),
                CSURV = self$oi$C_surv,
                C = CH + CSURV + CNPI)
 
 
       # This is where we summarize costs overall:
-      self$summary_all <- self$res_long %>%
+      self$summary_all <- self$summary_jurisdiction %>%
         group_by(rep) %>%
-        summarise(CNPI = sum(CNPI),
-                  R = max(R)) %>%
-        # Compute other costs:
-        mutate(CH = R * (self$oi$r*self$oi$w + self$oi$o),
-               CSURV = self$oi$C_surv,
-               C = CH + CSURV + CNPI)
-
-
+        select(-jurisdiction.id) %>%
+        summarise(across(everything(),.fns = ~sum(.x)))
 
     }
 
