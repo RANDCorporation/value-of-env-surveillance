@@ -77,6 +77,10 @@ odinmetapop <- R6::R6Class(
         # This is a linear function from now, it can be non-linear
         mutate(CNPI = L * self$oi$tau * self$res_long$cost.npi)
 
+
+      # let's imagine we define the probability of the outbreak event as p in the model
+      p = 0.1
+
       # This is where we summarize costs by jurisdiction:
       self$summary_jurisdiction <- self$res_long %>%
         group_by(rep, jurisdiction.id) %>%
@@ -85,7 +89,7 @@ odinmetapop <- R6::R6Class(
         # Compute other costs:
         mutate(CH = R_final * (self$oi$r*self$oi$w + self$oi$o),
                CSURV = self$oi$C_surv,
-               C = CH + CSURV + CNPI)
+               C = p * (CH + CSURV) + CNPI)
 
 
       # This is where we summarize costs overall:
