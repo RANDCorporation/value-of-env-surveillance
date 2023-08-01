@@ -16,7 +16,7 @@
 
 odinpbm <- R6::R6Class(
   classname = "odinpbm",
-  inherit = c19model,
+  inherit = R6Sim,
   public = list(
 
     #' @field o odin model object
@@ -35,6 +35,8 @@ odinpbm <- R6::R6Class(
     #summary = NULL,
     summary_jurisdiction = NULL,
     summary_all = NULL,
+
+    summary = NULL,
 
     #' @description
     #' Create a new `odinpbm` object.
@@ -63,7 +65,6 @@ odinpbm <- R6::R6Class(
 
       inputs_settings <- self$collect_inputs(tab_name="settings", key_name="setting", val_name="value")
 
-
       # add custom inputs and override original inputs by name
       self$oi <- modifyList(inputs, list(...))
 
@@ -78,8 +79,8 @@ odinpbm <- R6::R6Class(
 
     },
 
-    # runs the model for a set of replications
-    run = function(step, y = NULL, use_names = TRUE, reps = 1){
+    # simulates the model for a set of replications
+    simulate = function(step, y = NULL, use_names = TRUE, reps = 1){
 
       # result comes as an array of matrices
       res <- replicate(n = reps, expr = self$o$run(step, y = y, use_names = use_names))
@@ -110,6 +111,7 @@ odinpbm <- R6::R6Class(
 
 
     collect_inputs = function(tab_name, key_name, val_name) {
+
       # by default, we get all parameters from the inputs spreadsheet:
       # for parameters, I can put all parameters into a named list:
       inputs <- list()

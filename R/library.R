@@ -28,9 +28,9 @@ s <- yaml::read_yaml("settings.yml")
 # into the parent folder of the c19-paths repository
 # this will be necessary until we release the package externally
 if(s$c19model_load_all) {
-  devtools::load_all("../../c19model")
+  devtools::load_all("../../R6Sim")
 } else {
-  library(c19model)
+  library(R6Sim)
 }
 
 

@@ -16,7 +16,7 @@ source("./R/library.R")
 
 meta_SIR_stoc <- odinmetapop$new("stochastic_metapopulation.R", s$data_file,obs_lag = 5)
 
-meta_SIR_stoc$run(0:100, reps = 100)
+meta_SIR_stoc$simulate(0:100, reps = 100)
 
 meta_SIR_stoc$post_process()
 
