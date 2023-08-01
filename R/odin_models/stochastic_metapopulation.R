@@ -26,23 +26,25 @@ n <- nr_patches # the number of regions is equal to the length of most inputs
 # See https://mrc-ide.github.io/odin/articles/functions.html
 
 ## parameters
-beta[,] <- user()   # effective contact rate (S to e)
-sigma   <- user()      # progression rate from Exposed to Pre-symptomatic
-delta   <- user()      # rate of progression from pre-symptomatic to Infected
-gamma   <- user()      # rate of recovery from active disease
-tau     <- user()     # policy effectiveness
-c       <- user() # stringency
-obs_lag <- user() # days
-days_to_adjust_NPI <- user()
+beta[,] <- user()     # effective contact rate (S to e)
+sigma   <- user()     # progression rate from Exposed to Pre-symptomatic
+delta   <- user()     # rate of progression from pre-symptomatic to Infected
+gamma   <- user()     # rate of progression from active disease to Removed
+tau     <- user()     # policy marginal effectiveness
+c       <- user()     # policy stringency
+npi_duration <- user(1000) # Maximum days to use interventions
+obs_lag <- user()          # case Observation lag (in days)
+days_to_adjust_NPI <- user() # time to adjust NPIs
 output(tau) <- TRUE
 L_max <- 5 # max intervention level
+trans_mult <- user(1) # transmissibility multiplier (used for scenario analysis)
 
 # initial conditions ------------------------------------------------------
 
-initial(S[]) <- 10000000000
+initial(S[]) <- 10000000
 initial(E[]) <- 0.0
 initial(P[]) <- 0.0
-initial(I[]) <- 1
+initial(I[]) <- 10
 initial(R[]) <- 0.0
 initial(L[]) <- 0
 
@@ -73,24 +75,25 @@ output(lambda_prod[]) <- TRUE
 output(lambda[]) <- TRUE
 output(S_E[]) <- TRUE
 
-# equations ---------------------------------------------------------------
-
 # nonpharmaceutical interventions -----------------------------------------
 
-# Example using delayed
+# NPIs use delayed information
 I_lag[] <- delay(I[i], obs_lag)
 output(I_lag) <- TRUE
 
+# Effective NPI strigency: only active temporarily
+eff_c <- if(step <= npi_duration) c else 0
+
 # need to use min(L_star, l_max), but we need to verify it's a parallel minimum.
 # L_star is target NPI level?
-L_star[] <- min(c*I_lag[i], L_max) # implies same stringency for everyone
+L_star[] <- min(1000 * eff_c * I_lag[i] / N[i], L_max) # implies same stringency for everyone
 
 output(L_star) <- TRUE
 
 update(L[]) <- L[i] + (L_star[i] - L[i]) / days_to_adjust_NPI
 
 # Disease transmission equation
-lambda_prod[ , ] <- (1-L[i]*tau) * beta[i, j] * (I[j] + P[j])
+lambda_prod[ , ] <- trans_mult * (1-L[i]*tau) * beta[i, j] * (I[j] + P[j])
 lambda[] <- sum(lambda_prod[i, ]) # rowSums
 
 # This is the probability of infection | susceptible
