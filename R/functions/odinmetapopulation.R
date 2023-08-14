@@ -54,6 +54,29 @@ odinmetapop <- R6::R6Class(
       # Hence, overall beta is fixed here:
       inputs$beta <- k * beta_input
 
+
+      # Calculate cost of illness
+      healthcosts <- self$inputs$healthcosts
+      # Set the rownames to the severities
+      m <- tibble::column_to_rownames(healthcosts, var="severity")
+      # The cost of being ill for each stage
+      m$cost_unwellness_for_given_stage <- with(m, DALY_weight * disease_duration * VSLY)
+      # Severe and critical illness started as mild, so we must get that cost
+      # And add
+      mild_cost = m['mild','cost_unwellness_for_given_stage']
+      # if the disease stage is severe or critical, we started off as mild. We must add
+      # the cost of being ill during the
+      # mild period to the total cost of being ill
+      m$cost_with_mild_included_and_hospitalization <- with(m,
+                                                            cost_unwellness_for_given_stage
+                                                            + ifelse(row.names(m) %in% c("severe", "critical"), mild_cost, 0)
+                                                            + hospital_cost)
+
+      cost_per_disease_incidence_by_severity <- with(m, cost_with_mild_included_and_hospitalization*disease_state_prevalence)
+      self$inputs$total_cost_per_disease_incidence <- sum(cost_per_disease_incidence_by_severity)
+      View(self$inputs$total_cost_per_disease_incidence)
+
+
       # Calibrate parameters of logistic functions here:
 
       if(as.logical(inputs$time_varying_IFR)) {
@@ -78,6 +101,7 @@ odinmetapop <- R6::R6Class(
 
       # select only the variables we want for the summary variable
 
+
       required_jurisdiction_variables = c("rep", "step", "L", "R", "I")
 
       # save results into long format
@@ -89,9 +113,9 @@ odinmetapop <- R6::R6Class(
         tidyr::extract(col = variable,into = c("variable", "jurisdiction.id"), regex = "([A-Z]+)\\[([0-9]+)") %>%
         tidyr::pivot_wider(id_cols = c(rep, step, jurisdiction.id), names_from = "variable", values_from = "value")
 
+
+
       self$res_long$jurisdiction.id <- as.numeric(self$res_long$jurisdiction.id)
-
-
       # Compute deaths:
       self$res_long <- left_join(self$res_long, self$inputs$jurisdiction, by = "jurisdiction.id") %>%
         # Cost might also be formulated as dependent on effectiveness (tau):
@@ -134,7 +158,6 @@ odinmetapop <- R6::R6Class(
         # Assumes equal population sizes - we may change this.
         mutate(CNPI = CNPI / self$oi$nr_patches) %>%
         mutate(Deaths.per.100k = Deaths.per.100k / self$oi$nr_patches)
-
       # summarize across replications:
       self$summary <- self$summary_all %>%
         group_by() %>%
@@ -145,3 +168,170 @@ odinmetapop <- R6::R6Class(
 
   )
 )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
