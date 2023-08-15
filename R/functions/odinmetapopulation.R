@@ -73,9 +73,7 @@ odinmetapop <- R6::R6Class(
                                                             + hospital_cost)
 
       cost_per_disease_incidence_by_severity <- with(m, cost_with_mild_included_and_hospitalization*disease_state_prevalence)
-      self$inputs$total_cost_per_disease_incidence <- sum(cost_per_disease_incidence_by_severity)
-      View(self$inputs$total_cost_per_disease_incidence)
-
+      self$inputs$average_health_cost_per_infection <- sum(cost_per_disease_incidence_by_severity)
 
       # Calibrate parameters of logistic functions here:
 
@@ -137,6 +135,16 @@ odinmetapop <- R6::R6Class(
         # Compute deaths:
         mutate(Deaths.per.100k = round((c(0, diff(R)) * IFR / population) * 100000))
 
+      # The incidence is the difference in the recovered count at each step, albeit offset in time.
+      # We pre-pend a 0 to get the incidence (is this just so we count the first few recoveries).
+      self$res_long <- self$res_long %>%
+        mutate(incidence = round(c(0, diff(R))))
+
+      # The health cost is the number of infected this round times the avg cost per infection
+      self$res_long <- self$res_long %>%
+        mutate(health_cost_of_illness = incidence * self$inputs$average_health_cost_per_infection)
+
+
 
       # Summarize costs by jurisdiction
 
@@ -145,6 +153,7 @@ odinmetapop <- R6::R6Class(
         summarise(CNPI = sum(CNPI),
                   Deaths.per.100k = sum(Deaths.per.100k),
                   population = mean(population),
+                  health_cost_of_illness = sum(health_cost_of_illness),
                   R_final = max(R), .groups = "keep") %>%
         mutate(CH = R_final * (self$oi$r*self$oi$w + self$oi$o),
                CSURV = self$oi$C_surv,
