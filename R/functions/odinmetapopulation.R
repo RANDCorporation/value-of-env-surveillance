@@ -57,23 +57,26 @@ odinmetapop <- R6::R6Class(
 
       # Calculate cost of illness
       healthcosts <- self$inputs$healthcosts
+
       # Set the rownames to the severities
       m <- tibble::column_to_rownames(healthcosts, var="severity")
       # The cost of being ill for each stage
-      m$cost_unwellness_for_given_stage <- with(m, DALY_weight * disease_duration * VSLY)
+
+      m$cost_unwellness_for_given_stage <- m$DALY_weight * m$disease_duration * inputs$VSLY
       # Severe and critical illness started as mild, so we must get that cost
       # And add
       mild_cost = m['mild','cost_unwellness_for_given_stage']
       # if the disease stage is severe or critical, we started off as mild. We must add
       # the cost of being ill during the
       # mild period to the total cost of being ill
+      # Then we add in the hospital cost
       m$cost_with_mild_included_and_hospitalization <- with(m,
                                                             cost_unwellness_for_given_stage
                                                             + ifelse(row.names(m) %in% c("severe", "critical"), mild_cost, 0)
                                                             + hospital_cost)
 
-      cost_per_disease_incidence_by_severity <- with(m, cost_with_mild_included_and_hospitalization*disease_state_prevalence)
-      self$inputs$average_health_cost_per_infection <- sum(cost_per_disease_incidence_by_severity)
+      cost_per_new_infection_by_severity <- with(m, cost_with_mild_included_and_hospitalization*disease_state_prevalence)
+      self$inputs$average_health_cost_per_infection <- sum(cost_per_new_infection_by_severity)
 
       # Calibrate parameters of logistic functions here:
 
@@ -132,17 +135,24 @@ odinmetapop <- R6::R6Class(
         } else . } %>%
         arrange(rep, jurisdiction.id, step) %>%
         group_by(rep, jurisdiction.id) %>%
+        mutate(new_recoveries = c(0, diff(R))) %>%
         # Compute deaths:
-        mutate(Deaths.per.100k = round((c(0, diff(R)) * IFR / population) * 100000))
+        mutate(Deaths.per.100k = round((new_recoveries * IFR / population) * 100000))
 
-      # The incidence is the difference in the recovered count at each step, albeit offset in time.
-      # We pre-pend a 0 to get the incidence (is this just so we count the first few recoveries).
+      # The new_recoveries is the difference in the recovered count at each step, which should
+      # reflect the infection count, albeit offset in time.
+      # We pre-pend a 0 to capture the first set of differences (first entry will be the
+      # num of people in the recovered compartiment at time 1, second will be the number at time 2
+      # minus the number with recovered status at time 1, etc)
+      # TODO: THIS ONLY WORKS IF R IS ABSORBING AND NO ONE LEAVES THE STATUS R.
+      # WE WILL HAVE TO CHANGE THIS IF WE ADD VARIANTS OR PEOPLE BECOME SUSCEPTIBLE
+      # AGAIN
       self$res_long <- self$res_long %>%
-        mutate(incidence = round(c(0, diff(R))))
+        mutate(new_recoveries = c(0, diff(R)))
 
       # The health cost is the number of infected this round times the avg cost per infection
       self$res_long <- self$res_long %>%
-        mutate(health_cost_of_illness = incidence * self$inputs$average_health_cost_per_infection)
+        mutate(health_cost_of_illness = new_recoveries * self$inputs$average_health_cost_per_infection)
 
 
 
