@@ -54,12 +54,13 @@ odinmetapop <- R6::R6Class(
       # Hence, overall beta is fixed here:
       inputs$beta <- k * beta_input
 
-
       # Calculate cost of illness
       healthcosts <- self$inputs$healthcosts
 
       # Set the rownames to the severities
+      # m is the
       m <- tibble::column_to_rownames(healthcosts, var="severity")
+
       # The cost of being ill for each stage
 
       m$cost_unwellness_for_given_stage <- m$DALY_weight * m$disease_duration * inputs$VSLY
@@ -70,6 +71,8 @@ odinmetapop <- R6::R6Class(
       # the cost of being ill during the
       # mild period to the total cost of being ill
       # Then we add in the hospital cost
+      # PNL note: Can we avoid using with, and use dplyr::mutate instead.
+      # This is more of a style opinion rather than a hard-and-fast rule.
       m$cost_with_mild_included_and_hospitalization <- with(m,
                                                             cost_unwellness_for_given_stage
                                                             + ifelse(row.names(m) %in% c("severe", "critical"), mild_cost, 0)
@@ -147,9 +150,12 @@ odinmetapop <- R6::R6Class(
       # TODO: THIS ONLY WORKS IF R IS ABSORBING AND NO ONE LEAVES THE STATUS R.
       # WE WILL HAVE TO CHANGE THIS IF WE ADD VARIANTS OR PEOPLE BECOME SUSCEPTIBLE
       # AGAIN
+
+      #PNL note: why do that again?
       self$res_long <- self$res_long %>%
         mutate(new_recoveries = c(0, diff(R)))
 
+      # PNL note: average_health_cost_
       # The health cost is the number of infected this round times the avg cost per infection
       self$res_long <- self$res_long %>%
         mutate(health_cost_of_illness = new_recoveries * self$inputs$average_health_cost_per_infection)
