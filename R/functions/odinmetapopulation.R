@@ -57,29 +57,25 @@ odinmetapop <- R6::R6Class(
       # Calculate cost of illness
       healthcosts <- self$inputs$healthcosts
 
-      # Set the rownames to the severities
-      # m is the
-      m <- tibble::column_to_rownames(healthcosts, var="severity")
-
       # The cost of being ill for each stage
 
       m$cost_unwellness_for_given_stage <- m$DALY_weight * m$disease_duration * inputs$VSLY
       # Severe and critical illness started as mild, so we must get that cost
       # And add
-      mild_cost = m['mild','cost_unwellness_for_given_stage']
+      mild_cost = filter(m, severity=="mild")$cost_unwellness_for_given_stage
       # if the disease stage is severe or critical, we started off as mild. We must add
       # the cost of being ill during the
       # mild period to the total cost of being ill
       # Then we add in the hospital cost
       # PNL note: Can we avoid using with, and use dplyr::mutate instead.
       # This is more of a style opinion rather than a hard-and-fast rule.
-      m$cost_with_mild_included_and_hospitalization <- with(m,
-                                                            cost_unwellness_for_given_stage
-                                                            + ifelse(row.names(m) %in% c("severe", "critical"), mild_cost, 0)
-                                                            + hospital_cost)
+      m <- m %>%mutate(cost_with_mild_included_and_hospitalization = cost_unwellness_for_given_stage
+                                                              + ifelse(severity %in% c("severe", "critical"), mild_cost, 0)
+                                                              + hospital_cost)
 
       cost_per_new_infection_by_severity <- with(m, cost_with_mild_included_and_hospitalization*disease_state_prevalence)
       self$inputs$average_health_cost_per_infection <- sum(cost_per_new_infection_by_severity)
+
 
       # Calibrate parameters of logistic functions here:
 
@@ -158,7 +154,8 @@ odinmetapop <- R6::R6Class(
       # PNL note: average_health_cost_
       # The health cost is the number of infected this round times the avg cost per infection
       self$res_long <- self$res_long %>%
-        mutate(health_cost_of_illness = new_recoveries * self$inputs$average_health_cost_per_infection)
+        mutate(health_cost_of_illness = new_recoveries * self$inputs$average_health_cost_per_infection) %>%
+        mutate(per_capita_health_cost_of_illness = health_cost_of_illness / population)
 
 
 
@@ -169,7 +166,7 @@ odinmetapop <- R6::R6Class(
         summarise(CNPI = sum(CNPI),
                   Deaths.per.100k = sum(Deaths.per.100k),
                   population = mean(population),
-                  health_cost_of_illness = sum(health_cost_of_illness),
+                  per_capita_health_cost_of_illness = sum(health_cost_of_illness)/population,
                   R_final = max(R), .groups = "keep") %>%
         mutate(CH = R_final * (self$oi$r*self$oi$w + self$oi$o),
                CSURV = self$oi$C_surv,
@@ -182,7 +179,8 @@ odinmetapop <- R6::R6Class(
         summarise(across(everything(),.fns = ~sum(.x))) %>%
         # Assumes equal population sizes - we may change this.
         mutate(CNPI = CNPI / self$oi$nr_patches) %>%
-        mutate(Deaths.per.100k = Deaths.per.100k / self$oi$nr_patches)
+        mutate(Deaths.per.100k = Deaths.per.100k / self$oi$nr_patches) %>%
+        mutate(per_capita_health_cost_of_illness = per_capita_health_cost_of_illness / self$oi$nr_patches)
       # summarize across replications:
       self$summary <- self$summary_all %>%
         group_by() %>%
