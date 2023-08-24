@@ -27,6 +27,7 @@ odinmetapop <- R6::R6Class(
       # start from the inputs collected by the parent class
       inputs <- super$collect_default_inputs()
 
+
       # add in inputs that are unique to this model.
       inputs$nr_patches <- as.integer((self$inputs$settings %>% filter(setting=="nr_patches"))$value)
 
@@ -70,8 +71,8 @@ odinmetapop <- R6::R6Class(
       # PNL note: Can we avoid using with, and use dplyr::mutate instead.
       # This is more of a style opinion rather than a hard-and-fast rule.
       m <- m %>%mutate(cost_with_mild_included_and_hospitalization = cost_unwellness_for_given_stage
-                                                              + ifelse(severity %in% c("severe", "critical"), mild_cost, 0)
-                                                              + hospital_cost)
+                       + ifelse(severity %in% c("severe", "critical"), mild_cost, 0)
+                       + hospital_cost)
 
       cost_per_new_infection_by_severity <- with(m, cost_with_mild_included_and_hospitalization*disease_state_prevalence)
       self$inputs$average_health_cost_per_infection <- sum(cost_per_new_infection_by_severity)
@@ -89,6 +90,8 @@ odinmetapop <- R6::R6Class(
         # Recall the logistic function needs to start at zero, so we need to add 1 to the RR later.
         inputs$H_overload_scale_factor <- calib_logistic_fn(y_max = inputs$H_overload_IFR_RR - 1, x_mid_point = inputs$I_mid_IFR, x_trans = (inputs$I_max_IFR - inputs$I_mid_IFR)*2, x_vector = seq.default(from = 0, to = inputs$I_max_IFR * 1.5, by = 0.0001))
       }
+
+
 
 
       return(inputs)
@@ -163,14 +166,15 @@ odinmetapop <- R6::R6Class(
 
       self$summary_jurisdiction <- self$res_long %>%
         group_by(rep, jurisdiction.id) %>%
-        summarise(CNPI = sum(CNPI),
-                  Deaths.per.100k = sum(Deaths.per.100k),
+        summarise(CNPI = self$oi$p_disease_event * sum(CNPI),
+                  Deaths.per.100k = self$oi$p_disease_event * sum(Deaths.per.100k),
                   population = mean(population),
+                  health_cost_of_illness = self$oi$p_disease_event * sum(health_cost_of_illness),
                   per_capita_health_cost_of_illness = sum(health_cost_of_illness)/population,
                   R_final = max(R), .groups = "keep") %>%
-        mutate(CH = R_final * (self$oi$r*self$oi$w + self$oi$o),
+        mutate(CH = self$oi$p_disease_event * R_final * (self$oi$r*self$oi$w + self$oi$o),
                CSURV = self$oi$C_surv,
-               C = CH + CSURV + CNPI)
+               C = CSURV + CH + CNPI )
 
       # Summarize overall costs
       self$summary_all <- self$summary_jurisdiction %>%
