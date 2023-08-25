@@ -44,6 +44,8 @@ odinmetapop <- R6::R6Class(
       # Original beta matrix:
       beta_input <- as.matrix(self$inputs$beta[1:inputs$nr_patches,1:inputs$nr_patches+1])
 
+      self$inputs$coordination_trimmed  <- as.matrix(self$inputs$coordination[1:inputs$nr_patches,1:inputs$nr_patches+1])
+
       beta_pop_input <- t(pop) %*% beta_input %*% pop
 
       # Effective infectious period
@@ -54,6 +56,7 @@ odinmetapop <- R6::R6Class(
 
       # Hence, overall beta is fixed here:
       inputs$beta <- k * beta_input
+
 
       # Calculate cost of illness
       healthcosts <- self$inputs$healthcosts
@@ -103,7 +106,6 @@ odinmetapop <- R6::R6Class(
     post_process = function() {
 
       # select only the variables we want for the summary variable
-
 
       required_jurisdiction_variables = c("rep", "step", "L", "R", "I")
 
