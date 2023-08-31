@@ -44,7 +44,7 @@ odinmetapop <- R6::R6Class(
       # Original beta matrix:
       beta_input <- as.matrix(self$inputs$beta[1:inputs$nr_patches,1:inputs$nr_patches+1])
 
-      self$inputs$coordination_trimmed  <- as.matrix(self$inputs$coordination[1:inputs$nr_patches,1:inputs$nr_patches+1])
+      inputs$coordination_trimmed  <- as.matrix(self$inputs$coordination[1:inputs$nr_patches,1:inputs$nr_patches+1])
 
       beta_pop_input <- t(pop) %*% beta_input %*% pop
 
@@ -93,9 +93,6 @@ odinmetapop <- R6::R6Class(
         # Recall the logistic function needs to start at zero, so we need to add 1 to the RR later.
         inputs$H_overload_scale_factor <- calib_logistic_fn(y_max = inputs$H_overload_IFR_RR - 1, x_mid_point = inputs$I_mid_IFR, x_trans = (inputs$I_max_IFR - inputs$I_mid_IFR)*2, x_vector = seq.default(from = 0, to = inputs$I_max_IFR * 1.5, by = 0.0001))
       }
-
-
-
 
       return(inputs)
     },

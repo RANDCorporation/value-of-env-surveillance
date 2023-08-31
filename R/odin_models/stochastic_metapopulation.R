@@ -89,7 +89,11 @@ eff_c <- if(step <= npi_duration) c else 0
 # need to use min(L_star, l_max), but we need to verify it's a parallel minimum.
 # L_star is target NPI level?
 print("coordination_trimmed: {coordination_trimmed}")
-L_star[] <- min(1000 * eff_c * I_lag[i] / N[i], L_max) * coordination_trimmed[i,j] # implies same stringency for everyone
+
+# Use coordination_trimmed variable here to compute target npi
+#
+
+L_star[] <- min(1000 * eff_c * I_lag[i] / N[i], L_max)
 
 output(L_star) <- TRUE
 
