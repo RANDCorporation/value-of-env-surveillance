@@ -63,21 +63,21 @@ odinmetapop <- R6::R6Class(
 
       # The cost of being ill for each stage
 
-      m$cost_unwellness_for_given_stage <- m$DALY_weight * m$disease_duration * inputs$VSLY
+      healthcosts$cost_unwellness_for_given_stage <- healthcosts$DALY_weight * healthcosts$disease_duration * inputs$VSLY
       # Severe and critical illness started as mild, so we must get that cost
       # And add
-      mild_cost = filter(m, severity=="mild")$cost_unwellness_for_given_stage
+      mild_cost = filter(healthcosts, severity=="mild")$cost_unwellness_for_given_stage
       # if the disease stage is severe or critical, we started off as mild. We must add
       # the cost of being ill during the
       # mild period to the total cost of being ill
       # Then we add in the hospital cost
       # PNL note: Can we avoid using with, and use dplyr::mutate instead.
       # This is more of a style opinion rather than a hard-and-fast rule.
-      m <- m %>%mutate(cost_with_mild_included_and_hospitalization = cost_unwellness_for_given_stage
+      healthcosts <- healthcosts %>%mutate(cost_with_mild_included_and_hospitalization = cost_unwellness_for_given_stage
                        + ifelse(severity %in% c("severe", "critical"), mild_cost, 0)
                        + hospital_cost)
 
-      cost_per_new_infection_by_severity <- with(m, cost_with_mild_included_and_hospitalization*disease_state_prevalence)
+      cost_per_new_infection_by_severity <- with(healthcosts, cost_with_mild_included_and_hospitalization*disease_state_prevalence)
       self$inputs$average_health_cost_per_infection <- sum(cost_per_new_infection_by_severity)
 
 
