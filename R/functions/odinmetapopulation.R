@@ -44,7 +44,7 @@ odinmetapop <- R6::R6Class(
       # Original beta matrix:
       beta_input <- as.matrix(self$inputs$beta[1:inputs$nr_patches,1:inputs$nr_patches+1])
 
-      inputs$coordination_trimmed  <- as.matrix(self$inputs$coordination[1:inputs$nr_patches,1:inputs$nr_patches+1])
+      inputs$npi_coord  <- as.matrix(self$inputs$coordination[1:inputs$nr_patches,1:inputs$nr_patches+1])
 
       beta_pop_input <- t(pop) %*% beta_input %*% pop
 

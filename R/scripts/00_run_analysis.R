@@ -12,17 +12,30 @@
 
 source("./R/library.R")
 
+set.seed(1234)
+
 # stochastic metapopulation model -----------------------------------------
 
 meta_SIR_stoc <- odinmetapop$new("stochastic_metapopulation.R", s$data_file,obs_lag = 5)
 
 meta_SIR_stoc$simulate(0:100, reps = 100)
 
+meta_SIR_stoc$res[20,] %>% select(contains("L_star_ind")) %>% t() %>% matrix(nrow = 1, ncol = 3)
+
+meta_SIR_stoc$res[20,] %>% select(contains("L_star_matrix")) %>% t() %>% matrix(nrow = 3, ncol = 3)
+
+meta_SIR_stoc$res[20,] %>% select(contains("L_star_max")) %>% t() %>% matrix(nrow = 3, ncol = 3)
+
+meta_SIR_stoc$res[20,] %>% select(contains("L_star_avg")) %>% t() %>% matrix(nrow = 1, ncol = 3)
+
+meta_SIR_stoc$res[20,] %>% select(contains("L_star_f")) %>% t() %>% matrix(nrow = 1, ncol = 3)
+
+
 meta_SIR_stoc$post_process()
 
 View(meta_SIR_stoc$res_long)
 
-View(meta_SIR_stoc$res)
+
 
 View(meta_SIR_stoc$summary_jurisdiction)
 

@@ -38,7 +38,8 @@ days_to_adjust_NPI <- user() # time to adjust NPIs
 output(tau) <- TRUE
 L_max <- 5 # max intervention level
 trans_mult <- user(1) # transmissibility multiplier (used for scenario analysis)
-coordination_trimmed[,] <- user()
+npi_coord[,] <- user()
+npi_coord_max <- user(1) # Whether to use NPI coordination by the maximum NPI. If F, uses the weighted average NPIs following the weights found in the mixing matrix.
 
 # initial conditions ------------------------------------------------------
 
@@ -66,16 +67,20 @@ dim(P_I)         <- n
 dim(I_R)         <- n
 dim(p_SE)        <- n
 dim(L)           <- n
-dim(L_star)      <- n
 dim(I_lag)       <- n
-dim(coordination_trimmed) <- c(n,n)
+dim(npi_coord) <- c(n,n)
+dim(L_star_matrix) <- c(n,n) # Target NPI matrix.
+dim(L_star_f)      <- n # Jurisdiction's final target NPI level
+dim(L_star_ind) <- n # Jurisdiction's own L_star without considering other's
+dim(L_star_max) <- c(n,n) # Target NPI considering maximum NPI level of coordinating jurisdictions.
+dim(L_star_avg) <- n # Target NPI considering the weighted average target NPI level of coordinating jurisdictions.
 
 # additional outputs ------------------------------------------------------
 
-output(N[]) <- TRUE
-output(lambda_prod[]) <- TRUE
-output(lambda[]) <- TRUE
-output(S_E[]) <- TRUE
+#output(N[]) <- TRUE
+#output(lambda_prod[]) <- TRUE
+#output(lambda[]) <- TRUE
+#output(S_E[]) <- TRUE
 
 # nonpharmaceutical interventions -----------------------------------------
 
@@ -88,16 +93,41 @@ eff_c <- if(step <= npi_duration) c else 0
 
 # need to use min(L_star, l_max), but we need to verify it's a parallel minimum.
 # L_star is target NPI level?
-print("coordination_trimmed: {coordination_trimmed}")
+print("npi_coord: {npi_coord}")
 
-# Use coordination_trimmed variable here to compute target npi
-#
+# Use npi_coord variable here to compute target npi
 
-L_star[] <- min(1000 * eff_c * I_lag[i] / N[i], L_max)
+# Jurisdiction level target NPI looking only at local prevalence:
+L_star_ind[] <- min(1000 * eff_c * I_lag[i] / N[i], L_max)
 
-output(L_star) <- TRUE
+# Target NPI considering other jurisdictions:
+L_star_matrix[,] <-  npi_coord[i,j] * L_star_ind[j]
 
-update(L[]) <- L[i] + (L_star[i] - L[i]) / days_to_adjust_NPI
+# NPI target using weighted averages of other's NPI targets.
+# Unclear if i needs to be the in the column or the rows.
+L_star_avg[] <- sum(L_star_matrix[,i]) / n
+
+# Stores the maximum target level at the last column for each row:
+L_star_max[,] <- L_star_matrix[i,j]
+
+L_star_max[,2:n] <- if (L_star_max[i,j] > L_star_max[i,j-1]) L_star_max[i,j] else L_star_max[i,j-1]
+
+# Final target NPI:
+L_star_f[] <- if(npi_coord_max) L_star_max[i,n] else L_star_avg[i]
+
+output(npi_coord[,]) <- TRUE
+
+output(L_star_ind[]) <- TRUE
+
+output(L_star_avg[]) <- TRUE
+
+output(L_star_max[,]) <- TRUE
+
+output(L_star_matrix[,]) <- TRUE
+
+output(L_star_f[]) <- TRUE
+
+update(L[]) <- L[i] + (L_star_f[i] - L[i]) / days_to_adjust_NPI
 
 # Disease transmission equation
 lambda_prod[ , ] <- trans_mult * (1-L[i]*tau) * beta[i, j] * (I[j] + P[j])

@@ -70,7 +70,7 @@ odinpbm <- R6::R6Class(
 
       # create the odin constructor
       # We don't use the constructor after this step, so I don't save it
-      odin_constructor <- odin::odin(model_path, workdir = odin_workdir)
+      odin_constructor <- odin::odin(model_path, workdir = odin_workdir, debug_enable = F)
 
       # initialize the model with default parameters, and additional parameters
       # we may want to provide additional wrappers around other odin functions
