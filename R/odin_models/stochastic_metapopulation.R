@@ -38,6 +38,7 @@ days_to_adjust_NPI <- user() # time to adjust NPIs
 output(tau) <- TRUE
 L_max <- 5 # max intervention level
 trans_mult <- user(1) # transmissibility multiplier (used for scenario analysis)
+coordination_trimmed[,] <- user()
 
 # initial conditions ------------------------------------------------------
 
@@ -67,6 +68,7 @@ dim(p_SE)        <- n
 dim(L)           <- n
 dim(L_star)      <- n
 dim(I_lag)       <- n
+dim(coordination_trimmed) <- c(n,n)
 
 # additional outputs ------------------------------------------------------
 
@@ -86,7 +88,8 @@ eff_c <- if(step <= npi_duration) c else 0
 
 # need to use min(L_star, l_max), but we need to verify it's a parallel minimum.
 # L_star is target NPI level?
-L_star[] <- min(1000 * eff_c * I_lag[i] / N[i], L_max) # implies same stringency for everyone
+print("coordination_trimmed: {coordination_trimmed}")
+L_star[] <- min(1000 * eff_c * I_lag[i] / N[i], L_max) * coordination_trimmed[i,j] # implies same stringency for everyone
 
 output(L_star) <- TRUE
 
