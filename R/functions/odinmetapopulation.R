@@ -22,15 +22,25 @@ odinmetapop <- R6::R6Class(
     #' Collect model-specific default inputs.
     #'
     #' @export
-    collect_default_inputs = function() {
+    set_default_params = function() {
 
       # start from the inputs collected by the parent class
-      inputs <- super$collect_default_inputs()
+
+      super$set_default_params()
+
+      # here, we can do something special for this particular model if we need to
+
+      # add in inputs that are unique to this model and do not change across runs:
+      # inputs$nr_patches <- as.integer((self$inputs$settings %>% filter(setting=="nr_patches"))$value)
+
+      #return(inputs)
+      return(invisible(self))
+    },
 
 
-      # add in inputs that are unique to this model.
-      inputs$nr_patches <- as.integer((self$inputs$settings %>% filter(setting=="nr_patches"))$value)
-
+    # Pre-processes model inputs before running the simulation.
+    # This function can be re-run after
+    pre_process_inputs = function() {
 
       # Scale Mixing matrix to the desired R0:
 
@@ -39,24 +49,30 @@ odinmetapop <- R6::R6Class(
       # beta_pop = p' beta_matrix p.
 
       # Population density vector:
-      pop <- self$inputs$jurisdiction$population[1:inputs$nr_patches] / sum(self$inputs$jurisdiction$population[1:inputs$nr_patches])
+      pop <- self$inputs$jurisdiction$population[1:self$inputs$nr_patches] / sum(self$inputs$jurisdiction$population[1:self$inputs$nr_patches])
 
       # Original beta matrix:
-      beta_input <- as.matrix(self$inputs$beta[1:inputs$nr_patches,1:inputs$nr_patches+1])
-
-      inputs$npi_coord  <- as.matrix(self$inputs$coordination[1:inputs$nr_patches,1:inputs$nr_patches+1])
+      beta_input <- as.matrix(self$inputs$beta[1:self$inputs$nr_patches,1:self$inputs$nr_patches+1])
 
       beta_pop_input <- t(pop) %*% beta_input %*% pop
 
       # Effective infectious period
-      tau.eff <- (1/inputs$delta + 1/inputs$gamma)
+      tau.eff <- (1/self$inputs$delta + 1/self$inputs$gamma)
 
       # k factor aligns overall mixing matrix and infectious periods to a desired R0:
-      k <- as.numeric(inputs$R0 / (tau.eff * beta_pop_input))
+      k <- as.numeric(self$inputs$R0 / (tau.eff * beta_pop_input))
+
+      # get on the habit of using set_input:
+
+      self$set_input("beta", k * beta_input)
+
+      self$set_input("npi_coord", as.matrix(self$inputs$coordination[1:inputs$nr_patches,1:inputs$nr_patches+1]))
 
       # Hence, overall beta is fixed here:
-      inputs$beta <- k * beta_input
+      #self$inputs$beta <- k * beta_input
 
+      # NPI coordination matrix:
+      #self$inputs$npi_coord  <- as.matrix(self$inputs$coordination[1:inputs$nr_patches,1:inputs$nr_patches+1])
 
       # Calculate cost of illness
       healthcosts <- self$inputs$healthcosts
@@ -66,35 +82,45 @@ odinmetapop <- R6::R6Class(
       healthcosts$cost_unwellness_for_given_stage <- healthcosts$DALY_weight * healthcosts$disease_duration * inputs$VSLY
       # Severe and critical illness started as mild, so we must get that cost
       # And add
-      mild_cost = filter(healthcosts, severity=="mild")$cost_unwellness_for_given_stage
+      mild_cost <- filter(healthcosts, severity=="mild")$cost_unwellness_for_given_stage
       # if the disease stage is severe or critical, we started off as mild. We must add
       # the cost of being ill during the
       # mild period to the total cost of being ill
       # Then we add in the hospital cost
       # PNL note: Can we avoid using with, and use dplyr::mutate instead.
       # This is more of a style opinion rather than a hard-and-fast rule.
-      healthcosts <- healthcosts %>%mutate(cost_with_mild_included_and_hospitalization = cost_unwellness_for_given_stage
-                       + ifelse(severity %in% c("severe", "critical"), mild_cost, 0)
-                       + hospital_cost)
+      healthcosts <- healthcosts %>% mutate(cost_with_mild_included_and_hospitalization = cost_unwellness_for_given_stage
+                                           + ifelse(severity %in% c("severe", "critical"), mild_cost, 0)
+                                           + hospital_cost)
 
       cost_per_new_infection_by_severity <- with(healthcosts, cost_with_mild_included_and_hospitalization*disease_state_prevalence)
-      self$inputs$average_health_cost_per_infection <- sum(cost_per_new_infection_by_severity)
+
+
+      self$set_input("average_health_cost_per_infection",
+                     sum(cost_per_new_infection_by_severity))
+
+      #self$inputs$average_health_cost_per_infection <- sum(cost_per_new_infection_by_severity)
 
 
       # Calibrate parameters of logistic functions here:
 
-      if(as.logical(inputs$time_varying_IFR)) {
+      if(as.logical(self$inputs$time_varying_IFR)) {
         # Scale parameter of the RR risk function
-        inputs$r_scale_factor <- calib_logistic_fn(y_max = inputs$r_terminal_RR, x_mid_point = inputs$t_mid_IFR, x_trans = inputs$t_trans_IFR, x_vector = seq.default(from = 0, to = 365, by = 0.01))
+        self$set_input("r_scale_factor", calib_logistic_fn(y_max = self$inputs$r_terminal_RR, x_mid_point = self$inputs$t_mid_IFR, x_trans = self$inputs$t_trans_IFR, x_vector = seq.default(from = 0, to = 365, by = 0.01)))
       }
 
-      if(as.logical(inputs$prevalence_varying_IFR)) {
+      if(as.logical(self$inputs$prevalence_varying_IFR)) {
         # Scale parameter of the RR risk function
         # Recall the logistic function needs to start at zero, so we need to add 1 to the RR later.
-        inputs$H_overload_scale_factor <- calib_logistic_fn(y_max = inputs$H_overload_IFR_RR - 1, x_mid_point = inputs$I_mid_IFR, x_trans = (inputs$I_max_IFR - inputs$I_mid_IFR)*2, x_vector = seq.default(from = 0, to = inputs$I_max_IFR * 1.5, by = 0.0001))
+        self$set_input("H_overload_scale_factor", calib_logistic_fn(y_max = inputs$H_overload_IFR_RR - 1, x_mid_point = inputs$I_mid_IFR, x_trans = (self$inputs$I_max_IFR - self$inputs$I_mid_IFR)*2, x_vector = seq.default(from = 0, to = self$inputs$I_max_IFR * 1.5, by = 0.0001)))
       }
 
-      return(inputs)
+      # assign each input
+      # no need for that anymore.
+      # for (i in names(self$inputs)) {
+      #   self$set_input(name = i, value = self$inputs[[i]], type = NA)
+      # }
+
     },
 
     #' Computes summaries based on model results across replications

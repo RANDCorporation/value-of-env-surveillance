@@ -18,7 +18,7 @@
 
 # parameters --------------------------------------------------------------
 
-nr_patches <- user()
+nr_patches <- user(1)
 n <- nr_patches # the number of regions is equal to the length of most inputs
 
 ## Params
@@ -26,19 +26,19 @@ n <- nr_patches # the number of regions is equal to the length of most inputs
 # See https://mrc-ide.github.io/odin/articles/functions.html
 
 ## parameters
-beta[,] <- user()     # effective contact rate (S to e)
-sigma   <- user()     # progression rate from Exposed to Pre-symptomatic
-delta   <- user()     # rate of progression from pre-symptomatic to Infected
-gamma   <- user()     # rate of progression from active disease to Removed
-tau     <- user()     # policy marginal effectiveness
-c       <- user()     # policy stringency
+beta[,] <- user(1)     # effective contact rate (S to e)
+sigma   <- user(1)     # progression rate from Exposed to Pre-symptomatic
+delta   <- user(1)     # rate of progression from pre-symptomatic to Infected
+gamma   <- user(1)     # rate of progression from active disease to Removed
+tau     <- user(1)     # policy marginal effectiveness
+c       <- user(1)     # policy stringency
 npi_duration <- user(1000) # Maximum days to use interventions
-obs_lag <- user()          # case Observation lag (in days)
-days_to_adjust_NPI <- user() # time to adjust NPIs
+obs_lag <- user(1)          # case Observation lag (in days)
+days_to_adjust_NPI <- user(1) # time to adjust NPIs
 output(tau) <- TRUE
 L_max <- 5 # max intervention level
 trans_mult <- user(1) # transmissibility multiplier (used for scenario analysis)
-npi_coord[,] <- user()
+npi_coord[,] <- user(1)
 npi_coord_max <- user(1) # Whether to use NPI coordination by the maximum NPI. If F, uses the weighted average NPIs following the weights found in the mixing matrix.
 
 # initial conditions ------------------------------------------------------

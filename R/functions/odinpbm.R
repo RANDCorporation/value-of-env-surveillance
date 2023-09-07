@@ -53,29 +53,67 @@ odinpbm <- R6::R6Class(
       odin_workdir <- paste0("./cpp/", substr(odin_file,start = 1,
                                               stop = nchar(odin_file)-2), "/")
 
-      if(!missing(inputs_file)) {
-        # get inputs from the spreadsheet
-        self$get_inputs(inputs_file)
-      }
 
-      # collect odin inputs from the inputs file
-      inputs <- self$collect_default_inputs()
-
-      # collect settings inputs
-
-      inputs_settings <- self$collect_inputs(tab_name="settings", key_name="setting", val_name="value")
-
-      # add custom inputs and override original inputs by name
-      self$oi <- modifyList(inputs, list(...))
-
-      # create the odin constructor
-      # We don't use the constructor after this step, so I don't save it
+      # Build odin model first:
       odin_constructor <- odin::odin(model_path, workdir = odin_workdir, debug_enable = F)
 
       # initialize the model with default parameters, and additional parameters
       # we may want to provide additional wrappers around other odin functions
       # in the future
-      self$o <- do.call(odin_constructor$new, self$oi)
+      # Here, we construct the model passing parameters to it:
+      # self$o <- do.call(odin_constructor$new, self$oi)
+
+      # Alternatively, we can simply create a new odin model without custom inputs and set them later
+      # closer to run time. This is safer.
+      self$o <- odin_constructor$new()
+
+      # Then, get spreadsheet inputs:
+      self$get_inputs(inputs_file)
+
+      # set default parameters as inputs
+      self$set_default_params()
+
+      # In the future, we can allow arbitrary
+      # Add user-specified as inputs, if we wanted to.
+
+      # add custom inputs and override original inputs by name
+      # Here, we can use set_input instead of doing this direct assignment.
+      #self$oi <- modifyList(inputs, list(...))
+
+      # Pre-process inputs (which will also assign any new parameters to the odin model)
+      self$pre_process_inputs()
+
+    },
+
+    pre_process_inputs = function() {
+      stop("Function must be implemented in class that inherits this model")
+    },
+
+    #' @description
+    #' Set Input
+    #'
+    #' @details
+    #' Use this function to add a new input to the model object.
+    #'
+    #' @param name character string defining the input name
+    #' @param value input value. Can be a single value, a list or a vector.
+    #' @param type optional character string defining the type of input. Useful when one wants to only write inputs of a certain type to json.
+    set_input = function(name, value, type = NA) {
+
+
+      # If the model has been instantiated, and the input type is odin, set odin inptut
+      if(!is.null(self$o)) {
+        browser()
+
+        # check that this is an input the odin model needs:
+
+        do.call(self$o$set_user, list(name = value))
+
+      }
+
+      super$set_input(name = name, value = value, type = type)
+
+      return(invisible(self))
 
     },
 
@@ -91,42 +129,40 @@ odinpbm <- R6::R6Class(
       # return as a data.frame
       self$res <- do.call(rbind, res_list)
 
+      return(invisible(self))
+
     },
 
-    collect_default_inputs = function() {
-
-      # by default, we get all parameters from the inputs spreadsheet:
-      # for parameters, I can put all parameters into a named list:
-      inputs <- list()
+    # set default parameters from model inputs:
+    set_default_params = function() {
 
       if(!is.null(self$inputs$parameters)) {
         for(i in 1:nrow(self$inputs$parameters)) {
-          inputs[self$inputs$parameters$parameter[i]] = self$inputs$parameters$baseline[i]
+          self$set_input(name = self$inputs$parameters$parameter[i], value = self$inputs$parameters$baseline[i])
         }
       }
-
-      # inputs should be a named list, containing the user() inputs the model needs
-      return(inputs)
-    },
-
-
-    collect_inputs = function(tab_name, key_name, val_name) {
-
-      # by default, we get all parameters from the inputs spreadsheet:
-      # for parameters, I can put all parameters into a named list:
-      inputs <- list()
-
-      outer <- self$inputs[[tab_name]]
-      if(!is.null(outer)) {
-        keys = outer[[key_name]]
-        vals = outer[[val_name]]
-        for(ix in 1:nrow(outer)) {
-          inputs[keys[ix]] = vals[ix]
-        }
-      }
-      # inputs should be a named list, containing the user() inputs the model needs
-      return(inputs)
+      return(invisible(self))
     }
+
+    # We should probably rename this because it is confusing.
+    # This is deprecated.
+    # collect_inputs = function(tab_name, key_name, val_name) {
+    #
+    #   # by default, we get all parameters from the inputs spreadsheet:
+    #   # for parameters, I can put all parameters into a named list:
+    #   inputs <- list()
+    #
+    #   outer <- self$inputs[[tab_name]]
+    #   if(!is.null(outer)) {
+    #     keys = outer[[key_name]]
+    #     vals = outer[[val_name]]
+    #     for(ix in 1:nrow(outer)) {
+    #       inputs[keys[ix]] = vals[ix]
+    #     }
+    #   }
+    #   # inputs should be a named list, containing the user() inputs the model needs
+    #   return(inputs)
+    # }
   )
 )
 
