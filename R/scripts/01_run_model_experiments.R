@@ -12,13 +12,29 @@
 
 source("./R/library.R")
 
-model <- odinmetapop$new("stochastic_metapopulation.R", s$data_file,obs_lag = 100)
-
-
-
+model <- odinmetapop$new("stochastic_metapopulation.R", s$data_file)
 
 
 model$simulate(0:100, reps = 100)
+
+model$post_process()
+
+View(model$summary)
+
+
+# This is now working:
+# Need to pre-process whenever changing inputs that influence pre-processed inputs.
+model$set_input("r", 0.05)
+
+model$pre_process_inputs()
+
+model$simulate(0:100, reps = 100)
+
+model$post_process()
+
+View(model$summary)
+
+model$inputs
 
 # Set user can be used to set individual odin inputs.
 # We can then have odin or non-odin inputs, and use that as input type.

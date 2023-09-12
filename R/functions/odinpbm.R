@@ -25,6 +25,9 @@ odinpbm <- R6::R6Class(
     #' @field oi odin model inputs
     oi = NULL,
 
+    #' @field odin_parms vector of odin user parameter values
+    odin_parms = NULL,
+
     #' @field res day-level results
     res = NULL,
 
@@ -63,9 +66,7 @@ odinpbm <- R6::R6Class(
       # Here, we construct the model passing parameters to it:
       # self$o <- do.call(odin_constructor$new, self$oi)
 
-      # Alternatively, we can simply create a new odin model without custom inputs and set them later
-      # closer to run time. This is safer.
-      self$o <- odin_constructor$new()
+      self$odin_parms <- odin_constructor$private_fields$user
 
       # Then, get spreadsheet inputs:
       self$get_inputs(inputs_file)
@@ -83,6 +84,25 @@ odinpbm <- R6::R6Class(
       # Pre-process inputs (which will also assign any new parameters to the odin model)
       self$pre_process_inputs()
 
+      # Create list of odin inputs
+
+      # Then, build odin model with pre-processed inputs:
+
+      odin_inputs <- self$inputs[self$odin_parms]
+
+      odin_inputs_missing <- self$odin_parms[!self$odin_parms %in% names(self$inputs)]
+
+      if(!length(odin_inputs_missing)==0) {
+        stop(paste0("odin inputs missing: ", paste0(odin_inputs_missing, collapse = ", ")))
+      }
+
+      # Alternatively, we can simply create a new odin model without custom inputs and set them later
+      # closer to run time. This is safer.
+      self$o <- do.call(odin_constructor$new, odin_inputs)
+
+      return(invisible(self))
+
+
     },
 
     pre_process_inputs = function() {
@@ -98,16 +118,20 @@ odinpbm <- R6::R6Class(
     #' @param name character string defining the input name
     #' @param value input value. Can be a single value, a list or a vector.
     #' @param type optional character string defining the type of input. Useful when one wants to only write inputs of a certain type to json.
-    set_input = function(name, value, type = NA) {
-
+    set_input = function(name, value, type = NA_character_) {
 
       # If the model has been instantiated, and the input type is odin, set odin inptut
       if(!is.null(self$o)) {
-        browser()
 
         # check that this is an input the odin model needs:
 
-        do.call(self$o$set_user, list(name = value))
+        if(name %in% self$odin_parms) {
+
+          input <- list()
+          input[[name]] <- value
+
+          do.call(self$o$set_user, input)
+        }
 
       }
 
