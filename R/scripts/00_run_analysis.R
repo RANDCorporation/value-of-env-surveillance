@@ -16,7 +16,7 @@ set.seed(1234)
 
 # stochastic metapopulation model -----------------------------------------
 
-meta_SIR_stoc <- odinmetapop$new("stochastic_metapopulation.R", s$data_file,obs_lag = 5)
+meta_SIR_stoc <- OdinMetapop$new("stochastic_metapopulation.R", s$data_file,obs_lag = 5)
 
 meta_SIR_stoc$simulate(0:100, reps = 100)
 
@@ -48,7 +48,7 @@ summary(meta_SIR_stoc$summary_all)
 
 # deterministic metapopulation ode ----------------------------------------
 
-meta_SIR <- odinmetapop$new("deterministic_metapopulation.R", s$data_file)
+meta_SIR <- OdinMetapop$new("deterministic_metapopulation.R", s$data_file)
 
 meta_SIR_res <- meta_SIR$run(0:100)
 
@@ -63,16 +63,16 @@ head(meta_SIR_res)
 # model outcomes.
 
 # Test models
-res_2_delay <- odinpbm$new("stochastic_SIR_NPIs.R", surv_delay = 2
+res_2_delay <- OdinSim$new("stochastic_SIR_NPIs.R", surv_delay = 2
 )$run(1:100, reps = 20) %>%
   as.data.frame() %>%
   mutate(Scenario = "02-day delay")
 
-res_5_delay <- odinpbm$new("stochastic_SIR_NPIs.R", surv_delay = 5)$run(1:100, reps = 20) %>%
+res_5_delay <- OdinSim$new("stochastic_SIR_NPIs.R", surv_delay = 5)$run(1:100, reps = 20) %>%
   as.data.frame() %>%
   mutate(Scenario = "05-day delay")
 
-res_10_delay <- odinpbm$new("stochastic_SIR_NPIs.R", surv_delay = 10)$run(1:100, reps = 20) %>%
+res_10_delay <- OdinSim$new("stochastic_SIR_NPIs.R", surv_delay = 10)$run(1:100, reps = 20) %>%
   as.data.frame() %>%
   mutate(Scenario = "10-day delay")
 

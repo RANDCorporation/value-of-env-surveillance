@@ -9,18 +9,17 @@
 #------------------------------------------------------------------------------#
 
 #------------------------------------------------------------------------------#
-# odinpbm metapopulation class
+# OdinSim metapopulation class
 #
-# This is the model class, and self-contains the model.
+# This is the specific model class.
 #------------------------------------------------------------------------------#
 
-odinmetapop <- R6::R6Class(
-  classname = "odinmetapop",
-  inherit = odinpbm,
+OdinMetapop <- R6::R6Class(
+  classname = "OdinMetapop",
+  inherit = OdinSim,
   public = list(
 
     # Pre-processes model inputs before running the simulation.
-    # This function can be re-run after
     pre_process_inputs = function() {
 
       # Scale Mixing matrix to the desired R0:
@@ -126,7 +125,9 @@ odinmetapop <- R6::R6Class(
 
 
       self$res_long$jurisdiction.id <- as.numeric(self$res_long$jurisdiction.id)
-      # Compute deaths:
+
+
+      # Compute deaths allowing for time-varying IFR:
       self$res_long <- left_join(self$res_long, self$inputs$jurisdiction, by = "jurisdiction.id") %>%
         # Cost might also be formulated as dependent on effectiveness (tau):
         mutate(CNPI = L * cost.npi) %>%
@@ -153,24 +154,19 @@ odinmetapop <- R6::R6Class(
       # We pre-pend a 0 to capture the first set of differences (first entry will be the
       # num of people in the recovered compartiment at time 1, second will be the number at time 2
       # minus the number with recovered status at time 1, etc)
-      # TODO: THIS ONLY WORKS IF R IS ABSORBING AND NO ONE LEAVES THE STATUS R.
-      # WE WILL HAVE TO CHANGE THIS IF WE ADD VARIANTS OR PEOPLE BECOME SUSCEPTIBLE
-      # AGAIN
-
-      #PNL note: why do that again?
+      # This set up assumes R is absorbing, if there is loss of immunity,
+      # all the above would have to be computed within the model.
       self$res_long <- self$res_long %>%
         mutate(new_recoveries = c(0, diff(R)))
 
       # PNL note: average_health_cost_
-      # The health cost is the number of infected this round times the avg cost per infection
+      # The health cost is the number of infected * the avg cost per infection
       self$res_long <- self$res_long %>%
         mutate(health_cost_of_illness = new_recoveries * self$inputs$average_health_cost_per_infection) %>%
         mutate(per_capita_health_cost_of_illness = health_cost_of_illness / population)
 
 
-
       # Summarize costs by jurisdiction
-
       self$summary_jurisdiction <- self$res_long %>%
         group_by(rep, jurisdiction.id) %>%
         summarise(CNPI = self$inputs$p_disease_event * sum(CNPI),
@@ -200,174 +196,20 @@ odinmetapop <- R6::R6Class(
 
       return(invisible(self))
 
+    },
+
+    # Simulate function
+    simulate = function(step = 0:365, y = NULL, use_names = TRUE, reps = 100){
+
+      self$pre_process_inputs()
+
+      super$simulate(step = step, y = y, use_names= use_names, reps = reps)
+
+      self$post_process()
+
+      return(invisible(self))
+
     }
 
   )
 )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

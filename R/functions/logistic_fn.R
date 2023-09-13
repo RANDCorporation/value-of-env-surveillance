@@ -105,7 +105,8 @@ calib_logistic_fn <- function(y_max, x_mid_point, x_trans, x_vector = seq.defaul
 
   scale_guess = 4/(x_trans^2)
 
-  # And we impose a range around it:
+  # And we impose a range around it for the search.
+  # This approach has proven to produce stable results.
 
   solution <- optim(par = scale_guess, method = "Brent", # "L-BFGS-B",
                     fn = log_calib_obj_fn,

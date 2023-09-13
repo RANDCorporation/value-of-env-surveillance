@@ -12,44 +12,25 @@
 
 source("./R/library.R")
 
-model <- odinmetapop$new("stochastic_metapopulation.R", s$data_file)
-
+model <- OdinMetapop$new("stochastic_metapopulation.R", s$data_file)
 
 model$simulate(0:100, reps = 100)
-
-model$post_process()
 
 View(model$summary)
 
 
 # This is now working:
 # Need to pre-process whenever changing inputs that influence pre-processed inputs.
-model$set_input("r", 0.05)
+model$set_input("r", 0.1)$
+  simulate()
+  simulate(0:100, reps = 500)$
+  post_process()
 
-model$pre_process_inputs()
+model$summary
 
-model$simulate(0:100, reps = 100)
-
-model$post_process()
-
-View(model$summary)
-
-model$inputs
-
-# Set user can be used to set individual odin inputs.
-# We can then have odin or non-odin inputs, and use that as input type.
-# That helps clear the confusion
-model$o$set_user()
-
-model$set_input(name = )
-
-
-# So, what we can do is to override set_input such that it updates the model inputs *and* odins user inputs
-
-
-model$params_df
-
-model$set_param_dist()
+# Create sample parameter for the sake of demonstration.
+# Other model parameters can be added in this way
+model$set_param_dist(params_list = list(a = data.frame(sample_param = 1, weights = 1)), use_average = T, param_dist_weights = "weights")
 
 # Need to set parameters after
 
@@ -58,10 +39,20 @@ experiment <- R6Experiment$new(model)
 experiment$
   set_parameter(parameter_name = "obs_lag", experimental_design = "grid", values = c(1,5,15,30))$
   set_parameter("c", "grid", c(0,0.5,5,15,30))$
-  set_parameter("R0", "grid", c(1,2,3,4,5))$
-  set_parameter("R0", "lhs", min = )
+  #set_parameter("R0", "grid", c(1,2,3,4,5))$
+  set_parameter("R0", "lhs", min = 1, max = 3)
 
 
 # Need to set a parameters table in the model.
 
-experiment$set_design()
+experiment$set_design(n_lhs = 10)
+
+
+experiment$policy_design
+
+
+# Run experiment in parallel:
+experiment$run()
+
+
+# Default way is to set input for each parameter, and run the model.

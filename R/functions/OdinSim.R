@@ -9,21 +9,18 @@
 #------------------------------------------------------------------------------#
 
 #------------------------------------------------------------------------------#
-# odinpbm model class
+# OdinSim model class
 #
 # An R6 class to represents odin models
 #------------------------------------------------------------------------------#
 
-odinpbm <- R6::R6Class(
-  classname = "odinpbm",
+OdinSim <- R6::R6Class(
+  classname = "OdinSim",
   inherit = R6Sim,
   public = list(
 
     #' @field o odin model object
     o = NULL,
-
-    #' @field oi odin model inputs
-    oi = NULL,
 
     #' @field odin_parms vector of odin user parameter values
     odin_parms = NULL,
@@ -31,22 +28,24 @@ odinpbm <- R6::R6Class(
     #' @field res day-level results
     res = NULL,
 
-    #' @field res jurisdiction level results
+    #' @field res_long day-level results in long format
     res_long = NULL,
 
-    #' @field res rep-level results
-    #summary = NULL,
+    #' @field summary_jurisdiction jurisdiction-replication -level summary results
     summary_jurisdiction = NULL,
+
+    #' @field summary_all replication-level summary results
     summary_all = NULL,
 
+    #' @field summary aggregate summary results
     summary = NULL,
 
     #' @description
-    #' Create a new `odinpbm` object.
+    #' Create a new `OdinSim` object.
     #' @param odin_file odin model file under R/odin_models. Should have an .R extension.
     #' @param inputs_file spreadsheet with model inputs
     #' @param ... additional inputs to te odin model.
-    #' @return s new `odinpbm` object.
+    #' @return s new `OdinSim` object.
     initialize = function(odin_file, inputs_file, ...) {
 
       super$initialize(name = odin_file)
@@ -56,37 +55,20 @@ odinpbm <- R6::R6Class(
       odin_workdir <- paste0("./cpp/", substr(odin_file,start = 1,
                                               stop = nchar(odin_file)-2), "/")
 
-
-      # Build odin model first:
-      odin_constructor <- odin::odin(model_path, workdir = odin_workdir, debug_enable = F)
-
-      # initialize the model with default parameters, and additional parameters
-      # we may want to provide additional wrappers around other odin functions
-      # in the future
-      # Here, we construct the model passing parameters to it:
-      # self$o <- do.call(odin_constructor$new, self$oi)
-
-      self$odin_parms <- odin_constructor$private_fields$user
-
-      # Then, get spreadsheet inputs:
+      # Get (and set) inputs from spreadsheet:
       self$get_inputs(inputs_file)
 
       # set default parameters as inputs
       self$set_default_params()
 
-      # In the future, we can allow arbitrary
-      # Add user-specified as inputs, if we wanted to.
-
-      # add custom inputs and override original inputs by name
-      # Here, we can use set_input instead of doing this direct assignment.
-      #self$oi <- modifyList(inputs, list(...))
-
       # Pre-process inputs (which will also assign any new parameters to the odin model)
       self$pre_process_inputs()
 
-      # Create list of odin inputs
+      # Create odin constructor (this is an R6 class):
+      odin_constructor <- odin::odin(model_path, workdir = odin_workdir, debug_enable = F)
 
-      # Then, build odin model with pre-processed inputs:
+      # Create list of odin inputs
+      self$odin_parms <- odin_constructor$private_fields$user
 
       odin_inputs <- self$inputs[self$odin_parms]
 
@@ -96,12 +78,12 @@ odinpbm <- R6::R6Class(
         stop(paste0("odin inputs missing: ", paste0(odin_inputs_missing, collapse = ", ")))
       }
 
-      # Alternatively, we can simply create a new odin model without custom inputs and set them later
-      # closer to run time. This is safer.
+      # Build oding model:
       self$o <- do.call(odin_constructor$new, odin_inputs)
 
-      return(invisible(self))
+      # The model now should be ready to be simulated.
 
+      return(invisible(self))
 
     },
 
@@ -168,25 +150,6 @@ odinpbm <- R6::R6Class(
       return(invisible(self))
     }
 
-    # We should probably rename this because it is confusing.
-    # This is deprecated.
-    # collect_inputs = function(tab_name, key_name, val_name) {
-    #
-    #   # by default, we get all parameters from the inputs spreadsheet:
-    #   # for parameters, I can put all parameters into a named list:
-    #   inputs <- list()
-    #
-    #   outer <- self$inputs[[tab_name]]
-    #   if(!is.null(outer)) {
-    #     keys = outer[[key_name]]
-    #     vals = outer[[val_name]]
-    #     for(ix in 1:nrow(outer)) {
-    #       inputs[keys[ix]] = vals[ix]
-    #     }
-    #   }
-    #   # inputs should be a named list, containing the user() inputs the model needs
-    #   return(inputs)
-    # }
   )
 )
 
