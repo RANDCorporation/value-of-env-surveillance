@@ -56,7 +56,7 @@ format:
 
 While researchers have demonstrated that wastewater-based surveillance (WBS) systems can provide an early warning system for pandemic response [@zhu2021] and be used to support estimation of the latent number of infections in COVID-19 transmission models [@soller2022], the value of information provided by WBS has yet to be demonstrated.
 
-This paper develops a stochastic metapopulation disease transmission model and uses it to assess the conditions under which WBS systems can provide value to local public health decision makers who respond to a pandemic using surveillance data. In the model, WBS systems help decision-makers by reducing the lag between the latent disease prevalence and the epidemiological time-series (i.e., case counts) decision-makers often use to introduce interventions targeted to reduce disease transmission. We evaluate a range of scenarios that represent different potential pathogens and highlight scenarios under which WBS systems may or may not be cost-effective.
+This paper develops a stochastic metapopulation disease transmission model and uses it to assess the conditions under which WBS systems can provide value to local public health decision makers who respond to a pandemic using surveillance data. In the model, WBS systems help decision-makers by reducing the lag between latent disease prevalence and the epidemiological time-series (i.e., case counts) decision-makers often use to introduce interventions targeted to reduce disease transmission. We evaluate a range of scenarios that represent different potential pathogens and highlight scenarios under which WBS systems may or may not be cost-effective.
 <!--
 Our results highlight that the value of WBS systems is contingent on a set of biological and societal parameters, including pathogen characteristics (i.e., transmissibility and severity), as well as the geographic scale of 
 -->
@@ -65,7 +65,7 @@ Our results highlight that the value of WBS systems is contingent on a set of bi
 
 ## Disease Transmission Model
 
-Our analysis starts with a standard disease transmission model describing person-to-person transmission of an infectious pathogen across $n$ jurisdictions. The state-space of the model is comprised of a set of health statuses $\mathbf{S}, \mathbf{E}, \mathbf{P}, \mathbf{I}, \mathbf{R}$, each a $1 \times n$ vector representing the population within each compartment, respectively representing the number of Susceptibles, Exposed, Pre-Symptomatic, Infected and Removed[^1]. @eq-ode1 describes a system of differential equations representing the model, and @tbl-parameters contains parameter definitions, values and their sources.
+Our analysis starts with a standard disease transmission model describing person-to-person transmission of an infectious pathogen across $n$ jurisdictions. The state-space of the model is comprised of a set of health statuses $\mathbf{S}, \mathbf{E}, \mathbf{P}, \mathbf{I}, \mathbf{R}$, each a $1 \times n$ vector representing the population in each of the following compartments: Susceptible, Exposed, Pre-Symptomatic, Infected and Removed, respectively[^1]. @eq-ode1 describes a system of differential equations representing the model, and @tbl-parameters contains parameter definitions, values and their sources.
 
 [^1]: This model specification includes only a minimal set of disease states before expanding the state-space of the model to include asymptomatic, mildly symptomatic and severely symptomatic compartments.
 
@@ -145,6 +145,38 @@ $$
 $$ {#eq-actualnpi}
 
 where $a$ represents the adjustment time for NPIs for decision making and implementation reasons, whereas $s_{lag}$ represents the lag imposed by surveillance methods.
+
+### Information sharing and coordination
+
+During pandemics in the past, some jurisdictions have adjusted their NPI levels based on not only on local disease indicators, but based on the behavior and disease indicators of neighboring jurisdictions as well. For example, countries have restricted travel or required traveler quarantines for those arriving from areas with high disease prevalence. Additionally, they may coordinate efforts with other nearby cities, adding and lifting mandates in unison to reduce confusion, anticipate travel-based spread, and present unified messaging. 
+
+To simulate behavior, we have allowed for jurisdictions to coordinate and synchronize NPIs levels with other jurisdictions. They may choose to:
+1. Pick their NPI intervention level based exclusively on their own wastewater or other local indicators (their own target NPI level absent any coordination)
+2. Set their NPI intervention level based on the average target NPI level across their own and their neighboring jurisdictions.
+3. Set their NPI intervention level to the maximum indicated intervention level across all jurisdictions with which they coordinate. 
+
+# CITATION HERE
+### Time varying infection fatality rate
+
+During the course of a pandemic, the fatality rate of infection may vary for several reasons. We examine two of these:
+1. Health system capacity limitations
+2. Improved treatment (evolving standards of care)
+
+#### Health System Capacity Limitations: Fluctuating Infection Fatality Rates
+
+Health system capacity limitations were heavily discussed during the initial months of the COVID-19 pandemic. These calls to "flatten the curve" concentrated not just on limiting overall infection counts, but on ensuring that the need for medical resources, did not exceed supply. https://www.nytimes.com/2020/03/18/business/coronavirus-ventilator-shortage.html
+https://www.healthaffairs.org/doi/full/10.1377/hlthaff.2022.00643
+
+We have thus added the following limitation to our model; when the number of patients in need of hospital care exceeds the available supply (e.g. if there is an insufficient supply of supplemental oxygen, ventilators, extracorporeal membrane oxygenation machines, and medical staff to meet demand), the case fatality rate among these patients increases.
+
+#### Evolving Standards of Care: Decreasing Infection Fatality Rates
+
+During the course of a pandemic, providers may learn more about the pathogen and illness, developing improved standards of care, even absent pharmaceudical intervention. This has been the case for treatment of hypoxemia and acute respiratory distress syndrome (ARDS) during the COVID-19 pandemic. https://pubmed.ncbi.nlm.nih.gov/33156382/ For example, initually, patients suffering from hypoxemia were usually laid in a supine position with "aggressive airway management and intubation". However, in the Spring of 2020, evidence mounted that initially simply placing patients in a prone, rather than supine position, as well as less aggressive intubation, led to improved outcomes. https://nap.nationalacademies.org/cart/download.cgi?record_id=26573 pg 7 https://pubmed.ncbi.nlm.nih.gov/32569585/. Implementation of the new protocols, likely resulted in lower infection fatality rates and health system burden.  
+https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7253105/
+https://pubmed.ncbi.nlm.nih.gov/37016834/
+
+
+# CITATION HERE
 
 ## Cost of interventions
 
