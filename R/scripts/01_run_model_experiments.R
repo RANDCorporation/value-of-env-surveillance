@@ -10,49 +10,46 @@
 # Use this file to test single model runs
 #------------------------------------------------------------------------------#
 
+
 source("./R/library.R")
 
 model <- OdinMetapop$new("stochastic_metapopulation.R", s$data_file)
 
+# run the model for default inputs:
 model$simulate(0:100, reps = 100)
 
-View(model$summary)
 
-
-# This is now working:
-# Need to pre-process whenever changing inputs that influence pre-processed inputs.
+# Change inputs manually and run the model:
 model$set_input("r", 0.1)$
   simulate()
-  simulate(0:100, reps = 500)$
-  post_process()
 
-model$summary
+
+
+
+
+# Run full-factorial experiment -------------------------------------------
 
 # Create sample parameter for the sake of demonstration.
 # Other model parameters can be added in this way
 model$set_param_dist(params_list = list(a = data.frame(sample_param = 1, weights = 1)), use_average = T, param_dist_weights = "weights")
 
-# Need to set parameters after
 
+# Instantiate the experiment passing the model - multiple models can be passed as well:
 experiment <- R6Experiment$new(model)
 
+# Set experimental parameters.
 experiment$
-  set_parameter(parameter_name = "obs_lag", experimental_design = "grid", values = c(1,5,15,30))$
-  set_parameter("c", "grid", c(0,0.5,5,15,30))$
-  #set_parameter("R0", "grid", c(1,2,3,4,5))$
-  set_parameter("R0", "lhs", min = 1, max = 3)
+  set_parameter(parameter_name = "obs_lag", experimental_design = "grid", values = c(1,5,30))$
+  set_parameter("c", "grid", c(0,5,30))$
+  set_parameter("R0", "grid", c(1,2,3,4))
 
 
-# Need to set a parameters table in the model.
+# Set designs creates the experimental design data.frame:
+experiment$set_design()
 
-experiment$set_design(n_lhs = 10)
-
-
+# See the experimental design:
 experiment$policy_design
 
+# Run experiment (parallel option not available with odin at this time):
+exp_results <- experiment$run(parallel = F)
 
-# Run experiment in parallel:
-experiment$run()
-
-
-# Default way is to set input for each parameter, and run the model.

@@ -207,7 +207,7 @@ OdinMetapop <- R6::R6Class(
 
       self$post_process()
 
-      return(invisible(self))
+      return(self$summary)
 
     }
 
