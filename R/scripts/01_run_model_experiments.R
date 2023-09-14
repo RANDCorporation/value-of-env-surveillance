@@ -6,12 +6,11 @@
 # See README.md for information on usage and licensing
 #------------------------------------------------------------------------------#
 
-#------------------------------------------------------------------------------#
-# Use this file to test single model runs
-#------------------------------------------------------------------------------#
-
-
 source("./R/library.R")
+
+
+# Single run examples -----------------------------------------------------
+
 
 model <- OdinMetapop$new("stochastic_metapopulation.R", s$data_file)
 
@@ -19,12 +18,9 @@ model <- OdinMetapop$new("stochastic_metapopulation.R", s$data_file)
 model$simulate(0:100, reps = 100)
 
 
-# Change inputs manually and run the model:
+# Change one input manually and run the model:
 model$set_input("r", 0.1)$
   simulate()
-
-
-
 
 
 # Run full-factorial experiment -------------------------------------------
