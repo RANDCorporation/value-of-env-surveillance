@@ -42,22 +42,15 @@ OdinMetapop <- R6::R6Class(
       # k factor aligns overall mixing matrix and infectious periods to a desired R0:
       k <- as.numeric(self$inputs$R0 / (tau.eff * beta_pop_input))
 
-      # get on the habit of using set_input:
+      # Set matrices
       self$set_input("beta", k * beta_input)
 
       self$set_input("npi_coord", as.matrix(self$inputs$coordination[1:self$inputs$nr_patches,1:self$inputs$nr_patches+1]))
-
-      # Hence, overall beta is fixed here:
-      #self$inputs$beta <- k * beta_input
-
-      # NPI coordination matrix:
-      #self$inputs$npi_coord  <- as.matrix(self$inputs$coordination[1:inputs$nr_patches,1:inputs$nr_patches+1])
 
       # Calculate cost of illness
       healthcosts <- self$inputs$healthcosts
 
       # The cost of being ill for each stage
-
       healthcosts$cost_unwellness_for_given_stage <- healthcosts$DALY_weight * healthcosts$disease_duration * self$inputs$VSLY
       # Severe and critical illness started as mild, so we must get that cost
       # And add
@@ -66,8 +59,6 @@ OdinMetapop <- R6::R6Class(
       # the cost of being ill during the
       # mild period to the total cost of being ill
       # Then we add in the hospital cost
-      # PNL note: Can we avoid using with, and use dplyr::mutate instead.
-      # This is more of a style opinion rather than a hard-and-fast rule.
       healthcosts <- healthcosts %>% mutate(cost_with_mild_included_and_hospitalization = cost_unwellness_for_given_stage
                                            + ifelse(severity %in% c("severe", "critical"), mild_cost, 0)
                                            + hospital_cost)
@@ -78,27 +69,21 @@ OdinMetapop <- R6::R6Class(
       self$set_input("average_health_cost_per_infection",
                      sum(cost_per_new_infection_by_severity))
 
-      #self$inputs$average_health_cost_per_infection <- sum(cost_per_new_infection_by_severity)
+      
+      # Calibrate parameters of logistic functions for varying IFR
 
-
-      # Calibrate parameters of logistic functions here:
-
+      # Based on time (i.e., due to improved standard of care)
       if(as.logical(self$inputs$time_varying_IFR)) {
         # Scale parameter of the RR risk function
         self$set_input("r_scale_factor", calib_logistic_fn(y_max = self$inputs$r_terminal_RR, x_mid_point = self$inputs$t_mid_IFR, x_trans = self$inputs$t_trans_IFR, x_vector = seq.default(from = 0, to = 365, by = 0.01)))
       }
 
+      # Based on prevalence (i.e., hospital utilization)
       if(as.logical(self$inputs$prevalence_varying_IFR)) {
         # Scale parameter of the RR risk function
         # Recall the logistic function needs to start at zero, so we need to add 1 to the RR later.
         self$set_input("H_overload_scale_factor", calib_logistic_fn(y_max = self$inputs$H_overload_IFR_RR - 1, x_mid_point = self$inputs$I_mid_IFR, x_trans = (self$inputs$I_max_IFR - self$inputs$I_mid_IFR)*2, x_vector = seq.default(from = 0, to = self$inputs$I_max_IFR * 1.5, by = 0.0001)))
       }
-
-      # assign each input
-      # no need for that anymore.
-      # for (i in names(self$inputs)) {
-      #   self$set_input(name = i, value = self$inputs[[i]], type = NA)
-      # }
 
       return(invisible(self))
 

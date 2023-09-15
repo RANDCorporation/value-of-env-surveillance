@@ -42,7 +42,6 @@ invisible(sapply(setdiff(list.files(path = s$lib_path, pattern = "*.R",full.name
 )
 
 # Set up ggplot theme:
-
 font_add_google("PT Sans", "PT Sans")
 
 ggplot <- function(...) ggplot2::ggplot(...) + randplot::theme_rand(font = "PT Sans")
