@@ -77,12 +77,19 @@ dim(L_star_avg) <- n # Target NPI considering the weighted average target NPI le
 
 # additional outputs ------------------------------------------------------
 
+# Set those to TRUE for debugging purposes
 #output(N[]) <- TRUE
 #output(lambda_prod[]) <- TRUE
 #output(lambda[]) <- TRUE
 #output(S_E[]) <- TRUE
+#output(npi_coord[,]) <- TRUE
+#output(L_star_ind[]) <- TRUE
+#output(L_star_avg[]) <- TRUE
+#output(L_star_max[,]) <- TRUE
+#output(L_star_matrix[,]) <- TRUE
+#output(L_star_f[]) <- TRUE
 
-# nonpharmaceutical interventions -----------------------------------------
+# NPIS & NPI Coordination
 
 # NPIs use delayed information
 I_lag[] <- delay(I[i], obs_lag)
@@ -90,12 +97,6 @@ output(I_lag) <- TRUE
 
 # Effective NPI strigency: only active temporarily
 eff_c <- if(step <= npi_duration) c else 0
-
-# need to use min(L_star, l_max), but we need to verify it's a parallel minimum.
-# L_star is target NPI level?
-print("npi_coord: {npi_coord}")
-
-# Use npi_coord variable here to compute target npi
 
 # Jurisdiction level target NPI looking only at local prevalence:
 L_star_ind[] <- min(1000 * eff_c * I_lag[i] / N[i], L_max)
@@ -115,19 +116,10 @@ L_star_max[,2:n] <- if (L_star_max[i,j] > L_star_max[i,j-1]) L_star_max[i,j] els
 # Final target NPI:
 L_star_f[] <- if(npi_coord_max) L_star_max[i,n] else L_star_avg[i]
 
-output(npi_coord[,]) <- TRUE
-
-output(L_star_ind[]) <- TRUE
-
-output(L_star_avg[]) <- TRUE
-
-output(L_star_max[,]) <- TRUE
-
-output(L_star_matrix[,]) <- TRUE
-
-output(L_star_f[]) <- TRUE
-
+# Update Non-pharmaceutical intervention level
 update(L[]) <- L[i] + (L_star_f[i] - L[i]) / days_to_adjust_NPI
+
+# Disease transmission
 
 # Disease transmission equation
 lambda_prod[ , ] <- trans_mult * (1-L[i]*tau) * beta[i, j] * (I[j] + P[j])
@@ -140,13 +132,13 @@ N[] <- S[i] + E[i] + P[i] + I[i] + R[i]
 
 # difference equations ----------------------------------------------------
 
-## Epidemiological Flows
-S_E[] <- rbinom(S[i], p_SE[i]) # S[i] * lambda[i]
+## Epidemiological transitions
+S_E[] <- rbinom(S[i], p_SE[i])
 E_P[] <- rbinom(E[i], 1-exp(-sigma))
 P_I[] <- rbinom(P[i], 1-exp(-delta))
 I_R[] <- rbinom(I[i], 1-exp(-gamma))
 
-## Derivatives
+## Difference equations
 update(S[]) <- S[i] - S_E[i]
 update(E[]) <- E[i] + S_E[i] - E_P[i]
 update(P[]) <- P[i] + E_P[i] - P_I[i]

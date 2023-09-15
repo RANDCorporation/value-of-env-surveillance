@@ -82,7 +82,6 @@ OdinSim <- R6::R6Class(
       self$o <- do.call(odin_constructor$new, odin_inputs)
 
       # The model now should be ready to be simulated.
-
       return(invisible(self))
 
     },
