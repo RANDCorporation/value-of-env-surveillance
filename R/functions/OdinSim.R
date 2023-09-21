@@ -64,8 +64,13 @@ OdinSim <- R6::R6Class(
       # Pre-process inputs (which will also assign any new parameters to the odin model)
       self$pre_process_inputs()
 
+      #browser()
+
       # Create odin constructor (this is an R6 class):
       odin_constructor <- odin::odin(model_path, workdir = odin_workdir, debug_enable = F)
+
+      # trying to use odin.dust for parallel execution:
+      # odin_constructor <- odin.dust::odin_dust(model_path, workdir = odin_workdir, debug_enable = F)
 
       # Create list of odin inputs
       self$odin_parms <- odin_constructor$private_fields$user

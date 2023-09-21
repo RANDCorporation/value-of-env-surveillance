@@ -38,8 +38,8 @@ days_to_adjust_NPI <- user() # time to adjust NPIs
 L_max <- user() # max intervention level
 trans_mult <- user() # transmissibility multiplier (used for scenario analysis)
 npi_coord[,] <- user()
-npi_coord_max <- user() # Whether to use NPI coordination by the maximum NPI. If F, uses the weighted average NPIs following the weights found in the mixing matrix.
-
+#npi_coord_max <- user() # Whether to use NPI coordination by the maximum NPI. If F, uses the weighted average NPIs following the weights found in the mixing matrix.
+is_npi_coordinated <- user()
 # initial conditions ------------------------------------------------------
 
 # TODO: population must be set from inputs.
@@ -49,6 +49,7 @@ initial(P[]) <- 0.0
 initial(I[]) <- 10
 initial(R[]) <- 0.0
 initial(L[]) <- 0
+# initial(I_past[,]) <- 0
 
 # dimensions --------------------------------------------------------------
 
@@ -67,13 +68,14 @@ dim(P_I)         <- n
 dim(I_R)         <- n
 dim(p_SE)        <- n
 dim(L)           <- n
+#dim(I_past)      <- c(n,obs_lag)
 dim(I_lag)       <- n
 dim(npi_coord) <- c(n,n)
 dim(L_star_matrix) <- c(n,n) # Target NPI matrix.
 dim(L_star_f)      <- n # Jurisdiction's final target NPI level
 dim(L_star_ind) <- n # Jurisdiction's own L_star without considering other's
 dim(L_star_max) <- c(n,n) # Target NPI considering maximum NPI level of coordinating jurisdictions.
-dim(L_star_avg) <- n # Target NPI considering the weighted average target NPI level of coordinating jurisdictions.
+#dim(L_star_avg) <- n # Target NPI considering the weighted average target NPI level of coordinating jurisdictions.
 
 # additional outputs ------------------------------------------------------
 
@@ -92,6 +94,10 @@ dim(L_star_avg) <- n # Target NPI considering the weighted average target NPI le
 # NPIS & NPI Coordination
 
 # NPIs use delayed information
+# Here, we may instead use a matrix and assign
+
+# update(I_past[,]) <- if(I_past[,]) I[i]
+# option using the delay function
 I_lag[] <- delay(I[i], obs_lag)
 output(I_lag) <- TRUE
 
@@ -106,7 +112,7 @@ L_star_matrix[,] <-  npi_coord[i,j] * L_star_ind[j]
 
 # NPI target using weighted averages of other's NPI targets.
 # Unclear if i needs to be the in the column or the rows.
-L_star_avg[] <- sum(L_star_matrix[,i]) / n
+#L_star_avg[] <- sum(L_star_matrix[,i]) / n
 
 # Stores the maximum target level at the last column for each row:
 L_star_max[,] <- L_star_matrix[i,j]
@@ -114,7 +120,7 @@ L_star_max[,] <- L_star_matrix[i,j]
 L_star_max[,2:n] <- if (L_star_max[i,j] > L_star_max[i,j-1]) L_star_max[i,j] else L_star_max[i,j-1]
 
 # Final target NPI:
-L_star_f[] <- if(npi_coord_max) L_star_max[i,n] else L_star_avg[i]
+L_star_f[] <- if(is_npi_coordinated) L_star_max[i,n] else L_star_ind[i]
 
 # Update Non-pharmaceutical intervention level
 update(L[]) <- L[i] + (L_star_f[i] - L[i]) / days_to_adjust_NPI

@@ -17,16 +17,17 @@ model <- OdinMetapop$new("stochastic_metapopulation.R", s$data_file)
 # Run full-factorial experiment -------------------------------------------
 
 # Create sample parameter set
-model$set_param_dist(params_list = list(a = data.frame(sample_param = 1, weights = 1)), use_average = T, param_dist_weights = "weights")
+model$set_param_dist(params_list = list(param_dist_a = data.frame(sample_param = 1, weights = 1)), use_average = T, param_dist_weights = "weights")
 
 # Instantiate an experiment
 experiment <- R6Experiment$new(model)
 
 # Set experimental parameters
 experiment$
-  set_parameter(parameter_name = "obs_lag", experimental_design = "grid", values = c(1,5,30))$
+  set_parameter(parameter_name = "obs_lag", experimental_design = "grid", values = c(2,5,15))$
   set_parameter("c", "grid", c(0,5,30))$
-  set_parameter("R0", "grid", c(1,2,3,4))
+  set_parameter("R0", "grid", c(2,4))$
+  set_parameter("is_npi_coordinated", "grid", c(0,1))
 
 # Set designs creates the experimental design data.frame
 experiment$set_design()
