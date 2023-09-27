@@ -167,13 +167,27 @@ During the course of a pandemic, the fatality rate of infection may vary for sev
 Health system capacity limitations were heavily discussed during the initial months of the COVID-19 pandemic. These calls to "flatten the curve" concentrated not just on limiting overall infection counts, but on ensuring that the need for medical resources, did not exceed supply. https://www.nytimes.com/2020/03/18/business/coronavirus-ventilator-shortage.html
 https://www.healthaffairs.org/doi/full/10.1377/hlthaff.2022.00643
 
-We have thus added the following limitation to our model; when the number of patients in need of hospital care exceeds the available supply (e.g. if there is an insufficient supply of supplemental oxygen, ventilators, extracorporeal membrane oxygenation machines, and medical staff to meet demand), the case fatality rate among these patients increases.
+We have thus added a capacity limitation for care provisioning to our model: when the number of patients in need of hospital care exceeds the available supply (e.g. if there is an insufficient supply of supplemental oxygen, ventilators, extracorporeal membrane oxygenation machines, and medical staff to meet demand), the infection fatality rate, $r$, increases.
 
 #### Evolving Standards of Care: Decreasing Infection Fatality Rates
 
-During the course of a pandemic, providers may learn more about the pathogen and illness, developing improved standards of care, even absent pharmaceudical intervention. This has been the case for treatment of hypoxemia and acute respiratory distress syndrome (ARDS) during the COVID-19 pandemic. https://pubmed.ncbi.nlm.nih.gov/33156382/ For example, initually, patients suffering from hypoxemia were usually laid in a supine position with "aggressive airway management and intubation". However, in the Spring of 2020, evidence mounted that initially simply placing patients in a prone, rather than supine position, as well as less aggressive intubation, led to improved outcomes. https://nap.nationalacademies.org/cart/download.cgi?record_id=26573 pg 7 https://pubmed.ncbi.nlm.nih.gov/32569585/. Implementation of the new protocols, likely resulted in lower infection fatality rates and health system burden.  
+During the course of a pandemic, providers may learn more about the pathogen and illness, developing improved standards of care, even absent pharmaceutical intervention. This has been the case for treatment of hypoxemia and acute respiratory distress syndrome (ARDS) during the COVID-19 pandemic. https://pubmed.ncbi.nlm.nih.gov/33156382/ For example, initially, patients suffering from hypoxemia were usually laid in a supine position with "aggressive airway management and intubation". However, in the Spring of 2020, evidence mounted that initially simply placing patients in a prone, rather than supine position, as well as less aggressive intubation, led to improved outcomes. https://nap.nationalacademies.org/cart/download.cgi?record_id=26573 pg 7 https://pubmed.ncbi.nlm.nih.gov/32569585/. Some extant pharmaceutical treatments, such as the provisioning of dexamethasone to patients with severe illness, proved to be useful while others were shown not to improve infection fatality rates ($r$). https://www.nature.com/articles/d41586-020-03132-4
+
+
+Implementation of these new protocols likely contributed to the decreasing fatality rates and health system burden in the months preceeding the introduction of the COVID-19 vaccine, as shown by [Covid forecasting team 2022 DOI:  10.1016/S0140-6736(21)02867-1], with the infection fatality rate dropping by approximately 33% over the first eight months, based on a meta-analysis of seroprevalence studies and reported fatalities.
+
+
+https://pubmed.ncbi.nlm.nih.gov/35219376/"During the pre-vaccine period, the estimated 33% decrease in median IFR over 8 months suggests that treatment for COVID-19 has improved over time. Estimating IFR for the pre-vaccine era provides an important baseline for describing the progression of COVID-19 mortality patterns.     "
+
+ 
+
+Lancet https://pubmed.ncbi.nlm.nih.gov/35219376/
+
+
+.  
 https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7253105/
 https://pubmed.ncbi.nlm.nih.gov/37016834/
+Similarly, the improvement in
 
 
 # CITATION HERE
