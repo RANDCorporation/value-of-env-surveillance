@@ -3,9 +3,5 @@
 
 data_file: "./data/metapopulation-inputs-01.xlsx"
 
-# load c19model package with devtools::load_all?
-# if FALSE load from installed package
-c19model_load_all: TRUE
-
 
 lib_path: "./R/functions"
