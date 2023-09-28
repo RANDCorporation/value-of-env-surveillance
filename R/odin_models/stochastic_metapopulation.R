@@ -32,14 +32,14 @@ delta   <- user()     # rate of progression from pre-symptomatic to Infected
 gamma   <- user()     # rate of progression from active disease to Removed
 tau     <- user()     # policy marginal effectiveness
 c       <- user()     # policy stringency
-npi_duration <- user() # Maximum days to use interventions
-obs_lag <- user()          # case Observation lag (in days)
-days_to_adjust_NPI <- user() # time to adjust NPIs
-L_max <- user() # max intervention level
-trans_mult <- user() # transmissibility multiplier (used for scenario analysis)
-npi_coord[,] <- user()
+t_o <- user()         # Time of "opening" (i.e., where NPIs are no longer used)
+surv_lag <- user()    # case Observation lag (in days)
+a <- user()           # NPI *a*djustment time
+L_max <- user()       # max intervention level
+beta_mult <- user()   # transmissibility multiplier (used for scenario analysis)
+A[,] <- user()        # *A*: NPI coordination matrix. 1 if jurisdiction i follows NPI of jurisdiction j if jurisdiction's j NPI is more stringent.
 #npi_coord_max <- user() # Whether to use NPI coordination by the maximum NPI. If F, uses the weighted average NPIs following the weights found in the mixing matrix.
-is_npi_coordinated <- user()
+L_c <- user() # 1 if NPIs are coordinated across jurisdictions, 0 otherwise.
 # initial conditions ------------------------------------------------------
 
 # TODO: population must be set from inputs.
@@ -68,9 +68,9 @@ dim(P_I)         <- n
 dim(I_R)         <- n
 dim(p_SE)        <- n
 dim(L)           <- n
-#dim(I_past)      <- c(n,obs_lag)
+#dim(I_past)      <- c(n,surv_lag)
 dim(I_lag)       <- n
-dim(npi_coord) <- c(n,n)
+dim(A) <- c(n,n)
 dim(L_star_matrix) <- c(n,n) # Target NPI matrix.
 dim(L_star_f)      <- n # Jurisdiction's final target NPI level
 dim(L_star_ind) <- n # Jurisdiction's own L_star without considering other's
@@ -84,7 +84,7 @@ dim(L_star_max) <- c(n,n) # Target NPI considering maximum NPI level of coordina
 #output(lambda_prod[]) <- TRUE
 #output(lambda[]) <- TRUE
 #output(S_E[]) <- TRUE
-#output(npi_coord[,]) <- TRUE
+#output(A[,]) <- TRUE
 #output(L_star_ind[]) <- TRUE
 #output(L_star_avg[]) <- TRUE
 #output(L_star_max[,]) <- TRUE
@@ -98,17 +98,17 @@ dim(L_star_max) <- c(n,n) # Target NPI considering maximum NPI level of coordina
 
 # update(I_past[,]) <- if(I_past[,]) I[i]
 # option using the delay function
-I_lag[] <- delay(I[i], obs_lag)
+I_lag[] <- delay(I[i], surv_lag)
 output(I_lag) <- TRUE
 
 # Effective NPI strigency: only active temporarily
-eff_c <- if(step <= npi_duration) c else 0
+eff_c <- if(step <= t_o) c else 0
 
 # Jurisdiction level target NPI looking only at local prevalence:
 L_star_ind[] <- min(1000 * eff_c * I_lag[i] / N[i], L_max)
 
 # Target NPI considering other jurisdictions:
-L_star_matrix[,] <-  npi_coord[i,j] * L_star_ind[j]
+L_star_matrix[,] <-  A[i,j] * L_star_ind[j]
 
 # NPI target using weighted averages of other's NPI targets.
 # Unclear if i needs to be the in the column or the rows.
@@ -120,15 +120,15 @@ L_star_max[,] <- L_star_matrix[i,j]
 L_star_max[,2:n] <- if (L_star_max[i,j] > L_star_max[i,j-1]) L_star_max[i,j] else L_star_max[i,j-1]
 
 # Final target NPI:
-L_star_f[] <- if(is_npi_coordinated) L_star_max[i,n] else L_star_ind[i]
+L_star_f[] <- if(L_c) L_star_max[i,n] else L_star_ind[i]
 
 # Update Non-pharmaceutical intervention level
-update(L[]) <- L[i] + (L_star_f[i] - L[i]) / days_to_adjust_NPI
+update(L[]) <- L[i] + (L_star_f[i] - L[i]) / a
 
 # Disease transmission
 
 # Disease transmission equation
-lambda_prod[ , ] <- trans_mult * (1-L[i]*tau) * beta[i, j] * (I[j] + P[j])
+lambda_prod[ , ] <- beta_mult * (1-L[i]*tau) * beta[i, j] * (I[j] + P[j])
 lambda[] <- sum(lambda_prod[i, ]) # rowSums
 
 # This is the probability of infection | susceptible

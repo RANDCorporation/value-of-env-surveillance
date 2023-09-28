@@ -16,7 +16,7 @@ set.seed(1234)
 
 # stochastic metapopulation model -----------------------------------------
 
-meta_SIR_stoc <- OdinMetapop$new("stochastic_metapopulation.R", s$data_file,obs_lag = 5)
+meta_SIR_stoc <- OdinMetapop$new("stochastic_metapopulation.R", s$data_file,surv_lag = 5)
 
 meta_SIR_stoc$simulate(0:100, reps = 100)
 

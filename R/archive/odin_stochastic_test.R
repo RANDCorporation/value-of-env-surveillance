@@ -59,7 +59,7 @@ sir_generator <- odin::odin({
   # people per day entering with an infection
   d_reseeding <- user(0)
 
-  days_to_adjust_NPI <- user(7)
+  a <- user(7)
 
   # absolute relative reduction in the beta parameter for every intervention level
   # 0.2 here means 20% reduction in transmission for every step in the NPI intervention scale.

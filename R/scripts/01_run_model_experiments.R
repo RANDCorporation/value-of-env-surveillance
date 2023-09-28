@@ -24,10 +24,10 @@ experiment <- R6Experiment$new(model)
 
 # Set experimental parameters
 experiment$
-  set_parameter(parameter_name = "obs_lag", experimental_design = "grid", values = c(2,5,10,15,20))$
+  set_parameter(parameter_name = "surv_lag", experimental_design = "grid", values = c(2,5,10,15,20))$
   set_parameter("c", "grid", c(0,5,30))$
   set_parameter("R0", "grid", c(2,4))$
-  set_parameter("is_npi_coordinated", "grid", c(0,1))
+  set_parameter("L_c", "grid", c(0,1))
 
 # Set designs creates the experimental design data.frame
 experiment$set_design()

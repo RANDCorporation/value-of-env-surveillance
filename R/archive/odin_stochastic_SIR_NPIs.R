@@ -31,7 +31,7 @@ theta <- user(1/180)
 # people per day entering with an infection
 d_reseeding <- user(0)
 
-days_to_adjust_NPI <- user(7) # adjust NPIs every n days
+a <- user(7) # adjust NPIs every n days
 
 # absolute relative reduction in the beta parameter for every intervention level
 # 0.2 here means 20% reduction in transmission for every step in
@@ -86,13 +86,13 @@ Ilag <- delay(I, surv_delay)
 target_NPI <- min((Ilag/N) * stringency * 100, max_intervention_level)
 output(target_NPI) <- TRUE
 
-# We can updated NPis every days_to_adjust_NPI days
-can_update_NPI <- if(Time >= TimeLastNPIChange + days_to_adjust_NPI) 1 else 0
+# We can updated NPis every a days
+can_update_NPI <- if(Time >= TimeLastNPIChange + a) 1 else 0
 
 new_NPI <- if(can_update_NPI) target_NPI else NPI
 
 # This implies continuous, smooth adjustment:
-update(NPI) <- NPI + (target_NPI - NPI) / days_to_adjust_NPI
+update(NPI) <- NPI + (target_NPI - NPI) / a
 
 # this implies discrete-time periodic adjustment:
 #update(NPI) <- new_NPI

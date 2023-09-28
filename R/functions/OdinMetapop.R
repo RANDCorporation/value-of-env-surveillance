@@ -45,7 +45,7 @@ OdinMetapop <- R6::R6Class(
       # Set matrices
       self$set_input("beta", k * beta_input)
 
-      self$set_input("npi_coord", as.matrix(self$inputs$coordination[1:self$inputs$nr_patches,1:self$inputs$nr_patches+1]))
+      self$set_input("A", as.matrix(self$inputs$coordination[1:self$inputs$nr_patches,1:self$inputs$nr_patches+1]))
 
       # Calculate cost of illness
       healthcosts <- self$inputs$healthcosts

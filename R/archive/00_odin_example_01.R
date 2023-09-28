@@ -61,7 +61,7 @@ sir_generator <- odin::odin({
   output(target_NPI) <- TRUE
 
   # we only update NPI
-  can_update_NPI <- if(Time >= TimeLastNPIChange + days_to_adjust_NPI) 1 else 0
+  can_update_NPI <- if(Time >= TimeLastNPIChange + a) 1 else 0
 
   new_NPI <- if(can_update_NPI) target_NPI else NPI
   # NPI level is a stock variable from 0 to max_intervention_level (5)
@@ -69,7 +69,7 @@ sir_generator <- odin::odin({
   # Actual intervention updates with a delay
 
   # This implies continuous, smooth adjustment:
-  update(NPI) <- NPI + (target_NPI - NPI) / days_to_adjust_NPI
+  update(NPI) <- NPI + (target_NPI - NPI) / a
 
   # this implies discrete-time periodic adjustment:
   #update(NPI) <- new_NPI
@@ -121,7 +121,7 @@ sir_generator <- odin::odin({
   # people per day entering with an infection
   d_reseeding <- user(0)
 
-  days_to_adjust_NPI <- user(7)
+  a <- user(7)
 
   # absolute relative reduction in the beta parameter for every intervention level
   # 0.2 here means 20% reduction in transmission for every step in the NPI intervention scale.
@@ -144,7 +144,7 @@ sir_a <- sir_generator$new(S_ini = 100000,
                          beta_effect = 0.2,
                          theta = 1/365,
                          stringency = 3,
-                         days_to_adjust_NPI = 7)$
+                         a = 7)$
   run(0:365) %>%
   as.data.frame() %>%
   mutate(Scenario = "Policy Lag = 7 days")
@@ -156,7 +156,7 @@ sir_b <- sir_generator$new(S_ini = 100000,
                            beta_effect = 0.2,
                            theta = 1/365,
                            stringency = 3,
-                           days_to_adjust_NPI = 21)$
+                           a = 21)$
                       run(0:365) %>% as.data.frame() %>%
   mutate(Scenario = "Policy Lag = 21 days")
 
@@ -168,7 +168,7 @@ sir_c <- sir_generator$new(S_ini = 100000,
                            beta_effect = 0.2,
                            theta = 1/365,
                            stringency = 3,
-                           days_to_adjust_NPI = 35)$
+                           a = 35)$
   run(0:365) %>% as.data.frame() %>%
   mutate(Scenario = "Policy Lag = 35 days")
 
