@@ -16,3 +16,5 @@ paper/style-guide/*
 *.log
 *.aux
 paper/manuscript_files/*
+*.pptx
+output/*.xlsx
