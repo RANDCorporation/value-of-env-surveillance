@@ -9,7 +9,6 @@
 #------------------------------------------------------------------------------#
 
 # This script demonstrates how to run an experiment using the model
-# Using the
 
 # Set up an experimental design and run the model:
 source("./R/library.R")
@@ -36,10 +35,12 @@ experiment <- R6Experiment$new(model)
 
 # Set experimental parameters
 experiment$
-  set_parameter(parameter_name = "surv_lag", experimental_design = "grid", values = seq.default(from = 0, to = 20, by = 2))$
-  set_parameter("c", "grid", c(2.5,5,10))$
-  set_parameter("R0", "grid", c(2,4))$
-  set_parameter("L_c", "grid", c(0,1))
+  set_parameter("surv_lag", "grid", seq.default(from = 0, to = 21, by = 3))$ # Surveillance lag
+  set_parameter("p", "grid", c(0.5,1))$ # case ascertainment proportion
+  set_parameter("tau", "grid", c(0.12,0.15,0.18))$ # intevention effectiveness per intervention level
+  set_parameter("c", "grid", c(1,5,7,10,50,100))$ # case intervention threshold per 100,000 people
+  set_parameter("R0", "grid", c(1.5,2,2.5))$ # Initial reproduction number
+  set_parameter("L_c", "grid", c(0,1)) # Turn intervention coordination on and off
 
 
 # Set designs creates the experimental design data.frame
@@ -49,16 +50,14 @@ experiment$set_design()
 exp_results <- experiment$run(parallel = T,cluster_eval_script = "./R/scripts/sample_analysis_cluster_eval.R", n_cores = parallel::detectCores() - 3, model_from_cluster_eval = T)
 
 
-
 # Save output (but do not push this file):
 
 date_time <- paste0(gsub(pattern = ":| |-", replacement = "_", Sys.time()),"_", gsub("/", "_",Sys.timezone()))
 
-
-# Summary figures and tables ----------------------------------------------
-
 write.csv(exp_results, paste0("./output/", "exp_results_",date_time,".csv"), row.names = F)
 
+
+# Summary figures and tables ----------------------------------------------
 
 # Create sample figures
 
@@ -116,7 +115,6 @@ for (i in names_figs) {
 
 
 # Add summary tables
-
 
 # We can also add tables to the slides, like so:
 # doc <- doc %>%

@@ -69,7 +69,7 @@ OdinMetapop <- R6::R6Class(
       self$set_input("average_health_cost_per_infection",
                      sum(cost_per_new_infection_by_severity))
 
-      
+
       # Calibrate parameters of logistic functions for varying IFR
 
       # Based on time (i.e., due to improved standard of care)
@@ -95,13 +95,12 @@ OdinMetapop <- R6::R6Class(
     post_process = function() {
 
       # select only the variables we want for the summary variable
-
-      required_jurisdiction_variables = c("rep", "step", "L", "R", "I")
+      required_jurisdiction_variables = c("rep", "step", "L", "S", "E", "P", "I", "R")
 
       # save results into long format
       self$res_long <- self$res %>%
         select(starts_with(required_jurisdiction_variables, ignore.case = FALSE)) %>%
-        select(-starts_with( c("L_star", "I_lag"))) %>%
+        select(-starts_with( c("L_star", "I_lag", "S_E"))) %>%
         tidyr::pivot_longer(cols = -c(rep, step), names_to = "variable", values_to = "value") %>%
         as.data.frame() %>%
         tidyr::extract(col = variable,into = c("variable", "jurisdiction.id"), regex = "([A-Z]+)\\[([0-9]+)") %>%
@@ -115,7 +114,7 @@ OdinMetapop <- R6::R6Class(
       # Compute deaths allowing for time-varying IFR:
       self$res_long <- left_join(self$res_long, self$inputs$jurisdiction, by = "jurisdiction.id") %>%
         # Cost might also be formulated as dependent on effectiveness (tau):
-        mutate(CNPI = L * cost.npi) %>%
+        mutate(CNPI = floor(L) * cost.npi) %>%
         mutate(prevalence = I / population) %>%
         mutate(IFR = self$inputs$r) %>%
         # Change IFR based on time:

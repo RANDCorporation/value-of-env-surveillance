@@ -34,16 +34,20 @@ tau     <- user()     # policy marginal effectiveness
 c       <- user()     # policy stringency
 t_o <- user()         # Time of "opening" (i.e., where NPIs are no longer used)
 surv_lag <- user()    # case Observation lag (in days)
-a <- user()           # NPI *a*djustment time
+a_up <- user()           # NPI *a*djustment time
+a_down <- user()           # a decrease
 L_max <- user()       # max intervention level
 beta_mult <- user()   # transmissibility multiplier (used for scenario analysis)
 A[,] <- user()        # *A*: NPI coordination matrix. 1 if jurisdiction i follows NPI of jurisdiction j if jurisdiction's j NPI is more stringent.
 #npi_coord_max <- user() # Whether to use NPI coordination by the maximum NPI. If F, uses the weighted average NPIs following the weights found in the mixing matrix.
 L_c <- user() # 1 if NPIs are coordinated across jurisdictions, 0 otherwise.
+p <- user() # case ascertainment proportion.
+
+
 # initial conditions ------------------------------------------------------
 
 # TODO: population must be set from inputs.
-initial(S[]) <- 10000000
+initial(S[]) <- 100000
 initial(E[]) <- 0.0
 initial(P[]) <- 0.0
 initial(I[]) <- 10
@@ -75,11 +79,16 @@ dim(L_star_matrix) <- c(n,n) # Target NPI matrix.
 dim(L_star_f)      <- n # Jurisdiction's final target NPI level
 dim(L_star_ind) <- n # Jurisdiction's own L_star without considering other's
 dim(L_star_max) <- c(n,n) # Target NPI considering maximum NPI level of coordinating jurisdictions.
+dim(Cases_lag) <- n
+
 #dim(L_star_avg) <- n # Target NPI considering the weighted average target NPI level of coordinating jurisdictions.
 
 # additional outputs ------------------------------------------------------
 
 # Set those to TRUE for debugging purposes
+
+output(S_E[]) <- TRUE
+
 #output(N[]) <- TRUE
 #output(lambda_prod[]) <- TRUE
 #output(lambda[]) <- TRUE
@@ -99,13 +108,21 @@ dim(L_star_max) <- c(n,n) # Target NPI considering maximum NPI level of coordina
 # update(I_past[,]) <- if(I_past[,]) I[i]
 # option using the delay function
 I_lag[] <- delay(I[i], surv_lag)
+
+# Assuming a 50% case ascertainment proportion.
+# Cases_lag is the epidemiological signal used to introduce interventions.
+Cases_lag[] <- delay(rbinom(S_E[i], p), surv_lag)
+
 output(I_lag) <- TRUE
 
 # Effective NPI strigency: only active temporarily
-eff_c <- if(step <= t_o) c else 0
+eff_c <- if(step <= t_o) c else 100000
 
 # Jurisdiction level target NPI looking only at local prevalence:
-L_star_ind[] <- min(1000 * eff_c * I_lag[i] / N[i], L_max)
+# The equation below determines the intervention level, and adjusts the case threshold
+
+# Note that L_star can be > L_max so that the target intervention can remain at the lockdown level.
+L_star_ind[] <- min(100000 * (Cases_lag[i] / N[i]) / (eff_c * p), L_max + 0.999)
 
 # Target NPI considering other jurisdictions:
 L_star_matrix[,] <-  A[i,j] * L_star_ind[j]
@@ -122,13 +139,20 @@ L_star_max[,2:n] <- if (L_star_max[i,j] > L_star_max[i,j-1]) L_star_max[i,j] els
 # Final target NPI:
 L_star_f[] <- if(L_c) L_star_max[i,n] else L_star_ind[i]
 
-# Update Non-pharmaceutical intervention level
-update(L[]) <- L[i] + (L_star_f[i] - L[i]) / a
+# Update Non-pharmaceutical intervention level updates with a lag:
+# Equal adjustment rate for increasing or backing off interventions:
+
+# Equal
+# update(L[]) <- L[i] + (L_star_f[i] - L[i]) / a
+
+# Differential rate for increasing and backing off: maybe needed for elimination:
+
+update(L[]) <- if(L_star_f[i] > L[i]) L[i] + (L_star_f[i] - L[i]) / a_up else L[i] + (L_star_f[i] - L[i]) / a_down
 
 # Disease transmission
 
 # Disease transmission equation
-lambda_prod[ , ] <- beta_mult * (1-L[i]*tau) * beta[i, j] * (I[j] + P[j])
+lambda_prod[ , ] <- beta_mult * (1-floor(L[i])*tau) * beta[i, j] * (I[j] + P[j])
 lambda[] <- sum(lambda_prod[i, ]) # rowSums
 
 # This is the probability of infection | susceptible
