@@ -1,6 +1,16 @@
 
 
 
+#------------------------------------------------------------------------------#
+# Code repository for Analysis of Genomic Sequencing information
+#
+# Author: Pedro Nascimento de Lima
+# See README.md for information on usage and licensing
+#------------------------------------------------------------------------------#
+
+# This script demonstrates how to run an experiment using the model
+# Using the
+
 # Set up an experimental design and run the model:
 source("./R/library.R")
 
@@ -11,9 +21,17 @@ model <- OdinMetapop$new("stochastic_metapopulation.R", s$data_file)
 # Run full-factorial experiment -------------------------------------------
 
 # Create sample parameter set
+# This is here to demonstrate that data.frame with parameter sets (i.e., a
+# sample from the posterior distribution of model parameters)
+# can be assigned to the model. This is required for R6Sim models that
+# are used within the R6Experiment class, but not necessary otherwise.
 model$set_param_dist(params_list = list(param_dist_a = data.frame(sample_param = 1, weights = 1)), use_average = T, param_dist_weights = "weights")
 
 # Instantiate an experiment
+
+# Note that if the experiment is to be run in parallel, there is an underlying
+# assumption that the model will be instantiated in the cluster eval
+# script
 experiment <- R6Experiment$new(model)
 
 # Set experimental parameters
@@ -28,7 +46,8 @@ experiment$
 experiment$set_design()
 
 # Run experiment (parallel option not available with odin at this time):
-exp_results <- experiment$run(parallel = F)
+exp_results <- experiment$run(parallel = T,cluster_eval_script = "./R/scripts/sample_analysis_cluster_eval.R", n_cores = parallel::detectCores() - 3, model_from_cluster_eval = T)
+
 
 
 # Save output (but do not push this file):
@@ -56,7 +75,7 @@ fig_1 <- exp_results %>%
   geom_line() +
   facet_wrap(~R0+L_c, labeller = label_both, scales = "free") +
   scale_y_continuous(labels = scales::dollar_format()) +
-  labs(title = "Lower surveillance lags increase NPI costs")
+  labs(title = "Shorter surveillance lags increase NPI costs")
 
 
 fig_1
@@ -66,7 +85,7 @@ fig_2 <- exp_results %>%
   geom_line() +
   facet_wrap(~R0+L_c, labeller = label_both, scales = "free") +
   scale_y_continuous(labels = scales::dollar_format()) +
-  labs(title = "Lower surveillance lags can reduce pandemic costs")
+  labs(title = "Shorter surveillance lags can reduce pandemic costs")
 
 fig_2
 
@@ -75,7 +94,7 @@ fig_3 <- exp_results %>%
   geom_line() +
   facet_wrap(~R0+L_c, labeller = label_both, scales = "free") +
   scale_y_continuous(labels = scales::dollar_format()) +
-  labs(title = "Lower surveillance lags reduce health costs")
+  labs(title = "Shorter surveillance lags reduce health costs")
 
 fig_3
 
