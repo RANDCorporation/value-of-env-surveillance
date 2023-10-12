@@ -53,6 +53,7 @@ initial(P[]) <- 0.0
 initial(I[]) <- 10
 initial(R[]) <- 0.0
 initial(L[]) <- 0
+initial(NPI[]) <- 0
 # initial(I_past[,]) <- 0
 
 # dimensions --------------------------------------------------------------
@@ -65,13 +66,14 @@ dim(E)           <- n
 dim(P)           <- n
 dim(I)           <- n
 dim(R)           <- n
-dim(N)           <- n
+dim(NPI)           <- n
 dim(S_E)         <- n
 dim(E_P)         <- n
 dim(P_I)         <- n
 dim(I_R)         <- n
 dim(p_SE)        <- n
 dim(L)           <- n
+dim(N)       <- n
 #dim(I_past)      <- c(n,surv_lag)
 dim(I_lag)       <- n
 dim(A) <- c(n,n)
@@ -80,6 +82,7 @@ dim(L_star_f)      <- n # Jurisdiction's final target NPI level
 dim(L_star_ind) <- n # Jurisdiction's own L_star without considering other's
 dim(L_star_max) <- c(n,n) # Target NPI considering maximum NPI level of coordinating jurisdictions.
 dim(Cases_lag) <- n
+dim(change_NPI_now) <- n
 
 #dim(L_star_avg) <- n # Target NPI considering the weighted average target NPI level of coordinating jurisdictions.
 
@@ -149,10 +152,19 @@ L_star_f[] <- if(L_c) L_star_max[i,n] else L_star_ind[i]
 
 update(L[]) <- if(L_star_f[i] > L[i]) L[i] + (L_star_f[i] - L[i]) / a_up else L[i] + (L_star_f[i] - L[i]) / a_down
 
+
+# We should update policies with a certain frequency
+# If we are to increase intereventions, then update every a_up days.
+# Otherwise, update every a_down days
+change_NPI_now[] <- if(L[i] > NPI[i]) (step %% a_up) == 0 else (step %% a_down) == 0
+
+update(NPI[]) <- if (change_NPI_now[i]) floor(L[i]) else NPI[i]
+
+
 # Disease transmission
 
 # Disease transmission equation
-lambda_prod[ , ] <- beta_mult * (1-floor(L[i])*tau) * beta[i, j] * (I[j] + P[j])
+lambda_prod[ , ] <- beta_mult * (1-NPI[i]*tau) * beta[i, j] * (I[j] + P[j])
 lambda[] <- sum(lambda_prod[i, ]) # rowSums
 
 # This is the probability of infection | susceptible

@@ -101,7 +101,7 @@ OdinMetapop <- R6::R6Class(
     post_process = function() {
 
       # select only the variables we want for the summary variable
-      required_jurisdiction_variables = c("rep", "step", "L", "S", "E", "P", "I", "R")
+      required_jurisdiction_variables = c("rep", "step", "L", "NPI", "S", "E", "P", "I", "R")
 
       # save results into long format
       self$res_long <- self$res %>%
