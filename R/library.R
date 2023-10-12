@@ -21,7 +21,7 @@ library(odin)
 library(dde)
 library(officer)
 library(R6Sim)
-library()
+library(patchwork)
 
 # Load settings:
 s <- yaml::read_yaml("settings.yml")

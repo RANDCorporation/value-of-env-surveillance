@@ -73,7 +73,7 @@ OdinMetapop <- R6::R6Class(
       # Set NPI Cost per day for each intervention level
       self$set_input("jurisdiction",
                      self$inputs$jurisdiction %>%
-                       mutate(cost.npi = self$inputs$cost_max_npi * gdp.per.capita / 365 / self$inputs$L_max)
+                       mutate(cost.npi = self$inputs$cost_max_npi * self$inputs$gdp_per_capita / 365 / self$inputs$L_max)
                      )
 
       # Calibrate parameters of logistic functions for varying IFR
