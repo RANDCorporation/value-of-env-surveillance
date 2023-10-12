@@ -38,8 +38,9 @@ experiment$
   set_parameter("surv_lag", "grid", seq.default(from = 0, to = 21, by = 3))$ # Surveillance lag
   set_parameter("p", "grid", c(0.5,1))$ # case ascertainment proportion
   set_parameter("tau", "grid", c(0.12,0.15,0.18))$ # intevention effectiveness per intervention level
-  set_parameter("c", "grid", c(1,5,7,10,50,100))$ # case intervention threshold per 100,000 people
+  set_parameter("c", "grid", c(0.01,1,5,10,100))$ # case intervention threshold per 100,000 people
   set_parameter("R0", "grid", c(1.5,2,2.5))$ # Initial reproduction number
+  set_parameter("cost_max_npi", "grid", c(0.1,0.25,0.87))$ # Initial reproduction number
   set_parameter("L_c", "grid", c(0,1)) # Turn intervention coordination on and off
 
 

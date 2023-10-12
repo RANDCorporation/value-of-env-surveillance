@@ -31,6 +31,11 @@ model$set_input("c", 0.01)$
   simulate()
 
 
+model$summary %>% View()
+
+
+model$res_long %>% View()
+
 # Strict and Stringent scenario
 # In this scenario disease elimination is achieved
 

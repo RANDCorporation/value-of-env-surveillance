@@ -70,6 +70,12 @@ OdinMetapop <- R6::R6Class(
                      sum(cost_per_new_infection_by_severity))
 
 
+      # Set NPI Cost per day for each intervention level
+      self$set_input("jurisdiction",
+                     self$inputs$jurisdiction %>%
+                       mutate(cost.npi = self$inputs$cost_max_npi * gdp.per.capita / 365 / self$inputs$L_max)
+                     )
+
       # Calibrate parameters of logistic functions for varying IFR
 
       # Based on time (i.e., due to improved standard of care)
@@ -149,7 +155,6 @@ OdinMetapop <- R6::R6Class(
         mutate(health_cost_of_illness = new_recoveries * self$inputs$average_health_cost_per_infection) %>%
         mutate(per_capita_health_cost_of_illness = health_cost_of_illness / population)
 
-
       # Summarize costs by jurisdiction
       self$summary_jurisdiction <- self$res_long %>%
         group_by(rep, jurisdiction.id) %>%
@@ -159,9 +164,12 @@ OdinMetapop <- R6::R6Class(
                   health_cost_of_illness = self$inputs$p_disease_event * sum(health_cost_of_illness),
                   per_capita_health_cost_of_illness = sum(health_cost_of_illness)/population,
                   R_final = max(R), .groups = "keep") %>%
-        mutate(CH = self$inputs$p_disease_event * R_final * (self$inputs$r*self$inputs$w + self$inputs$o),
+        mutate(CH_deaths = Deaths.per.100k * self$inputs$ly_lost_death * self$inputs$VSLY / 10^5,
+               CH_illness = self$inputs$p_disease_event * per_capita_health_cost_of_illness) %>%
+        mutate(CH = CH_deaths + CH_illness,
                CSURV = self$inputs$C_surv,
-               C = CSURV + CH + CNPI )
+               C = CSURV + CH + CNPI) %>%
+        relocate(C, CNPI, CH, CH_deaths, CH_illness)
 
       # Summarize overall costs
       self$summary_all <- self$summary_jurisdiction %>%
@@ -170,6 +178,10 @@ OdinMetapop <- R6::R6Class(
         summarise(across(everything(),.fns = ~sum(.x))) %>%
         # Assumes equal population sizes - we may change this.
         mutate(CNPI = CNPI / self$inputs$nr_patches) %>%
+        mutate(CH = CH / self$inputs$nr_patches) %>%
+        mutate(CH_deaths = CH_deaths / self$inputs$nr_patches) %>%
+        mutate(CH_illness = CH_illness / self$inputs$nr_patches) %>%
+        mutate(C = C / self$inputs$nr_patches) %>%
         mutate(Deaths.per.100k = Deaths.per.100k / self$inputs$nr_patches) %>%
         mutate(per_capita_health_cost_of_illness = per_capita_health_cost_of_illness / self$inputs$nr_patches)
       # summarize across replications:
@@ -177,9 +189,7 @@ OdinMetapop <- R6::R6Class(
         group_by() %>%
         summarise(across(everything(),.fns = ~mean(.x)))
 
-
       return(invisible(self))
-
     },
 
     # Simulate function
