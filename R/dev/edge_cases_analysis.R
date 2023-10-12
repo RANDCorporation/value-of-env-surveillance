@@ -22,15 +22,15 @@ model <- OdinMetapop$new("stochastic_metapopulation.R", s$data_file)
 # It looks like we are not achieving disease elimination because
 # Elimination:
 # At the near-elimination regime, a lower surveillance lag doesn't mean higher costs!
-model$set_input("c", 5)$
+model$set_input("c", 1)$
   set_input("R0", 2.5)$
   set_input("p", 0.5)$
-  set_input("tau", 0.15)$
+  set_input("tau", 0.18)$
   set_input("surv_lag", 14)$
   set_input("cost_max_npi", 0.8)$
   set_input("L_c", 1)$
   set_input("a_up", 1)$
-  set_input("a_down", 30)$
+  set_input("a_down", 1)$
   simulate()
 
 
