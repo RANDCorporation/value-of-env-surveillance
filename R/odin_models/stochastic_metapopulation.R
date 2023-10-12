@@ -74,8 +74,6 @@ dim(I_R)         <- n
 dim(p_SE)        <- n
 dim(L)           <- n
 dim(N)       <- n
-#dim(I_past)      <- c(n,surv_lag)
-dim(I_lag)       <- n
 dim(A) <- c(n,n)
 dim(L_star_matrix) <- c(n,n) # Target NPI matrix.
 dim(L_star_f)      <- n # Jurisdiction's final target NPI level
@@ -108,15 +106,10 @@ output(S_E[]) <- TRUE
 # NPIs use delayed information
 # Here, we may instead use a matrix and assign
 
-# update(I_past[,]) <- if(I_past[,]) I[i]
-# option using the delay function
-I_lag[] <- delay(I[i], surv_lag)
 
 # Assuming a 50% case ascertainment proportion.
 # Cases_lag is the epidemiological signal used to introduce interventions.
 Cases_lag[] <- delay(rbinom(S_E[i], p), surv_lag)
-
-output(I_lag) <- TRUE
 
 # Effective NPI strigency: only active temporarily
 eff_c <- if(step <= t_o) c else 100000
@@ -125,7 +118,7 @@ eff_c <- if(step <= t_o) c else 100000
 # The equation below determines the intervention level, and adjusts the case threshold
 
 # Note that L_star can be > L_max so that the target intervention can remain at the lockdown level.
-L_star_ind[] <- min(100000 * (Cases_lag[i] / N[i]) / (eff_c * p), L_max + 0.999)
+L_star_ind[] <- min(100000 * (Cases_lag[i] / N[i]) / (eff_c * p), L_max + 0.01)
 
 # Target NPI considering other jurisdictions:
 L_star_matrix[,] <-  A[i,j] * L_star_ind[j]
@@ -148,10 +141,9 @@ L_star_f[] <- if(L_c) L_star_max[i,n] else L_star_ind[i]
 # Equal
 # update(L[]) <- L[i] + (L_star_f[i] - L[i]) / a
 
-# Differential rate for increasing and backing off: maybe needed for elimination:
+# Differential rate for increasing and backing off
 
 update(L[]) <- if(L_star_f[i] > L[i]) L[i] + (L_star_f[i] - L[i]) / a_up else L[i] + (L_star_f[i] - L[i]) / a_down
-
 
 # We should update policies with a certain frequency
 # If we are to increase intereventions, then update every a_up days.
@@ -162,7 +154,6 @@ update(NPI[]) <- if (change_NPI_now[i]) floor(L[i]) else NPI[i]
 
 
 # Disease transmission
-
 # Disease transmission equation
 lambda_prod[ , ] <- beta_mult * (1-NPI[i]*tau) * beta[i, j] * (I[j] + P[j])
 lambda[] <- sum(lambda_prod[i, ]) # rowSums
