@@ -42,15 +42,17 @@ A[,] <- user()        # *A*: NPI coordination matrix. 1 if jurisdiction i follow
 #npi_coord_max <- user() # Whether to use NPI coordination by the maximum NPI. If F, uses the weighted average NPIs following the weights found in the mixing matrix.
 L_c <- user() # 1 if NPIs are coordinated across jurisdictions, 0 otherwise.
 p <- user() # case ascertainment proportion.
-
+S0[] <- user()
+I0[] <- user()
+int_rate <- user()
 
 # initial conditions ------------------------------------------------------
 
 # TODO: population must be set from inputs.
-initial(S[]) <- 100000
+initial(S[]) <- S0[i]
 initial(E[]) <- 0.0
 initial(P[]) <- 0.0
-initial(I[]) <- 10
+initial(I[]) <- I0[i]
 initial(R[]) <- 0.0
 initial(L[]) <- 0
 initial(NPI[]) <- 0
@@ -61,6 +63,8 @@ initial(NPI[]) <- 0
 dim(beta)        <- c(n, n) # contact matrix
 dim(lambda_prod) <- c(n, n) # Force of infection matrix
 dim(lambda)      <- n       # Force of infection vector
+dim(I0)          <- n
+dim(S0)          <- n
 dim(S)           <- n
 dim(E)           <- n
 dim(P)           <- n
@@ -173,7 +177,7 @@ I_R[] <- rbinom(I[i], 1-exp(-gamma))
 
 ## Difference equations
 update(S[]) <- S[i] - S_E[i]
-update(E[]) <- E[i] + S_E[i] - E_P[i]
+update(E[]) <- E[i] + S_E[i] - E_P[i] + rpois(int_rate)
 update(P[]) <- P[i] + E_P[i] - P_I[i]
 update(I[]) <- I[i] + P_I[i] - I_R[i]
 update(R[]) <- R[i] + I_R[i]

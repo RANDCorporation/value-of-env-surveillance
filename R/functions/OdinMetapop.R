@@ -47,6 +47,12 @@ OdinMetapop <- R6::R6Class(
 
       self$set_input("A", as.matrix(self$inputs$coordination[1:self$inputs$nr_patches,1:self$inputs$nr_patches+1]))
 
+      # Population sizes
+      self$set_input("S0", self$inputs$jurisdiction$S0[1:self$inputs$nr_patches])
+
+      # Initial Infected:
+      self$set_input("I0", self$inputs$jurisdiction$I0[1:self$inputs$nr_patches])
+
       # Calculate cost of illness
       healthcosts <- self$inputs$healthcosts
 
