@@ -10,7 +10,8 @@ This repository contains code to explore the Value of Information of Genomic seq
 
 [R6Sim](https://github.com/randcorporation/R6Sim/) is an R6-based R package that contains base classes and infrastructure for developing and running simulation models using the encaspsulated object-oriented approach offered by `R6`.
 
-**Interim instructions while R6SIm is not open source**
+**Interim instructions while R6SIm is not open source*
+*
 First, make sure you have access to the [R6Sim](https://github.com/randcorporation/R6Sim/) code repository. If not, ask Pedro Nascimento de Lima to give access to your github account. Then, generate a [github personal access token (PAT)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) with access to your account. Once you do those steps, you can run on the R console:
 
 
@@ -36,7 +37,7 @@ If you prefer to use [`renv`](https://rstudio.github.io/renv/articles/renv.html)
 
 ## Where to start
 
-Use the `./R/scripts/00_single_run_test.R` file to run the model for a few specific scenarios. Then, use the `./R/scripts/01_run_model_experiments.R` file to run a set of model experiments. You may also use that file as a starting point for defining and running your own experimental designs.
+Use the `./R/scripts/01_single_run_test.R` file to run the model for a few specific scenarios. Then, use the `./R/scripts/02_sample_analysis.R` file to run a sample experimental design. Finally, the `.R\scripts\03_run_larger_exp_design` to run the experimental design we will use in our analysis.
 
 ## Organization
 

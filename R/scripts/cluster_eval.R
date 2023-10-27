@@ -24,5 +24,5 @@ model <- OdinMetapop$new("stochastic_metapopulation.R", s$data_file)
 
 # Create the experiment object
 # This object must be named cluster_experiment, and can include multiple
-# model objects.
+# model objects if the experiment is to include multiple model specifications.
 cluster_experiment <- R6Experiment$new(model)

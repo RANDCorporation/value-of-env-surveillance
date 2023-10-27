@@ -8,7 +8,7 @@
 # See README.md for information on usage and licensing
 #------------------------------------------------------------------------------#
 
-# This script demonstrates how to run an experiment using the model
+# This script demonstrates how to run an experimental design using the model
 
 # Set up an experimental design and run the model:
 source("./R/library.R")
@@ -57,78 +57,3 @@ date_time <- paste0(gsub(pattern = ":| |-", replacement = "_", Sys.time()),"_", 
 
 write.csv(exp_results, paste0("./output/", "exp_results_",date_time,".csv"), row.names = F)
 
-
-# Summary figures and tables ----------------------------------------------
-
-# Create sample figures
-
-# Sample plot:
-#. This is not very thought out yet, just demonstrates how you can create plots with the results
-
-
-# Right now, these numbers don't make much sense to me:
-
-# start figure names with fig
-
-fig_1 <- exp_results %>%
-  ggplot(mapping = aes(x = surv_lag, y = CNPI, color = as.factor(c))) +
-  geom_line() +
-  facet_wrap(~R0+L_c, labeller = label_both, scales = "free") +
-  scale_y_continuous(labels = scales::dollar_format()) +
-  labs(title = "Shorter surveillance lags increase NPI costs")
-
-
-fig_1
-
-fig_2 <- exp_results %>%
-  ggplot(mapping = aes(x = surv_lag, y = C / 10^9, color = as.factor(c))) +
-  geom_line() +
-  facet_wrap(~R0+L_c, labeller = label_both, scales = "free") +
-  scale_y_continuous(labels = scales::dollar_format()) +
-  labs(title = "Shorter surveillance lags can reduce pandemic costs")
-
-fig_2
-
-fig_3 <- exp_results %>%
-  ggplot(mapping = aes(x = surv_lag, y = CH / 10^9, color = as.factor(c))) +
-  geom_line() +
-  facet_wrap(~R0+L_c, labeller = label_both, scales = "free") +
-  scale_y_continuous(labels = scales::dollar_format()) +
-  labs(title = "Shorter surveillance lags reduce health costs")
-
-fig_3
-
-
-# Save plots to ppt
-
-doc <- read_pptx(path = "./output/template.pptx")
-
-names_figs <- ls()[grepl("^fig*", ls())]
-
-for (i in names_figs) {
-  doc <- doc %>%
-    add_slide(master = "Retrospect") %>%
-    ph_with(
-      value = rvg::dml(print(eval(sym(i)))),
-      location = ph_location_fullsize()
-    )
-}
-
-
-# Add summary tables
-
-# We can also add tables to the slides, like so:
-# doc <- doc %>%
-#   add_slide(master = "Retrospect") %>%
-#   ph_with(
-#     value = table %>% filter(case_type == "edge case") %>% select(-perc.cost.reduction, -case_type),
-#     location = ph_location_type("body")
-#   ) %>%
-#   add_slide(master = "Retrospect") %>%
-#   ph_with(
-#     value = table %>% filter(case_type == "cost-effective-blood") %>% select(-case_type),
-#     location = ph_location_type("body")
-#   )
-
-# Save figs powerpoint file for editable figures
-print(doc, target = paste0("./output/", "figs_",date_time,".pptx"))
