@@ -22,30 +22,183 @@ OdinMetapop <- R6::R6Class(
     # Pre-processes model inputs before running the simulation.
     pre_process_inputs = function() {
 
-      # Scale Mixing matrix to the desired R0:
-
-      # Here, we scale the mixing matrix such that
-      # R0 = tau.eff * k * beta_pop
-      # beta_pop = p' beta_matrix p.
+      # Create Mixing matrix and scales it as to align wit the desired R0.
 
       # Population density vector:
       pop <- self$inputs$jurisdiction$population[1:self$inputs$nr_patches] / sum(self$inputs$jurisdiction$population[1:self$inputs$nr_patches])
 
-      # Original beta matrix:
-      beta_input <- as.matrix(self$inputs$beta_raw[1:self$inputs$nr_patches,1:self$inputs$nr_patches+1])
 
-      beta_pop_input <- t(pop) %*% beta_input %*% pop
+      # First, compute a normalized mixing matrix M, where all *rows* sum to 1.
+      # This mixing matrix describes the distribution of contacts from an infected individual in place i to other individuals in place j.
 
-      # Effective infectious period
+      names.jurisdictions <- self$inputs$jurisdiction$jurisdiction.name
+      n.jurisdictions <- length(names.jurisdictions)
+
+      names.modes <- c("Home", "Work", "Other")
+      n.modes <- length(names.modes)
+
+      # Following the same notation, k represents normalized contact rates across modes, by jurisdictions
+      # k can be thought of the intensity of contacts across these mixing modes for each jurisdiction
+
+      # For this version, the jurisdictions spend the same time across mixing modes.
+      # This can be changed by making k.mat an input itself
+      k.mat <- matrix(data = c(self$inputs$k_home,self$inputs$k_work_travel,self$inputs$k_other), byrow = T, nrow = n.jurisdictions, ncol = n.modes, dimnames = list(names.jurisdictions, names.modes))
+
+      # stop if rows are not normalized to 1
+      stopifnot(!all((rowSums(k.mat) - 1)^2 > 1e-10))
+
+      # now, for each mode, we have a mode-specific mixing matrix:
+      home_mixing <-  diag(nrow = n.jurisdictions, ncol = n.jurisdictions, names = names.jurisdictions)
+
+      other_mixing <-  diag(nrow = n.jurisdictions, ncol = n.jurisdictions, names = names.jurisdictions)
+
+      # Construct work commuting based on "intra" and "inter" commuting rates
+      # "Intra commuting" rate is the rate of commuting within commuting areas, as defined in the jurisdiction table.
+      # "Inter commuting" is the rate for the other jurisdictions
+      # The diagonal then is the rest of 1-row sums.
+      # This makes it so we can define the mixing matrices a minimum set of inputs.
+
+      # Set coordination following the jurisdiction block
+
+      commuting_areas <- unique(self$inputs$jurisdiction$commuting.area.id)
+
+      work_travel_mixing <- matrix(data = 0, nrow = self$inputs$nr_patches, ncol = self$inputs$nr_patches, dimnames = list(self$inputs$jurisdiction$jurisdiction.name, self$inputs$jurisdiction$jurisdiction.name))
+
+      for (i in names.jurisdictions) {
+
+        intra.rate <- self$inputs$commuting_area$intra.commuting.rate[self$inputs$jurisdiction$commuting.area.id[self$inputs$jurisdiction$jurisdiction.name==i]]
+        inter.rate <- self$inputs$commuting_area$inter.commuting.rate[self$inputs$jurisdiction$commuting.area.id[self$inputs$jurisdiction$jurisdiction.name==i]]
+        for (j in names.jurisdictions) {
+
+          is_same_commuting_area <- self$inputs$jurisdiction$commuting.area.id[self$inputs$jurisdiction$jurisdiction.name==i] == self$inputs$jurisdiction$commuting.area.id[self$inputs$jurisdiction$jurisdiction.name==j]
+
+          # Only assign here if this is not the diagonal
+          if(i!=j) {
+            work_travel_mixing[i,j] <- ifelse(is_same_commuting_area,intra.rate, inter.rate)
+          }
+
+        }
+
+        # Then, assign the diagonal with the remainder - i.e., people who work in their home counties or do not travel.
+        work_travel_mixing[i,i] <- 1-sum(work_travel_mixing[i,])
+
+      }
+
+      # Concatenate all mixing mdoes into one array (order matters!):
+      M <- array(c(home_mixing, work_travel_mixing, other_mixing),dim = c(n.jurisdictions, n.jurisdictions, n.modes), dimnames = list(names.jurisdictions, names.jurisdictions, names.modes))
+
+      # This is the same as Mij.
+
+      # Overall mixing matrix is the sum of element-wise multiplications:
+      mixing_matrix <- matrix(data = 0, nrow = n.jurisdictions, ncol = n.jurisdictions,dimnames = list(names.jurisdictions, names.jurisdictions))
+
+      for(m in names.modes) {
+
+        mixing_matrix <- mixing_matrix + k.mat[,m] * M[,,m]
+
+      }
+
+      # Rowsums should be 1:
+      stopifnot(all(rowSums(mixing_matrix) == 1))
+
+
+      # Now that we have Mij, we need to align it with a specified R0.
+
+      # This approach does so by assuming that cbeta is uniform across juridictions.
+
+      # Simplistic approach: Results match, but R0 may not match when population sizes
+
+      # are different.
+
       tau.eff <- (1/self$inputs$delta + 1/self$inputs$gamma)
 
-      # k factor aligns overall mixing matrix and infectious periods to a desired R0:
-      k <- as.numeric(self$inputs$R0 / (tau.eff * beta_pop_input))
+      cbeta <- self$inputs$R0 / tau.eff
 
-      # Set matrices
-      self$set_input("beta", k * beta_input)
+      # Need to be careful that multiplication is rowwise
 
-      self$set_input("A", as.matrix(self$inputs$coordination[1:self$inputs$nr_patches,1:self$inputs$nr_patches+1]))
+      # for (i in 1:length(pop)){
+      #   cbeta * pop * mixing_matrix[i]
+      # }
+
+
+      # As opposed to cbeta * mixing_matrix
+      # We don't need to multiply by the population because S is a prop of the population.
+      #final_mixing_matrix <- cbeta * t(pop * t(mixing_matrix))
+
+      final_mixing_matrix <- cbeta * mixing_matrix
+
+      self$set_input("beta", final_mixing_matrix)
+
+
+      # I'm not sure, but we may need an approach that accounts for different population sizes.
+      # Drawing from what we did in the PBM, we have this:
+      # Approach that accounts for different population sizes:
+      # cbeta_input <- as.numeric(t(pop) %*% mixing_matrix %*% pop)
+      #
+      # # k factor aligns overall mixing matrix and infectious periods to a desired R0,
+      # # considering population distribution.
+      # k <- as.numeric(self$inputs$R0 / (tau.eff * cbeta_input))
+      #
+      # self$set_input("beta", k * mixing_matrix)
+
+      # Rt verification:
+
+      S0 <- self$inputs$jurisdiction$S0 / sum(self$inputs$jurisdiction$population)
+
+      # Verifying R_t is what we expect given the inputs
+      # R_t verif is nowhere near the 3, in fact is that divided by 10.
+      # This R_t verification doesn't seem to be working as expected.
+      # Even thoigh I am getting the same results.
+
+      # Rt verification:
+
+      # Should it be
+      # Would multiply by pop if S was a proportion of the strata.
+      Rt_verif <- sum(self$inputs$beta %*% S0 * tau.eff)
+
+      stopifnot(abs(Rt_verif - self$inputs$R0)/self$inputs$R0 < 1e-2)
+
+      # NPI Coordination:
+      # fist, create a matrix assuming no coordination at all
+
+      coordination <- matrix(data = 0, nrow = self$inputs$nr_patches, ncol = self$inputs$nr_patches, dimnames = list(self$inputs$jurisdiction$jurisdiction.name, self$inputs$jurisdiction$jurisdiction.name))
+
+      # Set coordination according to the selected option
+
+      # No coordination - each jurisdiction uses their own
+      if(self$inputs$coordination_mode == 0) {
+
+      diag(coordination) <- 1
+
+      # Full coordination mode
+      } else if (self$inputs$coordination_mode == 1) {
+        coordination[,] <- 1
+      # Blocked coordination mode
+      } else if(self$inputs$coordination_mode == 2) {
+
+      # Set coordination following the jurisdiction block
+
+      npi_blocks <- unique(self$inputs$jurisdiction$npi.coordination.block)
+
+      # Set coordination values for each block:
+
+      for(i in npi_blocks) {
+
+        jurisdictions <- self$inputs$jurisdiction$jurisdiction.name[self$inputs$jurisdiction$npi.coordination.block == i]
+
+        coordination[jurisdictions,jurisdictions] <- 1
+
+      }
+
+      # Inputs from coordination are taken from the spreadsheet:
+      } else if(self$inputs$coordination_mode == 3) {
+
+        coordination <- as.matrix(self$inputs$coordination[1:self$inputs$nr_patches,1:self$inputs$nr_patches+1])
+
+      }
+
+      # Set coordination inputs:
+      self$set_input("A", coordination)
 
       # Population sizes
       self$set_input("S0", self$inputs$jurisdiction$S0[1:self$inputs$nr_patches])

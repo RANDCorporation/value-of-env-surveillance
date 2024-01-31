@@ -44,16 +44,15 @@ L_c <- user() # 1 if NPIs are coordinated across jurisdictions, 0 otherwise.
 p <- user() # case ascertainment proportion.
 S0[] <- user()
 I0[] <- user()
-int_rate <- user()
 
 # initial conditions ------------------------------------------------------
 
 # TODO: population must be set from inputs.
 initial(S[]) <- S0[i]
-initial(E[]) <- 0.0
-initial(P[]) <- 0.0
-initial(I[]) <- I0[i]
-initial(R[]) <- 0.0
+initial(E[]) <- 0
+initial(P[]) <- round(I0[i] / 2)
+initial(I[]) <- round(I0[i] / 2)
+initial(R[]) <- 0
 initial(L[]) <- 0
 initial(NPI[]) <- 0
 # initial(I_past[,]) <- 0
@@ -86,30 +85,12 @@ dim(L_star_max) <- c(n,n) # Target NPI considering maximum NPI level of coordina
 dim(Cases_lag) <- n
 dim(change_NPI_now) <- n
 
-#dim(L_star_avg) <- n # Target NPI considering the weighted average target NPI level of coordinating jurisdictions.
-
 # additional outputs ------------------------------------------------------
 
 # Set those to TRUE for debugging purposes
-
-output(S_E[]) <- TRUE
-
-#output(N[]) <- TRUE
-#output(lambda_prod[]) <- TRUE
-#output(lambda[]) <- TRUE
-#output(S_E[]) <- TRUE
-#output(A[,]) <- TRUE
-#output(L_star_ind[]) <- TRUE
-#output(L_star_avg[]) <- TRUE
-#output(L_star_max[,]) <- TRUE
-#output(L_star_matrix[,]) <- TRUE
-#output(L_star_f[]) <- TRUE
+# output(S_E[]) <- TRUE
 
 # NPIS & NPI Coordination
-
-# NPIs use delayed information
-# Here, we may instead use a matrix and assign
-
 
 # Assuming a 50% case ascertainment proportion.
 # Cases_lag is the epidemiological signal used to introduce interventions.
@@ -147,11 +128,11 @@ L_star_f[] <- if(L_c) L_star_max[i,n] else L_star_ind[i]
 
 # Differential rate for increasing and backing off
 
+# Target (continuous intervention level):
 update(L[]) <- if(L_star_f[i] > L[i]) L[i] + (L_star_f[i] - L[i]) / a_up else L[i] + (L_star_f[i] - L[i]) / a_down
 
-# We should update policies with a certain frequency
-# If we are to increase intereventions, then update every a_up days.
-# Otherwise, update every a_down days
+
+# Decide whether to update the NPI level
 change_NPI_now[] <- if(L[i] > NPI[i]) (step %% a_up) == 0 else (step %% a_down) == 0
 
 update(NPI[]) <- if (change_NPI_now[i]) floor(L[i]) else NPI[i]
@@ -159,11 +140,11 @@ update(NPI[]) <- if (change_NPI_now[i]) floor(L[i]) else NPI[i]
 
 # Disease transmission
 # Disease transmission equation
-lambda_prod[ , ] <- beta_mult * (1-NPI[i]*tau) * beta[i, j] * (I[j] + P[j])
+lambda_prod[ , ] <- beta_mult * (1-NPI[i]*tau) * beta[i, j] * ((I[j] + P[j])/N[j])
 lambda[] <- sum(lambda_prod[i, ]) # rowSums
 
 # This is the probability of infection | susceptible
-p_SE[] <- 1 - exp(-lambda[i]/N[i])
+p_SE[] <- 1 - exp(-lambda[i])
 
 N[] <- S[i] + E[i] + P[i] + I[i] + R[i]
 
@@ -177,7 +158,7 @@ I_R[] <- rbinom(I[i], 1-exp(-gamma))
 
 ## Difference equations
 update(S[]) <- S[i] - S_E[i]
-update(E[]) <- E[i] + S_E[i] - E_P[i] + rpois(int_rate)
+update(E[]) <- E[i] + S_E[i] - E_P[i]
 update(P[]) <- P[i] + E_P[i] - P_I[i]
 update(I[]) <- I[i] + P_I[i] - I_R[i]
 update(R[]) <- R[i] + I_R[i]

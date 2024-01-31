@@ -1,7 +1,6 @@
 
 # Use this file to set global project settings:
 
-data_file: "./data/metapopulation-inputs-01.xlsx"
-
+data_file: "./data/metapopulation-inputs-master.xlsx"
 
 lib_path: "./R/functions"
