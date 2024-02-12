@@ -12,30 +12,32 @@ source("./R/library.R")
 
 # Single run examples -----------------------------------------------------
 model <- OdinMetapop$new("stochastic_metapopulation.R", s$data_file)
-model2 <- OdinMetapop$new("stochastic_metapopulation2.R", "./data/metapopulation-two-strata.xlsx")
+#model2 <- OdinMetapop$new("stochastic_metapopulation2.R", "./data/metapopulation-inputs-heterogeneous.xlsx")
 
 # all default model inputs are in the inputs object
 model$inputs$beta
-model2$inputs$beta
-
 # IT looks like the mixing is not being partitioned correctly!
 #. it should be 0.1, 0.1
 
 # We can run the model with default inputs by using the simulate function
 # i.e., run for 100 days, for 100 replications
-model$simulate(step = 0:50, reps = 100)
-model2$simulate(step = 0:50, reps = 100)
+model$simulate(step = 0:300, reps = 100)
+
+
+
+
+model2$simulate(step = 0:300, reps = 100)
 
 # Compare both models:
 res1 <- model$res_long %>%
   group_by(rep, step) %>%
   summarise(I = sum(E + P + I)) %>%
-  mutate(model = "one strata")
+  mutate(model = "homogeneous")
 
 res2 <- model2$res_long %>%
   group_by(rep, step) %>%
   summarise(I = sum(E + P + I)) %>%
-  mutate(model = "two strata")
+  mutate(model = "heterogeneous")
 
 all_res <-rbind(res1, res2)
 
@@ -49,6 +51,9 @@ all_res %>%
   ggplot() +
   geom_line(mapping = aes(x = step, y = I, group = interaction(model, rep), color = model)) #+
   #facet_wrap(~model)
+
+
+
 
 
 

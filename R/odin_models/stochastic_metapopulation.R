@@ -1,6 +1,4 @@
 
-
-
 #------------------------------------------------------------------------------#
 # Code repository for Analysis of Genomic Sequencing information
 #
@@ -30,6 +28,7 @@ beta[,] <- user()     # effective contact rate (S to e)
 sigma   <- user()     # progression rate from Exposed to Pre-symptomatic
 delta   <- user()     # rate of progression from pre-symptomatic to Infected
 gamma   <- user()     # rate of progression from active disease to Removed
+rho   <- user()       # prop asymptomatic
 tau     <- user()     # policy marginal effectiveness
 c       <- user()     # policy stringency
 t_o <- user()         # Time of "opening" (i.e., where NPIs are no longer used)
@@ -38,8 +37,7 @@ a_up <- user()           # NPI *a*djustment time
 a_down <- user()           # a decrease
 L_max <- user()       # max intervention level
 beta_mult <- user()   # transmissibility multiplier (used for scenario analysis)
-A[,] <- user()        # *A*: NPI coordination matrix. 1 if jurisdiction i follows NPI of jurisdiction j if jurisdiction's j NPI is more stringent.
-#npi_coord_max <- user() # Whether to use NPI coordination by the maximum NPI. If F, uses the weighted average NPIs following the weights found in the mixing matrix.
+C[,] <- user()        # *C*: NPI coordination matrix. 1 if jurisdiction i follows NPI of jurisdiction j if jurisdiction's j NPI is more stringent.
 L_c <- user() # 1 if NPIs are coordinated across jurisdictions, 0 otherwise.
 p <- user() # case ascertainment proportion.
 S0[] <- user()
@@ -47,15 +45,14 @@ I0[] <- user()
 
 # initial conditions ------------------------------------------------------
 
-# TODO: population must be set from inputs.
 initial(S[]) <- S0[i]
 initial(E[]) <- 0
-initial(P[]) <- round(I0[i] / 2)
-initial(I[]) <- round(I0[i] / 2)
+initial(P[]) <- 0
+initial(I[]) <- I0[i]
+initial(A[]) <- 0
 initial(R[]) <- 0
 initial(L[]) <- 0
 initial(NPI[]) <- 0
-# initial(I_past[,]) <- 0
 
 # dimensions --------------------------------------------------------------
 
@@ -68,33 +65,37 @@ dim(S)           <- n
 dim(E)           <- n
 dim(P)           <- n
 dim(I)           <- n
+dim(A)           <- n
 dim(R)           <- n
 dim(NPI)           <- n
 dim(S_E)         <- n
 dim(E_P)         <- n
 dim(P_I)         <- n
+dim(P_IA)         <- n
+dim(P_A)         <- n
+dim(A_R)         <- n
 dim(I_R)         <- n
 dim(p_SE)        <- n
 dim(L)           <- n
 dim(N)       <- n
-dim(A) <- c(n,n)
+dim(C) <- c(n,n)
 dim(L_star_matrix) <- c(n,n) # Target NPI matrix.
 dim(L_star_f)      <- n # Jurisdiction's final target NPI level
 dim(L_star_ind) <- n # Jurisdiction's own L_star without considering other's
 dim(L_star_max) <- c(n,n) # Target NPI considering maximum NPI level of coordinating jurisdictions.
-dim(Cases_lag) <- n
+dim(lagged_incidence) <- n
 dim(change_NPI_now) <- n
 
-# additional outputs ------------------------------------------------------
+# additional outputs
 
-# Set those to TRUE for debugging purposes
+# Set to TRUE for debugging
 # output(S_E[]) <- TRUE
+
 
 # NPIS & NPI Coordination
 
-# Assuming a 50% case ascertainment proportion.
-# Cases_lag is the epidemiological signal used to introduce interventions.
-Cases_lag[] <- delay(rbinom(S_E[i], p), surv_lag)
+# lagged_incidence is the epidemiological signal used to introduce interventions.
+lagged_incidence[] <- delay(rbinom(S_E[i], p), surv_lag)
 
 # Effective NPI strigency: only active temporarily
 eff_c <- if(step <= t_o) c else 100000
@@ -103,14 +104,10 @@ eff_c <- if(step <= t_o) c else 100000
 # The equation below determines the intervention level, and adjusts the case threshold
 
 # Note that L_star can be > L_max so that the target intervention can remain at the lockdown level.
-L_star_ind[] <- min(100000 * (Cases_lag[i] / N[i]) / (eff_c * p), L_max + 0.01)
+L_star_ind[] <- min(100000 * (lagged_incidence[i] / N[i]) / (eff_c * p), L_max + 0.01)
 
 # Target NPI considering other jurisdictions:
-L_star_matrix[,] <-  A[i,j] * L_star_ind[j]
-
-# NPI target using weighted averages of other's NPI targets.
-# Unclear if i needs to be the in the column or the rows.
-#L_star_avg[] <- sum(L_star_matrix[,i]) / n
+L_star_matrix[,] <-  C[i,j] * L_star_ind[j]
 
 # Stores the maximum target level at the last column for each row:
 L_star_max[,] <- L_star_matrix[i,j]
@@ -120,13 +117,8 @@ L_star_max[,2:n] <- if (L_star_max[i,j] > L_star_max[i,j-1]) L_star_max[i,j] els
 # Final target NPI:
 L_star_f[] <- if(L_c) L_star_max[i,n] else L_star_ind[i]
 
-# Update Non-pharmaceutical intervention level updates with a lag:
-# Equal adjustment rate for increasing or backing off interventions:
-
-# Equal
-# update(L[]) <- L[i] + (L_star_f[i] - L[i]) / a
-
-# Differential rate for increasing and backing off
+# Update Non-pharmaceutical intervention level updates with a lag
+# using a ddifferent rate for increasing and backing off
 
 # Target (continuous intervention level):
 update(L[]) <- if(L_star_f[i] > L[i]) L[i] + (L_star_f[i] - L[i]) / a_up else L[i] + (L_star_f[i] - L[i]) / a_down
@@ -137,28 +129,37 @@ change_NPI_now[] <- if(L[i] > NPI[i]) (step %% a_up) == 0 else (step %% a_down) 
 
 update(NPI[]) <- if (change_NPI_now[i]) floor(L[i]) else NPI[i]
 
-
 # Disease transmission
 # Disease transmission equation
-lambda_prod[ , ] <- beta_mult * (1-NPI[i]*tau) * beta[i, j] * ((I[j] + P[j])/N[j])
+lambda_prod[ , ] <- beta_mult * (1-NPI[i]*tau) * beta[i, j] * ((P[j] + I[j] + A[j])/N[j])
 lambda[] <- sum(lambda_prod[i, ]) # rowSums
 
 # This is the probability of infection | susceptible
 p_SE[] <- 1 - exp(-lambda[i])
 
-N[] <- S[i] + E[i] + P[i] + I[i] + R[i]
+N[] <- S[i] + E[i] + P[i] + I[i] + A[i] + R[i]
 
 # difference equations ----------------------------------------------------
 
 ## Epidemiological transitions
 S_E[] <- rbinom(S[i], p_SE[i])
 E_P[] <- rbinom(E[i], 1-exp(-sigma))
-P_I[] <- rbinom(P[i], 1-exp(-delta))
+
+# Asymptompatic progression:
+# first draw outflows from P:
+P_IA[] <- rbinom(P[i], 1-exp(-delta))
+# draw symptomatic:
+P_I[] <- rbinom(P_IA[i], 1-rho)
+# Asymptomatic are those who remain:
+P_A[] <-P_IA[i] - P_I[i]
+
 I_R[] <- rbinom(I[i], 1-exp(-gamma))
+A_R[] <- rbinom(A[i], 1-exp(-gamma))
 
 ## Difference equations
 update(S[]) <- S[i] - S_E[i]
 update(E[]) <- E[i] + S_E[i] - E_P[i]
-update(P[]) <- P[i] + E_P[i] - P_I[i]
+update(P[]) <- P[i] + E_P[i] - P_IA[i]
 update(I[]) <- I[i] + P_I[i] - I_R[i]
-update(R[]) <- R[i] + I_R[i]
+update(A[]) <- A[i] + P_A[i] - A_R[i]
+update(R[]) <- R[i] + I_R[i] + A_R[i]
