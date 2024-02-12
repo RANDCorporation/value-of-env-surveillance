@@ -99,7 +99,7 @@ OdinMetapop <- R6::R6Class(
       }
 
       # Rowsums should be 1:
-      stopifnot(all(rowSums(mixing_matrix) == 1))
+      stopifnot(all(abs(rowSums(mixing_matrix) - 1) < 1e-3))
 
 
       # Now that we have Mij, we need to align it with a specified R0.
@@ -112,51 +112,42 @@ OdinMetapop <- R6::R6Class(
 
       tau.eff <- (1/self$inputs$delta + 1/self$inputs$gamma)
 
+      # Here, I calculate cbeta as the population average:
       cbeta <- self$inputs$R0 / tau.eff
 
-      # Need to be careful that multiplication is rowwise
 
-      # for (i in 1:length(pop)){
-      #   cbeta * pop * mixing_matrix[i]
-      # }
+      # C beta risk ratios are inputs
+      c_rr <- self$inputs$jurisdiction$mixing.risk.ratio
 
+
+      # This assumes that the first jurisdiction is the reference jurisdiction
+      # From c = sum_i(c_i*pop_i), we can derive c1
+      c_1 = cbeta / (pop[1] + sum(c_rr[2:self$inputs$nr_patches] * pop[2:self$inputs$nr_patches]))
+
+      cbeta_i <- c_1 * c_rr
+
+      k_i <- cbeta_i * pop / cbeta
+
+      # k_i also happens to be this:
+      #k_i <- self$inputs$jurisdiction$relative.mixing * pop / sum(pop)
 
       # As opposed to cbeta * mixing_matrix
       # We don't need to multiply by the population because S is a prop of the population.
       #final_mixing_matrix <- cbeta * t(pop * t(mixing_matrix))
 
-      final_mixing_matrix <- cbeta * mixing_matrix
+      # This is an element-wise multiplication, row by row:
+      final_mixing_matrix <- t(cbeta_i * t(mixing_matrix))
+
+      # If the mixing is homogenous, this should be the same as:
+      # final_mixing_matrix <- cbeta * mixing_matrix
 
       self$set_input("beta", final_mixing_matrix)
 
+      # R0 verification:
+      # R0 should be this:
+      R0_verif <- sum(self$inputs$beta %*% pop * tau.eff)
 
-      # I'm not sure, but we may need an approach that accounts for different population sizes.
-      # Drawing from what we did in the PBM, we have this:
-      # Approach that accounts for different population sizes:
-      # cbeta_input <- as.numeric(t(pop) %*% mixing_matrix %*% pop)
-      #
-      # # k factor aligns overall mixing matrix and infectious periods to a desired R0,
-      # # considering population distribution.
-      # k <- as.numeric(self$inputs$R0 / (tau.eff * cbeta_input))
-      #
-      # self$set_input("beta", k * mixing_matrix)
-
-      # Rt verification:
-
-      S0 <- self$inputs$jurisdiction$S0 / sum(self$inputs$jurisdiction$population)
-
-      # Verifying R_t is what we expect given the inputs
-      # R_t verif is nowhere near the 3, in fact is that divided by 10.
-      # This R_t verification doesn't seem to be working as expected.
-      # Even thoigh I am getting the same results.
-
-      # Rt verification:
-
-      # Should it be
-      # Would multiply by pop if S was a proportion of the strata.
-      Rt_verif <- sum(self$inputs$beta %*% S0 * tau.eff)
-
-      stopifnot(abs(Rt_verif - self$inputs$R0)/self$inputs$R0 < 1e-2)
+      stopifnot(abs(R0_verif - self$inputs$R0)/self$inputs$R0 < 1e-2)
 
       # NPI Coordination:
       # fist, create a matrix assuming no coordination at all
@@ -198,7 +189,7 @@ OdinMetapop <- R6::R6Class(
       }
 
       # Set coordination inputs:
-      self$set_input("A", coordination)
+      self$set_input("C", coordination)
 
       # Population sizes
       self$set_input("S0", self$inputs$jurisdiction$S0[1:self$inputs$nr_patches])
