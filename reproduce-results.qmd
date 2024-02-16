@@ -1,0 +1,54 @@
+---
+title: "results"
+format: html
+author: "Pedro Nascimento de Lima"
+---
+
+# Reproducibility notes
+
+This quarto document reproduces the results section in Nascimento de Lima et al. (2024). *The value of environmental surveillance for pandemic response*. For details on how to install dependencies, and reproduce these results, see the `README.md` file.
+
+# Run Results
+
+First, we instantiate the model and run it over the experimental designs used in the paper.
+
+```{r}
+# Source all dependencies and model scripts
+source("./R/library.R")
+
+# Single run examples -----------------------------------------------------
+model <- OdinMetapop$new("stochastic_metapopulation.R", s$data_file)
+
+# Verify that model runs with base-case parameters, no NPIs
+
+# Set NPI case threshold to 1000 (i.e., do not introduce NPIs)
+model$set_input(name = "c", value = Inf)
+test_results <- model$simulate()
+
+# The res_long data.frame contains jurisdiction-day-replication-level results
+
+head(model$res_long)
+```
+
+
+
+# Results
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this 
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).

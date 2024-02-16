@@ -110,14 +110,14 @@ calib_logistic_fn <- function(y_max, x_mid_point, x_trans, x_vector = seq.defaul
 
   solution <- optim(par = scale_guess, method = "Brent", # "L-BFGS-B",
                     fn = log_calib_obj_fn,
-                    lower = scale_guess * 0.2,
+                    lower = scale_guess * 0.1,
                     upper = scale_guess * 3,
                     y_max = y_max,
                     x_mid_point = x_mid_point,
                     x_trans = x_trans,
                     x_vector = x_vector)
 
-  print(solution)
+  #print(solution)
 
   solution$par
 

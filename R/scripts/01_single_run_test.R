@@ -14,6 +14,14 @@ source("./R/library.R")
 model <- OdinMetapop$new("stochastic_metapopulation.R", s$data_file)
 #model2 <- OdinMetapop$new("stochastic_metapopulation2.R", "./data/metapopulation-inputs-heterogeneous.xlsx")
 
+model$set_input("c", 10)$
+  set_input("tau", 0.05)$
+  simulate()
+
+View(model$summary)
+
+
+
 # all default model inputs are in the inputs object
 model$inputs$beta
 # IT looks like the mixing is not being partitioned correctly!
@@ -21,7 +29,7 @@ model$inputs$beta
 
 # We can run the model with default inputs by using the simulate function
 # i.e., run for 100 days, for 100 replications
-model$simulate(step = 0:300, reps = 100)
+View(model$simulate(step = 0:300, reps = 100))
 
 
 

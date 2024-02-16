@@ -84,10 +84,8 @@ OdinMetapop <- R6::R6Class(
 
       }
 
-      # Concatenate all mixing mdoes into one array (order matters!):
+      # Concatenate all mixing modes into one array (order matters!):
       M <- array(c(home_mixing, work_travel_mixing, other_mixing),dim = c(n.jurisdictions, n.jurisdictions, n.modes), dimnames = list(names.jurisdictions, names.jurisdictions, names.modes))
-
-      # This is the same as Mij.
 
       # Overall mixing matrix is the sum of element-wise multiplications:
       mixing_matrix <- matrix(data = 0, nrow = n.jurisdictions, ncol = n.jurisdictions,dimnames = list(names.jurisdictions, names.jurisdictions))
@@ -105,10 +103,6 @@ OdinMetapop <- R6::R6Class(
       # Now that we have Mij, we need to align it with a specified R0.
 
       # This approach does so by assuming that cbeta is uniform across juridictions.
-
-      # Simplistic approach: Results match, but R0 may not match when population sizes
-
-      # are different.
 
       tau.eff <- (1/self$inputs$delta + 1/self$inputs$gamma)
 
@@ -230,8 +224,8 @@ OdinMetapop <- R6::R6Class(
 
       # Based on time (i.e., due to improved standard of care)
       if(as.logical(self$inputs$time_varying_IFR)) {
-        # Scale parameter of the RR risk function
-        self$set_input("r_scale_factor", calib_logistic_fn(y_max = self$inputs$r_terminal_RR, x_mid_point = self$inputs$t_mid_IFR, x_trans = self$inputs$t_trans_IFR, x_vector = seq.default(from = 0, to = 365, by = 0.01)))
+        # Scale parameter of the logistic RR risk function
+        self$set_input("r_scale_factor", calib_logistic_fn(y_max = self$inputs$p_r_star, x_mid_point = self$inputs$t_mid_IFR, x_trans = self$inputs$t_r_star, x_vector = seq.default(from = 0, to = 365, by = 0.01)))
       }
 
       # Based on prevalence (i.e., hospital utilization)
@@ -251,7 +245,38 @@ OdinMetapop <- R6::R6Class(
     post_process = function() {
 
       # select only the variables we want for the summary variable
-      required_jurisdiction_variables = c("rep", "step", "L", "NPI", "S", "E", "P", "I", "R")
+      required_jurisdiction_variables = c("rep", "step", "L", "NPI", "S", "E", "P", "I", "A", "R")
+
+      # Variale labels for consistent. Names can be re-used across data.frames
+      var.labels <- c(
+        rep = "replication id",
+        step = "simulation day",
+        jurisdiction.id = "jurisdiction id",
+        L = "continuous NPI level (0 = no intervention)",
+        NPI = "NPI level in effect",
+        S = "susceptibles",
+        E = "exposed (not infectious)",
+        P = "pre-symptomatic (infectious)",
+        I = "infected",
+        A = "asymptomatic",
+        R = "removed",
+        jurisdiction.name = "jurisdiction name",
+        population = "population",
+        cost.npi = "daily cost of npis per day per person, per intervention level",
+        prevalence = "prevalence of symptomatic disease",
+        IFR = "infection fatality rate",
+        IFR_time_mult = "time-varying ifr risk ratio",
+        new_removed = "individuals removed from the simulation",
+        deaths_per_100k = "deaths per 100,000 people",
+        total_cost_of_illness = "total cost of ilness per person, exc. deaths",
+        CNPI = "npi costs per person",
+        CH_illness = "cost of illness per person, excluding deaths",
+        CH_deaths = "cost of deaths per person",
+        CH = "health costs per person",
+        CSURV = "surveillance cost per person",
+        C = "total pandemic cost per person",
+        epi_size = "final epidemic size"
+      )
 
       # save results into long format
       self$res_long <- self$res %>%
@@ -262,20 +287,22 @@ OdinMetapop <- R6::R6Class(
         tidyr::extract(col = variable,into = c("variable", "jurisdiction.id"), regex = "([A-Z]+)\\[([0-9]+)") %>%
         tidyr::pivot_wider(id_cols = c(rep, step, jurisdiction.id), names_from = "variable", values_from = "value")
 
-
-
       self$res_long$jurisdiction.id <- as.numeric(self$res_long$jurisdiction.id)
 
-
       # Compute deaths allowing for time-varying IFR:
-      self$res_long <- left_join(self$res_long, self$inputs$jurisdiction, by = "jurisdiction.id") %>%
-        # Cost might also be formulated as dependent on effectiveness (tau):
-        mutate(CNPI = floor(L) * cost.npi) %>%
+      self$res_long <- left_join(self$res_long, self$inputs$jurisdiction %>% select(jurisdiction.id, population, cost.npi), by = "jurisdiction.id") %>%
+        # Cost of NPI
+        mutate(CNPI = NPI * cost.npi) %>%
+        # Prevalence here is prevalence of symptomatic disease:
         mutate(prevalence = I / population) %>%
         mutate(IFR = self$inputs$r) %>%
         # Change IFR based on time:
         {if(as.logical(self$inputs$time_varying_IFR)) {
-          mutate(.,IFR_time_mult =  (1 - logistic_fn(y_max = self$inputs$r_terminal_RR, x_mid_point = self$inputs$t_mid_IFR, x_trans = self$inputs$t_trans_IFR,x = .$step, scale_factor = self$inputs$r_scale_factor))) %>%
+          mutate(.,IFR_time_mult =  (1 - logistic_fn(y_max = self$inputs$p_r_star,
+                                                     x_mid_point = self$inputs$t_mid_IFR,
+                                                     x_trans = self$inputs$t_r_star,
+                                                     x = .$step,
+                                                     scale_factor = self$inputs$r_scale_factor))) %>%
             mutate(.,IFR = IFR * IFR_time_mult)
         } else . } %>%
         # Change IFR based on prevalence (i.e., hospital overload):
@@ -285,59 +312,46 @@ OdinMetapop <- R6::R6Class(
         } else . } %>%
         arrange(rep, jurisdiction.id, step) %>%
         group_by(rep, jurisdiction.id) %>%
-        mutate(new_recoveries = c(0, diff(R))) %>%
-        # Compute deaths:
-        mutate(Deaths.per.100k = round((new_recoveries * IFR / population) * 100000))
-
-      # The new_recoveries is the difference in the recovered count at each step, which should
-      # reflect the infection count, albeit offset in time.
-      # We pre-pend a 0 to capture the first set of differences (first entry will be the
-      # num of people in the recovered compartiment at time 1, second will be the number at time 2
-      # minus the number with recovered status at time 1, etc)
-      # This set up assumes R is absorbing, if there is loss of immunity,
-      # all the above would have to be computed within the model.
-      self$res_long <- self$res_long %>%
-        mutate(new_recoveries = c(0, diff(R)))
-
-      # PNL note: average_health_cost_
-      # The health cost is the number of infected * the avg cost per infection
-      self$res_long <- self$res_long %>%
-        mutate(health_cost_of_illness = new_recoveries * self$inputs$average_health_cost_per_infection) %>%
-        mutate(per_capita_health_cost_of_illness = health_cost_of_illness / population)
-
-      # Summarize costs by jurisdiction
-      self$summary_jurisdiction <- self$res_long %>%
-        group_by(rep, jurisdiction.id) %>%
-        summarise(CNPI = self$inputs$p_disease_event * sum(CNPI),
-                  Deaths.per.100k = self$inputs$p_disease_event * sum(Deaths.per.100k),
-                  population = mean(population),
-                  health_cost_of_illness = self$inputs$p_disease_event * sum(health_cost_of_illness),
-                  per_capita_health_cost_of_illness = sum(health_cost_of_illness)/population,
-                  R_final = max(R), .groups = "keep") %>%
-        mutate(CH_deaths = Deaths.per.100k * self$inputs$ly_lost_death * self$inputs$VSLY / 10^5,
-               CH_illness = self$inputs$p_disease_event * per_capita_health_cost_of_illness) %>%
+        # The new_removed is the difference in the recovered count at each step.
+        mutate(new_removed = c(0, diff(R))) %>%
+        ungroup() %>%
+        # Compute expected deaths - since IFR is low, we compute expecte deaths
+        # We can also compute expected deaths if we wanted:
+        #mutate(deaths = IFR * new_removed) %>%
+        mutate(deaths = rbinom(n = nrow(.), size = new_removed,prob = IFR)) %>%
+        mutate(deaths_per_100k = (deaths/population) * 10^5) %>%
+        mutate(CH_illness = (new_removed * self$inputs$average_health_cost_per_infection)/population) %>%
+        mutate(CH_deaths = deaths_per_100k * self$inputs$VSL / 10^5) %>%
         mutate(CH = CH_deaths + CH_illness,
                CSURV = self$inputs$C_surv,
-               C = CSURV + CH + CNPI) %>%
-        relocate(C, CNPI, CH, CH_deaths, CH_illness)
+               C = CSURV + CH + CNPI)
 
-      # Summarize overall costs
+      # Summarize costs by jurisdiction over time:
+      self$summary_jurisdiction <- self$res_long %>%
+        select(rep, jurisdiction.id, population, new_removed, deaths_per_100k, CH_illness, CH_deaths, CH, CSURV, CNPI, C) %>%
+        mutate(epi_size = new_removed / population) %>%
+        select(-c(new_removed, population)) %>%
+        group_by(rep, jurisdiction.id) %>%
+        summarise(across(everything(),.fns = ~sum(.x)), .groups = "keep")
+s
+      # Summarize across all jurisdictions
       self$summary_all <- self$summary_jurisdiction %>%
         group_by(rep) %>%
         select(-jurisdiction.id) %>%
-        summarise(across(everything(),.fns = ~sum(.x))) %>%
-        # Assumes equal population sizes - we may change this.
-        mutate(CNPI = CNPI / self$inputs$nr_patches) %>%
-        mutate(CH = CH / self$inputs$nr_patches) %>%
-        mutate(CH_deaths = CH_deaths / self$inputs$nr_patches) %>%
-        mutate(CH_illness = CH_illness / self$inputs$nr_patches) %>%
-        mutate(C = C / self$inputs$nr_patches) %>%
-        mutate(Deaths.per.100k = Deaths.per.100k / self$inputs$nr_patches) %>%
-        mutate(per_capita_health_cost_of_illness = per_capita_health_cost_of_illness / self$inputs$nr_patches)
+        # Mean assumes equal population sizes, otherwise we would need a weighted mean.
+        summarise(across(everything(),.fns = ~mean(.x)), .groups = "drop")
+
       # summarize across replications:
       self$summary <- self$summary_all %>%
+        select(-rep) %>%
         group_by() %>%
         summarise(across(everything(),.fns = ~mean(.x)))
+
+      # Assign all labels:
+      Hmisc::label(self$res_long) <- as.list(var.labels[match(names(self$res_long), names(var.labels))])
+      Hmisc::label(self$summary_jurisdiction) <- as.list(var.labels[match(names(self$summary_jurisdiction), names(var.labels))])
+      Hmisc::label(self$summary_all) <- as.list(var.labels[match(names(self$summary_all), names(var.labels))])
+      Hmisc::label(self$summary) <- as.list(var.labels[match(names(self$summary), names(var.labels))])
 
       return(invisible(self))
     },

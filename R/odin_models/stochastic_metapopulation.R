@@ -32,11 +32,10 @@ rho   <- user()       # prop asymptomatic
 tau     <- user()     # policy marginal effectiveness
 c       <- user()     # policy stringency
 t_o <- user()         # Time of "opening" (i.e., where NPIs are no longer used)
-surv_lag <- user()    # case Observation lag (in days)
+total_surv_lag <- user()    # case Observation lag (in days)
 a_up <- user()           # NPI *a*djustment time
 a_down <- user()           # a decrease
 L_max <- user()       # max intervention level
-beta_mult <- user()   # transmissibility multiplier (used for scenario analysis)
 C[,] <- user()        # *C*: NPI coordination matrix. 1 if jurisdiction i follows NPI of jurisdiction j if jurisdiction's j NPI is more stringent.
 L_c <- user() # 1 if NPIs are coordinated across jurisdictions, 0 otherwise.
 p <- user() # case ascertainment proportion.
@@ -95,7 +94,7 @@ dim(change_NPI_now) <- n
 # NPIS & NPI Coordination
 
 # lagged_incidence is the epidemiological signal used to introduce interventions.
-lagged_incidence[] <- delay(rbinom(S_E[i], p), surv_lag)
+lagged_incidence[] <- delay(rbinom(S_E[i], p), total_surv_lag)
 
 # Effective NPI strigency: only active temporarily
 eff_c <- if(step <= t_o) c else 100000
@@ -131,7 +130,7 @@ update(NPI[]) <- if (change_NPI_now[i]) floor(L[i]) else NPI[i]
 
 # Disease transmission
 # Disease transmission equation
-lambda_prod[ , ] <- beta_mult * (1-NPI[i]*tau) * beta[i, j] * ((P[j] + I[j] + A[j])/N[j])
+lambda_prod[ , ] <- (1-NPI[i]*tau) * beta[i, j] * ((P[j] + I[j] + A[j])/N[j])
 lambda[] <- sum(lambda_prod[i, ]) # rowSums
 
 # This is the probability of infection | susceptible
@@ -150,7 +149,7 @@ E_P[] <- rbinom(E[i], 1-exp(-sigma))
 P_IA[] <- rbinom(P[i], 1-exp(-delta))
 # draw symptomatic:
 P_I[] <- rbinom(P_IA[i], 1-rho)
-# Asymptomatic are those who remain:
+# Asymptomatic transitions are the remainder (It is easier to do than a multinomial):
 P_A[] <-P_IA[i] - P_I[i]
 
 I_R[] <- rbinom(I[i], 1-exp(-gamma))

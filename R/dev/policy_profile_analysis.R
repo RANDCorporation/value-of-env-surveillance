@@ -91,7 +91,7 @@ fig_prevalence_fan <- all_long_df %>%
 
 fig_deaths_fan <- all_long_df %>%
   filter(jurisdiction.name == "NY") %>%
-  ggplot(mapping = aes(x = step, y = Deaths.per.100k)) +
+  ggplot(mapping = aes(x = step, y = deaths_per_100k)) +
   ggfan::geom_fan() +
   facet_wrap(~policy_profile, nrow = 1) +
   ylab("Deaths per 100,000 people") +

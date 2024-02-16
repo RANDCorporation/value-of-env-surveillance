@@ -35,7 +35,7 @@ experiment <- R6Experiment$new(model)
 
 # Set experimental parameters
 experiment$
-  set_parameter("surv_lag", "grid", seq.default(from = 0, to = 21, by = 3))$ # Surveillance lag
+  set_parameter("total_surv_lag", "grid", seq.default(from = 0, to = 21, by = 3))$ # Surveillance lag
   set_parameter("p", "grid", c(0.5,1))$ # case ascertainment proportion
   set_parameter("tau", "grid", c(0.12,0.15,0.18))$ # intevention effectiveness per intervention level
   set_parameter("c", "grid", c(0.01,1,5,10,100))$ # case intervention threshold per 100,000 people

@@ -7,12 +7,11 @@
 
 # First, we have a
 
-n.jurisdictions <- 2
-names.jurisdictions <- c("A", "B")
+names.jurisdictions <- c("A", "B", "C", "D", "E")
+n.jurisdictions <- length(names.jurisdictions)
 
-n.modes <- 3
 names.modes <- c("Home", "Work", "Other")
-
+n.modes <- length(names.modes)
 # Following the same notation, k is the normalized contact rates across modes, by jurisdictions
 # k can be thought of the intensity of contacts across these mixing modes for each jurisdiction
 

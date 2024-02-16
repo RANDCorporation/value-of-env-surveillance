@@ -42,15 +42,15 @@ policy_scenarios <- readxl::read_xlsx("./data/scenarios.xlsx",sheet = "policy_pr
 
 
 # Other variables
-surv_lag <- seq.default(from = 2, to = 20, by = 2)
+total_surv_lag <- seq.default(from = 2, to = 20, by = 2)
 R0 <- c(1.5,2,3)
 cost_max_npi <- c(0.1,0.25,0.87, 1.25)
 L_c <- c(0,1)
 r <- c(0.01, 0.001, 0.02)
 
 # Surveillance design
-surv_design <- data.frame(surv_lag = surv_lag) %>%
-  mutate(p = ifelse(surv_lag < 10, 1, 0.5)) %>%
+surv_design <- data.frame(total_surv_lag = total_surv_lag) %>%
+  mutate(p = ifelse(total_surv_lag < 10, 1, 0.5)) %>%
   mutate(surv.id = row_number())
 
 # Other variables design:
@@ -69,7 +69,7 @@ full_design <- expand_grid(policy_scenarios, surv_design, other_vars_design)
 
 # Set experimental parameters
 # experiment$
-#   set_parameter("surv_lag", "grid", seq.default(from = 0, to = 21, by = 3))$ # Surveillance lag
+#   set_parameter("total_surv_lag", "grid", seq.default(from = 0, to = 21, by = 3))$ # Surveillance lag
 #   set_parameter("p", "grid", c(0.5,1))$ # case ascertainment proportion
 #   set_parameter("tau", "grid", c(0.12,0.15,0.18))$ # intevention effectiveness per intervention level
 #   set_parameter("c", "grid", c(0.01,1,5,10,100))$ # case intervention threshold per 100,000 people
@@ -87,7 +87,7 @@ exp_results <- experiment$run(parallel = T,cluster_eval_script = "./R/scripts/cl
 
 # Compute NMB counterfactuals:
 ref_costs <- exp_results %>%
-  filter(surv_lag == 10) %>%
+  filter(total_surv_lag == 10) %>%
   rename(ref_C = C) %>%
   select(policy.id, other.vars.id, ref_C)
 

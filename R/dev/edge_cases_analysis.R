@@ -24,7 +24,7 @@ model$set_input("c", 10000)$
   set_input("R0", 2.5)$
   set_input("p", 0.5)$
   set_input("tau", 0.18)$
-  set_input("surv_lag", 1)$
+  set_input("total_surv_lag", 1)$
   set_input("cost_max_npi", 0.25)$
   set_input("L_c", 1)$
   set_input("a_up", 1)$
