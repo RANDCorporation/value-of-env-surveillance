@@ -113,7 +113,6 @@ OdinMetapop <- R6::R6Class(
       # C beta risk ratios are inputs
       c_rr <- self$inputs$jurisdiction$mixing.risk.ratio
 
-
       # This assumes that the first jurisdiction is the reference jurisdiction
       # From c = sum_i(c_i*pop_i), we can derive c1
       c_1 = cbeta / (pop[1] + sum(c_rr[2:self$inputs$nr_patches] * pop[2:self$inputs$nr_patches]))
@@ -140,6 +139,10 @@ OdinMetapop <- R6::R6Class(
       # R0 verification:
       # R0 should be this:
       R0_verif <- sum(self$inputs$beta %*% pop * tau.eff)
+
+      # Sampling new variant strain introdiction.
+
+      self$set_input("variant_t", round(runif(1, min = self$inputs$variant_min_t, max = self$inputs$variant_max_t)))
 
       stopifnot(abs(R0_verif - self$inputs$R0)/self$inputs$R0 < 1e-2)
 
@@ -275,7 +278,8 @@ OdinMetapop <- R6::R6Class(
         CH = "health costs per person",
         CSURV = "surveillance cost per person",
         C = "total pandemic cost per person",
-        epi_size = "final epidemic size"
+        epi_size = "final epidemic size",
+        L5_days = "days under level 5 NPI"
       )
 
       # save results into long format
@@ -324,16 +328,19 @@ OdinMetapop <- R6::R6Class(
         mutate(CH_deaths = deaths_per_100k * self$inputs$VSL / 10^5) %>%
         mutate(CH = CH_deaths + CH_illness,
                CSURV = self$inputs$C_surv,
-               C = CSURV + CH + CNPI)
+               C = CSURV + CH + CNPI) %>%
+        mutate(L5_days = as.integer(NPI == 5)) %>%
+        mutate(L1plus_days = as.integer(NPI >= 1))
 
       # Summarize costs by jurisdiction over time:
       self$summary_jurisdiction <- self$res_long %>%
-        select(rep, jurisdiction.id, population, new_removed, deaths_per_100k, CH_illness, CH_deaths, CH, CSURV, CNPI, C) %>%
+        select(rep, jurisdiction.id, population, new_removed, deaths_per_100k, CH_illness, CH_deaths, CH, CSURV, CNPI, C, L5_days) %>%
         mutate(epi_size = new_removed / population) %>%
         select(-c(new_removed, population)) %>%
         group_by(rep, jurisdiction.id) %>%
         summarise(across(everything(),.fns = ~sum(.x)), .groups = "keep")
-s
+
+
       # Summarize across all jurisdictions
       self$summary_all <- self$summary_jurisdiction %>%
         group_by(rep) %>%
@@ -345,7 +352,7 @@ s
       self$summary <- self$summary_all %>%
         select(-rep) %>%
         group_by() %>%
-        summarise(across(everything(),.fns = ~mean(.x)))
+        summarise_all(summary_functions)
 
       # Assign all labels:
       Hmisc::label(self$res_long) <- as.list(var.labels[match(names(self$res_long), names(var.labels))])

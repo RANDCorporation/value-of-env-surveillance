@@ -41,6 +41,8 @@ L_c <- user() # 1 if NPIs are coordinated across jurisdictions, 0 otherwise.
 p <- user() # case ascertainment proportion.
 S0[] <- user()
 I0[] <- user()
+variant_beta_rr <- user()
+variant_t <- user()
 
 # initial conditions ------------------------------------------------------
 
@@ -84,6 +86,7 @@ dim(L_star_ind) <- n # Jurisdiction's own L_star without considering other's
 dim(L_star_max) <- c(n,n) # Target NPI considering maximum NPI level of coordinating jurisdictions.
 dim(lagged_incidence) <- n
 dim(change_NPI_now) <- n
+#dim(variant_introduced) <- 1
 
 # additional outputs
 
@@ -128,9 +131,13 @@ change_NPI_now[] <- if(L[i] > NPI[i]) (step %% a_up) == 0 else (step %% a_down) 
 
 update(NPI[]) <- if (change_NPI_now[i]) floor(L[i]) else NPI[i]
 
+# Variant strain modified transmissibility
+
+variant_rr <- if(step >= variant_t) variant_beta_rr else 1
+
 # Disease transmission
 # Disease transmission equation
-lambda_prod[ , ] <- (1-NPI[i]*tau) * beta[i, j] * ((P[j] + I[j] + A[j])/N[j])
+lambda_prod[ , ] <- variant_rr * (1-NPI[i]*tau) * beta[i, j] * ((P[j] + I[j] + A[j])/N[j])
 lambda[] <- sum(lambda_prod[i, ]) # rowSums
 
 # This is the probability of infection | susceptible

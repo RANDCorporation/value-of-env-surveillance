@@ -13,23 +13,29 @@ This quarto document reproduces the results section in Nascimento de Lima et al.
 First, we instantiate the model and run it over the experimental designs used in the paper.
 
 ```{r}
-# Source all dependencies and model scripts
-source("./R/library.R")
 
-# Single run examples -----------------------------------------------------
-model <- OdinMetapop$new("stochastic_metapopulation.R", s$data_file)
-
-# Verify that model runs with base-case parameters, no NPIs
-
-# Set NPI case threshold to 1000 (i.e., do not introduce NPIs)
-model$set_input(name = "c", value = Inf)
-test_results <- model$simulate()
-
-# The res_long data.frame contains jurisdiction-day-replication-level results
-
-head(model$res_long)
 ```
 
+
+# Results
+
+## Value of EWS under base-case results
+{Describe dynamics and results uder base-case assumptions}
+
+D. EWS provide meaningful value under base-case assumptions
+
+## Conditions for high-value early warning 
+{Describe conditions under which value is lower or higher}
+D. Value of EWS hinges on timeliness of and adherence to NPIs. 
+There was a 
+
+## EWS and policy coordination
+D. EWS alleviate lack of policy coordination. 
+There is a concern that EWS data will need to be integrated to be useful. However, we find that policy coordination and EWS act as substitutes. Policy coordination h
+
+## Marginal Value of EWS
+D. EWS deployment also face decreasing marginal returns
+The value of EWS decreases as coverage increases.
 
 
 # Results

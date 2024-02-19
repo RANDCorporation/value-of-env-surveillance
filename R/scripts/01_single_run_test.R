@@ -11,8 +11,11 @@
 source("./R/library.R")
 
 # Single run examples -----------------------------------------------------
-model <- OdinMetapop$new("stochastic_metapopulation.R", s$data_file)
+model <- OdinMetapop$new("stochastic_metapopulation.R", s$data_file, "model1")
 #model2 <- OdinMetapop$new("stochastic_metapopulation2.R", "./data/metapopulation-inputs-heterogeneous.xlsx")
+
+model$simulate()
+
 
 model$set_input("c", 10)$
   set_input("tau", 0.05)$
@@ -20,6 +23,8 @@ model$set_input("c", 10)$
 
 View(model$summary)
 
+
+get_outcome(model$summary, outcome_var = "CH")
 
 
 # all default model inputs are in the inputs object

@@ -44,16 +44,17 @@ OdinSim <- R6::R6Class(
     #' Create a new `OdinSim` object.
     #' @param odin_file odin model file under R/odin_models. Should have an .R extension.
     #' @param inputs_file spreadsheet with model inputs
+    #' @param model_name optional model name (useful when using the same odin model file)
     #' @param ... additional inputs to te odin model.
     #' @return s new `OdinSim` object.
-    initialize = function(odin_file, inputs_file, ...) {
+    initialize = function(odin_file, inputs_file, model_name = "", ...) {
 
       super$initialize(name = odin_file)
 
       model_path <- paste0("./R/odin_models/", odin_file)
 
-      odin_workdir <- paste0("./cpp/", substr(odin_file,start = 1,
-                                              stop = nchar(odin_file)-2), "/")
+      odin_workdir <- paste0("./cpp/", paste0(substr(odin_file,start = 1,
+                                                     stop = nchar(odin_file)-2), "_", model_name) , "/")
 
       # Get (and set) inputs from spreadsheet:
       self$get_inputs(inputs_file)
@@ -64,13 +65,8 @@ OdinSim <- R6::R6Class(
       # Pre-process inputs (which will also assign any new parameters to the odin model)
       self$pre_process_inputs()
 
-      #browser()
-
       # Create odin constructor (this is an R6 class):
       odin_constructor <- odin::odin(model_path, workdir = odin_workdir, debug_enable = F)
-
-      # trying to use odin.dust for parallel execution:
-      # odin_constructor <- odin.dust::odin_dust(model_path, workdir = odin_workdir, debug_enable = F)
 
       # Create list of odin inputs
       self$odin_parms <- odin_constructor$private_fields$user
