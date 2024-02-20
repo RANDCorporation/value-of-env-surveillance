@@ -54,6 +54,7 @@ initial(A[]) <- 0
 initial(R[]) <- 0
 initial(L[]) <- 0
 initial(NPI[]) <- 0
+initial(inc_hist[,]) <- 0
 
 # dimensions --------------------------------------------------------------
 
@@ -85,19 +86,31 @@ dim(L_star_f)      <- n # Jurisdiction's final target NPI level
 dim(L_star_ind) <- n # Jurisdiction's own L_star without considering other's
 dim(L_star_max) <- c(n,n) # Target NPI considering maximum NPI level of coordinating jurisdictions.
 dim(lagged_incidence) <- n
+#dim(lagged_incidence_mov_avg) <- n
 dim(change_NPI_now) <- n
+dim(inc_hist) <- c(n,15) # incidence history: up to 15 days of history of jurisdiction i (row) and time t-j days.
 #dim(variant_introduced) <- 1
 
 # additional outputs
 
 # Set to TRUE for debugging
-# output(S_E[]) <- TRUE
+#output(lagged_incidence[]) <- TRUE
+#output(lagged_incidence_mov_avg[]) <- TRUE
+#output(L_star_f[]) <- TRUE
 
 
 # NPIS & NPI Coordination
 
 # lagged_incidence is the epidemiological signal used to introduce interventions.
-lagged_incidence[] <- delay(rbinom(S_E[i], p), total_surv_lag)
+# Lagged incidence was causing issues with the use of the delay function.
+#lagged_incidence[] <- delay(rbinom(S_E[i], p), total_surv_lag)
+update(inc_hist[,]) <- if(j==1) rbinom(S_E[i],p) else inc_hist[i,j-1]
+
+# Original
+lagged_incidence[] <- inc_hist[i,as.integer(total_surv_lag+1)]
+
+# Lagged incidence at the 7-day-moving-average
+#lagged_incidence_mov_avg[] <- sum(inc_hist[i,as.integer(total_surv_lag+1):as.integer(total_surv_lag+7)]) / 7
 
 # Effective NPI strigency: only active temporarily
 eff_c <- if(step <= t_o) c else 100000
@@ -122,9 +135,10 @@ L_star_f[] <- if(L_c) L_star_max[i,n] else L_star_ind[i]
 # Update Non-pharmaceutical intervention level updates with a lag
 # using a ddifferent rate for increasing and backing off
 
-# Target (continuous intervention level):
-update(L[]) <- if(L_star_f[i] > L[i]) L[i] + (L_star_f[i] - L[i]) / a_up else L[i] + (L_star_f[i] - L[i]) / a_down
-
+# Target (continuous intervention level, with 7-day updating lag):
+# Continuous intervention level dependent on direction of L_star:
+#update(L[]) <- if(L_star_f[i] > L[i]) L[i] + (L_star_f[i] - L[i]) / a_up else L[i] + (L_star_f[i] - L[i]) / a_down
+update(L[]) <- L[i] + (L_star_f[i] - L[i]) / 2
 
 # Decide whether to update the NPI level
 change_NPI_now[] <- if(L[i] > NPI[i]) (step %% a_up) == 0 else (step %% a_down) == 0

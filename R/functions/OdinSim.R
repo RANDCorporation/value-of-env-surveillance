@@ -124,7 +124,9 @@ OdinSim <- R6::R6Class(
     },
 
     # simulates the model for a set of replications
-    simulate = function(step, y = NULL, use_names = TRUE, reps = 1){
+    simulate = function(step, y = NULL, use_names = TRUE, reps = 1, seed = 1234){
+
+      set.seed(seed)
 
       # result comes as an array of matrices
       res <- replicate(n = reps, expr = self$o$run(step, y = y, use_names = use_names))

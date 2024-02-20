@@ -250,38 +250,6 @@ OdinMetapop <- R6::R6Class(
       # select only the variables we want for the summary variable
       required_jurisdiction_variables = c("rep", "step", "L", "NPI", "S", "E", "P", "I", "A", "R")
 
-      # Variale labels for consistent. Names can be re-used across data.frames
-      var.labels <- c(
-        rep = "replication id",
-        step = "simulation day",
-        jurisdiction.id = "jurisdiction id",
-        L = "continuous NPI level (0 = no intervention)",
-        NPI = "NPI level in effect",
-        S = "susceptibles",
-        E = "exposed (not infectious)",
-        P = "pre-symptomatic (infectious)",
-        I = "infected",
-        A = "asymptomatic",
-        R = "removed",
-        jurisdiction.name = "jurisdiction name",
-        population = "population",
-        cost.npi = "daily cost of npis per day per person, per intervention level",
-        prevalence = "prevalence of symptomatic disease",
-        IFR = "infection fatality rate",
-        IFR_time_mult = "time-varying ifr risk ratio",
-        new_removed = "individuals removed from the simulation",
-        deaths_per_100k = "deaths per 100,000 people",
-        total_cost_of_illness = "total cost of ilness per person, exc. deaths",
-        CNPI = "npi costs per person",
-        CH_illness = "cost of illness per person, excluding deaths",
-        CH_deaths = "cost of deaths per person",
-        CH = "health costs per person",
-        CSURV = "surveillance cost per person",
-        C = "total pandemic cost per person",
-        epi_size = "final epidemic size",
-        L5_days = "days under level 5 NPI"
-      )
-
       # save results into long format
       self$res_long <- self$res %>%
         select(starts_with(required_jurisdiction_variables, ignore.case = FALSE)) %>%
@@ -327,14 +295,14 @@ OdinMetapop <- R6::R6Class(
         mutate(CH_illness = (new_removed * self$inputs$average_health_cost_per_infection)/population) %>%
         mutate(CH_deaths = deaths_per_100k * self$inputs$VSL / 10^5) %>%
         mutate(CH = CH_deaths + CH_illness,
-               CSURV = self$inputs$C_surv,
-               C = CSURV + CH + CNPI) %>%
+               #CSURV = self$inputs$C_surv,
+               C = CH + CNPI) %>%
         mutate(L5_days = as.integer(NPI == 5)) %>%
         mutate(L1plus_days = as.integer(NPI >= 1))
 
       # Summarize costs by jurisdiction over time:
       self$summary_jurisdiction <- self$res_long %>%
-        select(rep, jurisdiction.id, population, new_removed, deaths_per_100k, CH_illness, CH_deaths, CH, CSURV, CNPI, C, L5_days) %>%
+        select(rep, jurisdiction.id, population, new_removed, deaths_per_100k, CH_illness, CH_deaths, CH, L5_days, L1plus_days, CNPI, C) %>%
         mutate(epi_size = new_removed / population) %>%
         select(-c(new_removed, population)) %>%
         group_by(rep, jurisdiction.id) %>%
@@ -364,7 +332,7 @@ OdinMetapop <- R6::R6Class(
     },
 
     # Simulate function
-    simulate = function(step = 0:365, y = NULL, use_names = TRUE, reps = 100){
+    simulate = function(step = 0:365, y = NULL, use_names = TRUE, reps = 1000){
 
       self$pre_process_inputs()
 
