@@ -310,14 +310,14 @@ OdinMetapop <- R6::R6Class(
 
 
       # Summarize across all jurisdictions
-      self$summary_all <- self$summary_jurisdiction %>%
+      self$summary <- self$summary_jurisdiction %>%
         group_by(rep) %>%
         select(-jurisdiction.id) %>%
         # Mean assumes equal population sizes, otherwise we would need a weighted mean.
         summarise(across(everything(),.fns = ~mean(.x)), .groups = "drop")
 
       # summarize across replications:
-      self$summary <- self$summary_all %>%
+      self$summary_all <- self$summary %>%
         select(-rep) %>%
         group_by() %>%
         summarise_all(summary_functions)

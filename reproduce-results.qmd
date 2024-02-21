@@ -1,60 +1,76 @@
 ---
-title: "results"
+title: "The value of early warning systems for pandemic response"
 format: html
+execute: 
+  echo: false
+  warning: false
+  error: false
 author: "Pedro Nascimento de Lima"
 ---
 
 # Reproducibility notes
 
-This quarto document reproduces the results section in Nascimento de Lima et al. (2024). *The value of environmental surveillance for pandemic response*. For details on how to install dependencies, and reproduce these results, see the `README.md` file.
+This `quarto` document can be used to reproduce the results discussed in in *Nascimento de Lima et al. (2024). The value of environmental surveillance for pandemic response*. For details on how to install dependencies, see the `README.md` file. Before attempting to run this document, install all dependencies and run the `run_analysis.R` script. You should be able to reproduce all figures and tables from our paper using this document on a modern laptop within 30 minutes.
 
-# Run Results
+# Running the model
 
-First, we instantiate the model and run it over the experimental designs used in the paper.
+The following code block uses results stored in the `./output/r.rds` file or runs the script that generates this file.
 
 ```{r}
+# The r object contains the results objects used in this file
+if(!file.exists("./output/r.rds")) {
+  source("./R/scripts/run_analysis.R")
+} else {
+  source("./R/library.R")
+  r <- readRDS("./output/r.rds")
+}
 
 ```
 
-
 # Results
 
-## Value of EWS under base-case results
-{Describe dynamics and results uder base-case assumptions}
+## Value of EWS under baseline assumptions
 
-D. EWS provide meaningful value under base-case assumptions
+EWS systems provide meaningful value under base-case assumptions representing a hypothetical new pandemic with parameters mirroring those of SARS-Cov-2 (Supplementary Table 1).
 
-## Conditions for high-value early warning 
+Assuming no NPIs interventions are put in place (No NPIs scenario), a new COVID-19-like pandemic would produce significant damage, causing `r pull_estimate(r$table_1_long, Scenario == "No NPIs", variable == "deaths_per_100k")` deaths per 100,000 people (mean (95% prediction interval) over a one-year time-frame (Table 1). The unmitigated pandemic would infect `r pull_estimate(r$table_1_long, Scenario == "No NPIs", variable == "epi_size")` percent of the population, causing `r pull_estimate(r$table_1_long, Scenario == "No NPIs", variable == "CH_illness")` dollars per person due to ilness, and `r pull_estimate(r$table_1_long, Scenario == "No NPIs", variable == "CH_deaths")` dollars due to deaths. The total health cost would be projected at `r pull_estimate(r$table_1_long, Scenario == "No NPIs", variable == "CH")` dollars per person.
+
+If NPIs are in place and policy makers follow our base-case NPI policy, the death toll of the pandemic would be substantially reduced from `r pull_estimate(r$table_1_long, Scenario == "No NPIs", variable == "deaths_per_100k")` to `r pull_estimate(r$table_1_long, Scenario == "NPIs w/o EWS", variable == "deaths_per_100k")` deaths per 100,000 population even if no enhanced early-warning system (EWS) is adopted. As it was the case during the COVID-19 pandemic, such an effort would involve a substantial collective effort. Under base-case assumptions, this effort would require `r pull_estimate(r$table_1_long, Scenario == "NPIs w/o EWS", variable == "L1plus_days")` days of public health interventions, of which `r pull_estimate(r$table_1_long, Scenario == "NPIs w/o EWS", variable == "L5_days")` days are spent under the most-restrictive policy intervention level. We project this effort to cost on the order of `r pull_estimate(r$table_1_long, Scenario == "NPIs w/o EWS", variable == "CNPI")` per person. Based on those assumptions, the total cost of the pandemic would be reduced from `r pull_estimate(r$table_1_long, Scenario == "No NPIs", variable == "C")` to `r pull_estimate(r$table_1_long, Scenario == "NPIs w/o EWS", variable == "C")` per person, making the non-pharmaceutical intervention policy effective.
+
+Under this framework, EWS provide net-positive value to society if they enhance the effectiveness of NPIs more than they increase the burden of additional interventions introduced due to the early warning. We investigate this question investigating the value of EWS assuming that they provide 2, 5 or 10-day leading indicator relative to the disease incidence indicator used to inform COVID-19 response policies, and investigate how the key economic outcomes respond.
+
+
+```{r}
+gt::gt(r$table_1)
+```
+
+* Notes: All costs are expressed as 2020 dollars per person. All outcomes were computed over a one-year time-frame.
+
+
+Points from this section for discussion:
+
+* **Base-case results align with observed data in the pandemic** (by constrution with reality observed during COVID-19). US obseved on the order of 160 deaths per 100,000 people during the first year of the pandemic, and many states.
+* **EWS provide meaningful value under base-case assumptions.** Net-monetary benefit from surveillance sytem is on the order of 1,000 dollars per person over a one-year time-frame. This outweighs any available estimate of costs.
+
+## Conditions for high-value pandemic response EW systems
 {Describe conditions under which value is lower or higher}
-D. Value of EWS hinges on timeliness of and adherence to NPIs. 
-There was a 
+
+Points from this section for discussion:
+
+* Value of EWS hinges on:
+  + timeliness of decision-making
+  + adherence to NPIs
+  + relative costs/severity of disease
+
+
+# If we have time to look at those other cases:
 
 ## EWS and policy coordination
 D. EWS alleviate lack of policy coordination. 
 There is a concern that EWS data will need to be integrated to be useful. However, we find that policy coordination and EWS act as substitutes. Policy coordination h
 
-## Marginal Value of EWS
+## If we have time: Marginal Value of EWS
 D. EWS deployment also face decreasing marginal returns
 The value of EWS decreases as coverage increases.
 
 
-# Results
-
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
-
-## Running Code
-
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
-
-```{r}
-1 + 1
-```
-
-You can add options to executable code like this 
-
-```{r}
-#| echo: false
-2 * 2
-```
-
-The `echo: false` option disables the printing of code (only output is displayed).
