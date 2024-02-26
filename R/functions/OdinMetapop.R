@@ -288,9 +288,10 @@ OdinMetapop <- R6::R6Class(
         mutate(new_removed = c(0, diff(R))) %>%
         ungroup() %>%
         # Compute expected deaths - since IFR is low, we compute expecte deaths
-        # We can also compute expected deaths if we wanted:
-        #mutate(deaths = IFR * new_removed) %>%
-        mutate(deaths = rbinom(n = nrow(.), size = new_removed,prob = IFR)) %>%
+        # Expected deaths:
+        mutate(deaths = IFR * new_removed) %>%
+        # Stochastic deaths:
+        #mutate(deaths = rbinom(n = nrow(.), size = new_removed,prob = IFR)) %>%
         mutate(deaths_per_100k = (deaths/population) * 10^5) %>%
         mutate(CH_illness = (new_removed * self$inputs$average_health_cost_per_infection)/population) %>%
         mutate(CH_deaths = deaths_per_100k * self$inputs$VSL / 10^5) %>%
@@ -303,7 +304,7 @@ OdinMetapop <- R6::R6Class(
       # Summarize costs by jurisdiction over time:
       self$summary_jurisdiction <- self$res_long %>%
         select(rep, jurisdiction.id, population, new_removed, deaths_per_100k, CH_illness, CH_deaths, CH, L5_days, L1plus_days, CNPI, C) %>%
-        mutate(epi_size = new_removed / population) %>%
+        mutate(epi_size = 100 * new_removed / population) %>%
         select(-c(new_removed, population)) %>%
         group_by(rep, jurisdiction.id) %>%
         summarise(across(everything(),.fns = ~sum(.x)), .groups = "keep")
