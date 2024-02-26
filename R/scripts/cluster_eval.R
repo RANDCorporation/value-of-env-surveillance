@@ -19,7 +19,7 @@
 # Source necessary functions:
 source("./R/library.R")
 
-set.seed(1234)
+#set.seed(1234)
 
 # Instantiate model -------------------------------------------------------
 model <- OdinMetapop$new("stochastic_metapopulation.R", s$data_file)

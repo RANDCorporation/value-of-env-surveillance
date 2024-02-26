@@ -1,8 +1,10 @@
 ---
 title: "The value of early warning systems for pandemic response"
-format: html
+format:
+  html:
+    self-contained: true
 execute: 
-  echo: false
+  echo: true
   warning: false
   error: false
 author: "Pedro Nascimento de Lima"
@@ -10,7 +12,7 @@ author: "Pedro Nascimento de Lima"
 
 # Reproducibility notes
 
-This `quarto` document can be used to reproduce the results discussed in in *Nascimento de Lima et al. (2024). The value of environmental surveillance for pandemic response*. For details on how to install dependencies, see the `README.md` file. Before attempting to run this document, install all dependencies and run the `run_analysis.R` script. You should be able to reproduce all figures and tables from our paper using this document on a modern laptop within 30 minutes.
+This `quarto` document can be used to reproduce the results presented in *Nascimento de Lima et al. (2024). The value of environmental surveillance for pandemic response*. For details on how to install dependencies, see the `README.md` file. Before attempting to run this document, install all dependencies and run the `run_analysis.R` script. You should be able to reproduce all figures and tables from our paper using this document on a modern laptop within 30 minutes.
 
 # Running the model
 
@@ -31,28 +33,51 @@ if(!file.exists("./output/r.rds")) {
 
 ## Value of EWS under baseline assumptions
 
-EWS systems provide meaningful value under base-case assumptions representing a hypothetical new pandemic with parameters mirroring those of SARS-Cov-2 (Supplementary Table 1).
+<!--EWS systems provide meaningful value under base-case assumptions representing a hypothetical new pandemic with parameters mirroring those of SARS-Cov-2. -->
+Assuming no NPIs interventions are put in place (No NPIs scenario), a new COVID-19-like pandemic would produce significant damage, causing `r pull_estimate(r$table_1_long, Scenario == "No NPIs", variable == "deaths_per_100k")` deaths per 100,000 people [mean (95% prediction interval of stochastic replications)] over a one-year time-frame (Table 1). The unmitigated pandemic would infect `r pull_estimate(r$table_1_long, Scenario == "No NPIs", variable == "epi_size")` percent of the population, causing `r pull_estimate(r$table_1_long, Scenario == "No NPIs", variable == "CH_illness")` dollars per person due to ilness, and `r pull_estimate(r$table_1_long, Scenario == "No NPIs", variable == "CH_deaths")` dollars due to deaths. The total health cost would be projected at `r pull_estimate(r$table_1_long, Scenario == "No NPIs", variable == "CH")` dollars per person.
 
-Assuming no NPIs interventions are put in place (No NPIs scenario), a new COVID-19-like pandemic would produce significant damage, causing `r pull_estimate(r$table_1_long, Scenario == "No NPIs", variable == "deaths_per_100k")` deaths per 100,000 people (mean (95% prediction interval) over a one-year time-frame (Table 1). The unmitigated pandemic would infect `r pull_estimate(r$table_1_long, Scenario == "No NPIs", variable == "epi_size")` percent of the population, causing `r pull_estimate(r$table_1_long, Scenario == "No NPIs", variable == "CH_illness")` dollars per person due to ilness, and `r pull_estimate(r$table_1_long, Scenario == "No NPIs", variable == "CH_deaths")` dollars due to deaths. The total health cost would be projected at `r pull_estimate(r$table_1_long, Scenario == "No NPIs", variable == "CH")` dollars per person.
-
-If NPIs are in place and policy makers follow our base-case NPI policy, the death toll of the pandemic would be substantially reduced from `r pull_estimate(r$table_1_long, Scenario == "No NPIs", variable == "deaths_per_100k")` to `r pull_estimate(r$table_1_long, Scenario == "NPIs w/o EWS", variable == "deaths_per_100k")` deaths per 100,000 population even if no enhanced early-warning system (EWS) is adopted. As it was the case during the COVID-19 pandemic, such an effort would involve a substantial collective effort. Under base-case assumptions, this effort would require `r pull_estimate(r$table_1_long, Scenario == "NPIs w/o EWS", variable == "L1plus_days")` days of public health interventions, of which `r pull_estimate(r$table_1_long, Scenario == "NPIs w/o EWS", variable == "L5_days")` days are spent under the most-restrictive policy intervention level. We project this effort to cost on the order of `r pull_estimate(r$table_1_long, Scenario == "NPIs w/o EWS", variable == "CNPI")` per person. Based on those assumptions, the total cost of the pandemic would be reduced from `r pull_estimate(r$table_1_long, Scenario == "No NPIs", variable == "C")` to `r pull_estimate(r$table_1_long, Scenario == "NPIs w/o EWS", variable == "C")` per person, making the non-pharmaceutical intervention policy effective.
-
-Under this framework, EWS provide net-positive value to society if they enhance the effectiveness of NPIs more than they increase the burden of additional interventions introduced due to the early warning. We investigate this question investigating the value of EWS assuming that they provide 2, 5 or 10-day leading indicator relative to the disease incidence indicator used to inform COVID-19 response policies, and investigate how the key economic outcomes respond.
+If policymakers follow the base-case NPI policy simulated in this paper, the death toll of the pandemic would be reduced from `r pull_estimate(r$table_1_long, Scenario == "No NPIs", variable == "deaths_per_100k")` to `r pull_estimate(r$table_1_long, Scenario == "NPIs w/o EWS", variable == "deaths_per_100k")` deaths per 100,000 population if no enhanced early-warning system (EWS) is adopted (NPIs w/o EWS scenario). As it was the case during the COVID-19 pandemic, such an achievement would involve a substantial public health effort. Under baseline assumptions, this effort would require `r pull_estimate(r$table_1_long, Scenario == "NPIs w/o EWS", variable == "L1plus_days")` days of public health interventions, of which `r pull_estimate(r$table_1_long, Scenario == "NPIs w/o EWS", variable == "L5_days")` days are spent under the most-restrictive policy intervention level. We project this effort to cost on the order of `r pull_estimate(r$table_1_long, Scenario == "NPIs w/o EWS", variable == "CNPI")` per person. Based on those assumptions, the total cost of the pandemic would be reduced from `r pull_estimate(r$table_1_long, Scenario == "No NPIs", variable == "C")` to `r pull_estimate(r$table_1_long, Scenario == "NPIs w/o EWS", variable == "C")` per person.
 
 
 ```{r}
+#| label: tbl-1
+#| tbl-cap: Base-case results
 gt::gt(r$table_1)
 ```
 
-* Notes: All costs are expressed as 2020 dollars per person. All outcomes were computed over a one-year time-frame.
+Notes: All costs are expressed as 2020 dollars per person. All outcomes were computed over a one-year time-frame.
 
+Under base-case assumptions, EWS provide net-positive value to society because they enhance the effectiveness of NPIs (i.e., preventing illness and death) more than they increase the burden of additional interventions introduced due to the early warning. Even an early warning system that provides only a 2-day early warning relative to a baseline pandemic response system (NPI + 2-day EWS scenario) is projected to reduce the pandemic death toll from `r pull_estimate(r$table_1_long, Scenario == "NPIs w/o EWS", variable == "deaths_per_100k")` to `r pull_estimate(r$table_1_long, Scenario == "NPIs + 2-day EWS", variable == "deaths_per_100k")` deaths per 100,000 population. Health benefits increase if the system can provide earlier  warning. A system that provides a 5-day early warning (NPIs + 5-day EWS scenario) would be projected to result in `r pull_estimate(r$table_1_long, Scenario == "NPIs + 5-day EWS", variable == "deaths_per_100k")` deaths per 100,000 population, and a 10-day early warning would result in `r pull_estimate(r$table_1_long, Scenario == "NPIs + 10-day EWS", variable == "deaths_per_100k")` deaths per 100,000 people.
 
+The use of early warning would however result in earlier public health intervention, increasing the number of days of under NPIs from `r pull_estimate(r$table_1_long, Scenario == "NPIs w/o EWS", variable == "L1plus_days")` to `r pull_estimate(r$table_1_long, Scenario == "NPIs + 5-day EWS", variable == "L1plus_days")` days for a system providing a 5-day early warning signal. That said, the number of days at the *maximum* intervention level (i.e., a lockdown) was projected to *decrease* with the use of the early warning system, as earlier action prevented surges from reaching alarming levels that prompted blunt interventions. For example, a system that provided a 5-day early warning reduced the number of days under the maximum intervention level from `r pull_estimate(r$table_1_long, Scenario == "NPIs w/o EWS", variable == "L5_days")` to `r pull_estimate(r$table_1_long, Scenario == "NPIs + 5-day EWS", variable == "L5_days")` days. Still, the net effect of early warning system was to marginally increase NPI intervention costs, from `r pull_estimate(r$table_1_long, Scenario == "NPIs w/o EWS", variable == "CNPI")` to `r pull_estimate(r$table_1_long, Scenario == "NPIs + 5-day EWS", variable == "CNPI")` dollars per person, assuming a 5-day early warning. Health and economic outcomes weighted, the early warning system reduced the total pandemic costs from `r pull_estimate(r$table_1_long, Scenario == "NPIs w/o EWS", variable == "C")` to `r pull_estimate(r$table_1_long, Scenario == "NPIs + 5-day EWS", variable == "C")` dollars per person. The difference between the two costs can be interpreted as the net-monetary benefit of the system, which is estimated at `r pull_estimate(r$table_1_long, Scenario == "NPIs + 5-day EWS", variable == "NMB")` dollars per person in the first year of the pandemic.
+
+<!--
 Points from this section for discussion:
+* **EWS provide meaningful value under base-case assumptions.** Net-monetary benefit from surveillance system is on the order of 1,000 dollars per person over a one-year time-frame. This outweighs any available estimate of costs.
+* **Base-case results align with observed COVID-19 data.** US obseved on the order of 160 deaths per 100,000 people during the first year of the pandemic, and many states.
+-->
 
-* **Base-case results align with observed data in the pandemic** (by constrution with reality observed during COVID-19). US obseved on the order of 160 deaths per 100,000 people during the first year of the pandemic, and many states.
-* **EWS provide meaningful value under base-case assumptions.** Net-monetary benefit from surveillance sytem is on the order of 1,000 dollars per person over a one-year time-frame. This outweighs any available estimate of costs.
+## Value of EWS system depends on epidemiological and societal parameters
+
+### Effect of epidemiological parameters
+
+A pathogen that is 50% more transmissible than wild-type SARS-Cov-2 would pose a greater challenge for pandemic response, causing `r pull_estimate(r$table_1_long_all, Scenario == "1.5x transmissible", variable == "deaths_per_100k", NMB_comparator == T)` deaths per 100,000 people even if mitigated with the same NPI policy considered in our base-case scenario (Supplementary Table 2). Such a pandemic would cause a substantial societal cost of `r pull_estimate(r$table_1_long_all, Scenario == "1.5x transmissible", variable == "C", NMB_comparator == T)` dollars per person. In those conditions, the EWS would be particularly valuable, reducing the death toll of the pandemic to `r pull_estimate(r$table_1_long_all, Scenario == "1.5x transmissible", variable == "deaths_per_100k", NMB_comparator == F)` per 100,000 people, and would be projected to provide a NMB of `r pull_estimate(r$table_1_long_all, Scenario == "1.5x transmissible", variable == "NMB", NMB_comparator == F)` dollars per person. Conversely, a pathogen that is 50% less transmissible than SARS-Cov-2 would result in a lower death toll of `r pull_estimate(r$table_1_long_all, Scenario == "0.5x transmissible", variable == "deaths_per_100k", NMB_comparator == T)` without the EWS system, reducing the net-monetary benefit of the system to `r pull_estimate(r$table_1_long_all, Scenario == "0.5x transmissible", variable == "NMB", NMB_comparator == F)` dollars per person.
+
+The value of the EWS system also depends on the infection fatality rate of the pathogen, but the net-benefit of the EWS would be positive even for a pathogen that is half as deadly as SARS-Cov-2.
+
+```{r}
+#| label: fig-1
+#| fig-cap: Base-case results
+#| column: screen
+#| fig-format: svg
+#| out-width: 100%
+plot(r$fig_A_epi)
+```
+
+## Effect of economic parameters
 
 ## Conditions for high-value pandemic response EW systems
+
 {Describe conditions under which value is lower or higher}
 
 Points from this section for discussion:
@@ -66,11 +91,10 @@ Points from this section for discussion:
 # If we have time to look at those other cases:
 
 ## EWS and policy coordination
-D. EWS alleviate lack of policy coordination. 
-There is a concern that EWS data will need to be integrated to be useful. However, we find that policy coordination and EWS act as substitutes. Policy coordination h
+EWS alleviate lack of policy coordination. 
+There is a concern that EWS data will need to be integrated to be useful. However, we find that policy coordination and EWS act as substitutes.
 
 ## If we have time: Marginal Value of EWS
-D. EWS deployment also face decreasing marginal returns
-The value of EWS decreases as coverage increases.
+EWS deployment also face decreasing marginal returns. The value of EWS decreases as coverage increases.
 
 

@@ -2,8 +2,14 @@
 
 # Create summary functions list:
 # One can add more percentiles to the calculation by changing the vector below.
-p <- c(0.025, 0.975)
-p_names <- map_chr(p, ~paste0(".q.",.x*100))
+alpha <- 0.99
+p <- c((1-alpha)/2, 1-(1-alpha)/2)
+p_names <- c(".lower", ".upper")
+
+summary_functions <- map(p, ~partial(quantile, probs = .x, na.rm = TRUE)) %>%
+  set_names(nm = p_names)
+
+#p_names <- map_chr(p, ~paste0(".q.",.x*100))
 summary_functions = map(p, ~partial(quantile, probs = .x, na.rm = TRUE)) %>%
   set_names(nm = p_names)
 summary_functions$.mean = mean
@@ -22,7 +28,7 @@ get_outcome <- function(df, outcome_var, sig_digits = 3, ...) {
     as.data.frame() %>%
     mutate(across(where(is.numeric), .fns = ~signif(x = .x, digits = sig_digits)))
 
-  vars = paste0(outcome_var, "_.", c("mean", "q.2.5", "q.97.5"))
+  vars = paste0(outcome_var, "_.", c("mean", "lower", "upper"))
 
   paste0(r[,vars[1]], " (", r[,vars[2]], "-", r[,vars[3]],")")
 }

@@ -25,16 +25,19 @@ var.labels <- c(
   IFR_time_mult = "time-varying ifr risk ratio",
   new_removed = "individuals removed from the simulation",
   deaths_per_100k = "Deaths per 100,000 people",
+  deaths_per_100k_diff = "Deaths averted per 100,000 people",
   total_cost_of_illness = "total cost of ilness per person, exc. deaths",
   CNPI = "NPI costs",
   CH_illness = "Cost of illness",
   CH_deaths = "Cost of deaths",
-  CH = "Total health costs",
+  CH = "Health costs",
+  CH_diff = "value of life saved",
   CSURV = "Surveillance cost",
-  C = "Total pandemic cost",
+  C = "Total costs",
   epi_size = "Epidemic size",
   L5_days = "Days of max NPI",
-  L1plus_days = "Days of any NPI"
+  L1plus_days = "Days of any NPI",
+  NMB = "Net monetary benefit"
 )
 
 var.labels.df <- data.frame(variable = names(var.labels), labels = var.labels)

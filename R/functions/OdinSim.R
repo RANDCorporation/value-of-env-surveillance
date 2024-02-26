@@ -102,7 +102,7 @@ OdinSim <- R6::R6Class(
     #' @param type optional character string defining the type of input. Useful when one wants to only write inputs of a certain type to json.
     set_input = function(name, value, type = NA_character_) {
 
-      set.seed(1234)
+      # set.seed(1234)
 
       # If the model has been instantiated, and the input type is odin, set odin inptut
       if(!is.null(self$o)) {
