@@ -333,7 +333,7 @@ OdinMetapop <- R6::R6Class(
     },
 
     # Simulate function
-    simulate = function(step = 0:365, y = NULL, use_names = TRUE, reps = 1000){
+    simulate = function(step = 0:365, y = NULL, use_names = TRUE, reps = 200){
 
       self$pre_process_inputs()
 

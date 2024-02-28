@@ -3,7 +3,12 @@
 source("./R/library.R")
 
 # results list
-r <- list()
+
+if(!file.exists("./output/r.rds")) {
+  r <- list()
+} else {
+  r <- readRDS("./output/r.rds")
+}
 
 
 # create model and experiment ---------------------------------------------
@@ -77,7 +82,7 @@ r$base_results_long <- base_results_rep_summaries %>%
 # table_param_summaries
 r$table_1_long_all <- r$base_results_long %>%
   #mutate(value = signif(value, digits = 3)) %>%
-  mutate(value = gt::vec_fmt_number(value, n_sigfig = 4, use_seps = T)) %>%
+  mutate(value = gt::vec_fmt_number(value, n_sigfig = 3, use_seps = T)) %>%
   #mutate(value = formatC(value, format="f", big.mark=",")) %>%
   #mutate(value = scales::label_comma()(value)) %>%
   pivot_wider(id_cols = c(Scenario,Section, Class, NMB_comparator, counterfactual.id, variable), names_from = stat, values_from = value) %>%
@@ -153,6 +158,7 @@ ggsave(plot = r$deaths_figure, filename = "./output/deaths_plot.svg",units = "in
 
 
 r$fig_A <- r$fig_A_data %>%
+  filter(variable != "deaths_per_100k") %>%
   ggplot() +
   geom_segment(aes(x = Scenario, xend = Scenario, y = lower, yend = upper, color = EWS)) +
   geom_point(aes(x = Scenario, y = mean, color = EWS), size = 3) +
