@@ -59,11 +59,9 @@ Points from this section for discussion:
 
 ## Value of EWS system depends on epidemiological and societal parameters
 
-### Effect of epidemiological parameters
+### Epidemiological parameters
 
-A pathogen that is 50% more transmissible than wild-type SARS-Cov-2 would pose a greater challenge for pandemic response, causing `r pull_estimate(r$table_1_long_all, Scenario == "1.5x transmissible", variable == "deaths_per_100k", NMB_comparator == T)` deaths per 100,000 people even if mitigated with the same NPI policy considered in our base-case scenario (Supplementary Table 2). Such a pandemic would cause a substantial societal cost of `r pull_estimate(r$table_1_long_all, Scenario == "1.5x transmissible", variable == "C", NMB_comparator == T)` dollars per person. In those conditions, the EWS would be particularly valuable, reducing the death toll of the pandemic to `r pull_estimate(r$table_1_long_all, Scenario == "1.5x transmissible", variable == "deaths_per_100k", NMB_comparator == F)` per 100,000 people, and would be projected to provide a NMB of `r pull_estimate(r$table_1_long_all, Scenario == "1.5x transmissible", variable == "NMB", NMB_comparator == F)` dollars per person. Conversely, a pathogen that is 50% less transmissible than SARS-Cov-2 would result in a lower death toll of `r pull_estimate(r$table_1_long_all, Scenario == "0.5x transmissible", variable == "deaths_per_100k", NMB_comparator == T)` without the EWS system, reducing the net-monetary benefit of the system to `r pull_estimate(r$table_1_long_all, Scenario == "0.5x transmissible", variable == "NMB", NMB_comparator == F)` dollars per person.
-
-The value of the EWS system also depends on the infection fatality rate of the pathogen, but the net-benefit of the EWS would be positive even for a pathogen that is half as deadly as SARS-Cov-2.
+A pathogen that is 50% more transmissible than wild-type SARS-Cov-2 would pose a greater challenge for pandemic response, causing `r pull_estimate(r$table_1_long_all, Scenario == "1.5x transmissible", variable == "deaths_per_100k", NMB_comparator == T)` deaths per 100,000 people even if mitigated with the same NPI policy considered in our base-case scenario (Supplementary Table 2). Such a pandemic would cause a substantial societal cost of `r pull_estimate(r$table_1_long_all, Scenario == "1.5x transmissible", variable == "C", NMB_comparator == T)` dollars per person. In those conditions, the EWS would be particularly valuable, reducing the death toll of the pandemic to `r pull_estimate(r$table_1_long_all, Scenario == "1.5x transmissible", variable == "deaths_per_100k", NMB_comparator == F)` per 100,000 people, and would be projected to provide a NMB of `r pull_estimate(r$table_1_long_all, Scenario == "1.5x transmissible", variable == "NMB", NMB_comparator == F)` dollars per person. Conversely, a pathogen that is 50% less transmissible than SARS-Cov-2 would result in a lower death toll of `r pull_estimate(r$table_1_long_all, Scenario == "0.5x transmissible", variable == "deaths_per_100k", NMB_comparator == T)` without the EWS system, reducing the net-monetary benefit of the system to `r pull_estimate(r$table_1_long_all, Scenario == "0.5x transmissible", variable == "NMB", NMB_comparator == F)` dollars per person. The value of the EWS system also depends on the infection fatality rate of the pathogen, but the net-benefit of the EWS would be positive even for a pathogen that is half as deadly as SARS-Cov-2. All else equal, the EWS would still yield an NMB of `r pull_estimate(r$table_1_long_all, Scenario == "0.5x deadly", variable == "NMB", NMB_comparator == F)` dollars per person in a pandemic caused by a pathogen that is 50% less deadly than SARS-Cov-2, and would yield `r pull_estimate(r$table_1_long_all, Scenario == "1.5x deadly", variable == "NMB", NMB_comparator == F)` dollars per person in responding to a pathogen that is 50% more deadly than COVID-19.
 
 ```{r}
 #| label: fig-1
@@ -74,7 +72,22 @@ The value of the EWS system also depends on the infection fatality rate of the p
 plot(r$fig_A_epi)
 ```
 
-## Effect of economic parameters
+
+Other socio-economic and contextual variables also have a meaningful effect on the value of EWS for pandemic response, including NPI costs, NPI effectiveness, decision lags and the stringency with which decision-makers introduce nonpharmaceutical interventions (Supplementary Figure 1).
+
+### Policy lags and stringency
+
+Longer decision and implementation lags have an overall negative effect on the total costs of the pandemic, longer decision lags also would *increase* the net benefit of EWS systems for pandemic response. Our base-case scenario assume that decision-makers take one week to decide and implement non-pharmaceutical interventions. If instead policymakers took two weeks to introduce and implement interventions, the total pandemic cost increases from `r pull_estimate(r$table_1_long_all, Scenario == "Base-case", variable == "C", NMB_comparator == T)` to `r pull_estimate(r$table_1_long_all, Scenario == "2-week decision lag", variable == "C", NMB_comparator == T)` dollars per person, assuming conventional surveillance. The early warning system effectively helps to roll-back decision lags, reducing total costs to `r pull_estimate(r$table_1_long_all, Scenario == "2-week decision lag", variable == "C", NMB_comparator == F)` dollars per person, yielding a NMB of `r pull_estimate(r$table_1_long_all, Scenario == "2-week decision lag", variable == "NMB", NMB_comparator == F)` relative to conventional surveillance. Conversely, in contexts where NPI implementation is swift (i.e, decisions are made within 3 days), the NMB of EWS would be lower but still positive at `r pull_estimate(r$table_1_long_all, Scenario == "3-day decision lag", variable == "NMB", NMB_comparator == F)` dollars per person.
+
+Policy stringency (i.e., how stringent the case thresholds used to introduce or remove interventions) has a similar effect on the value of EWS relative to decision lags - the EWS provides the most value under the conditions that are least desirable for prevention of disease. In a context where decision makers are 50% more stringent than in our base-case assumptions (i.e., their case tresholds are half of its base-case), society is able to avert a substantial number of deaths, reducing deaths from `r pull_estimate(r$table_1_long_all, Scenario == "2-week decision lag", variable == "deaths_per_100k", NMB_comparator == T)`
+
+### Policy stringency
+
+the total cost of the pandemic is  baseline  o have a detrimental effect If decision-makers take two weeks to introduce and implement NPIs 
+
+### Decision lags and policy stringency
+
+In our base-line assumptions, we assumed decision-makers take one week to update their risk classification levels based on the epidemiological data. That decision lag includes both the time it takes for public health decision-makers to 
 
 ## Conditions for high-value pandemic response EW systems
 

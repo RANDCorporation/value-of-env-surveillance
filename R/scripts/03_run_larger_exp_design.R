@@ -42,10 +42,10 @@ policy_scenarios <- readxl::read_xlsx("./data/scenarios.xlsx",sheet = "policy_pr
 
 
 # Other variables
-total_surv_lag <- seq.default(from = 2, to = 20, by = 2)
-R0 <- c(1.5,2,3)
+total_surv_lag <- c(13,11,8,3)
+R0 <- c(1.5,2.5,3)
 cost_max_npi <- c(0.1,0.25,0.87, 1.25)
-L_c <- c(0,1)
+#L_c <- c(0,1)
 r <- c(0.01, 0.001, 0.02)
 
 # Surveillance design
@@ -57,7 +57,7 @@ surv_design <- data.frame(total_surv_lag = total_surv_lag) %>%
 other_vars_design <- expand_grid(
   R0
   ,cost_max_npi
-  ,L_c
+#  ,L_c
   ,r
 ) %>%
   mutate(other.vars.id = row_number())

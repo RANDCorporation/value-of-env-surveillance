@@ -289,9 +289,9 @@ OdinMetapop <- R6::R6Class(
         ungroup() %>%
         # Compute expected deaths - since IFR is low, we compute expecte deaths
         # Expected deaths:
-        mutate(deaths = IFR * new_removed) %>%
+        #mutate(deaths = IFR * new_removed) %>%
         # Stochastic deaths:
-        #mutate(deaths = rbinom(n = nrow(.), size = new_removed,prob = IFR)) %>%
+        mutate(deaths = rbinom(n = nrow(.), size = new_removed,prob = IFR)) %>%
         mutate(deaths_per_100k = (deaths/population) * 10^5) %>%
         mutate(CH_illness = (new_removed * self$inputs$average_health_cost_per_infection)/population) %>%
         mutate(CH_deaths = deaths_per_100k * self$inputs$VSL / 10^5) %>%
@@ -333,7 +333,7 @@ OdinMetapop <- R6::R6Class(
     },
 
     # Simulate function
-    simulate = function(step = 0:365, y = NULL, use_names = TRUE, reps = 500){
+    simulate = function(step = 0:365, y = NULL, use_names = TRUE, reps = 1000){
 
       self$pre_process_inputs()
 

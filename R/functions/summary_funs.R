@@ -2,7 +2,7 @@
 
 # Create summary functions list:
 # One can add more percentiles to the calculation by changing the vector below.
-alpha <- 0.99
+alpha <- 0.95
 p <- c((1-alpha)/2, 1-(1-alpha)/2)
 p_names <- c(".lower", ".upper")
 
@@ -37,5 +37,3 @@ get_outcome <- function(df, outcome_var, sig_digits = 3, ...) {
 
 
 # get_outcome(df, "outcome", a == 2, b == 2)
-
-
