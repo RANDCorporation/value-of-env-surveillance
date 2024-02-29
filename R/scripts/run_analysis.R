@@ -36,7 +36,7 @@ base_experiment$set_design(grid_design_df = all_scenarios)
 
 # tau vs R0 experimental design
 
-tau <- c(seq.default(from = 0, to = 1, by = 0.05)/5, 1-1/3)
+tau <- c(seq.default(from = 0, to = 1, by = 0.025)/5)
 R0 <- 2.5 * c(0.5, 1, 1.5)
 
 EWS <- c(T,F)
@@ -56,7 +56,7 @@ tau_experiment$set_design(grid_design_df = tau_design)
 
 base_results <- base_experiment$run(parallel = T,
                                     cluster_eval_script = "./R/scripts/cluster_eval.R",
-                                    parallel::detectCores() - 2,
+                                    parallel::detectCores() - 4,
                                     model_from_cluster_eval = T)
 
 
@@ -92,11 +92,18 @@ r$base_results_long <- base_results_rep_summaries %>%
   separate(col = statistic,into = c("variable", "stat"), sep = "_\\.")
 
 
+r$fig_effectiveness_data <- tau_results %>%
+  mutate(effectiveness = tau * 5) %>%
+  select(effectiveness, EWS, any_of(outcomes)) %>%
+  group_by(effectiveness, EWS) %>%
+  summarise_all(summary_functions) %>%
+  mutate(EWS = ifelse(EWS, "NPIs w/ EWS", "NPIs w/o EWS"))
+
 ## 2.2 Run tau experiment ------------------------------------------------------
 
 tau_results <- tau_experiment$run(parallel = T,
                                   cluster_eval_script = "./R/scripts/cluster_eval.R",
-                                  parallel::detectCores() - 2,
+                                  parallel::detectCores() - 4,
                                   model_from_cluster_eval = T)
 
 
@@ -119,7 +126,6 @@ r$tau_NMB_summary <- tau_NMB %>%
   select(effectiveness, R0, EWS, NMB, C) %>%
   summarise_all(summary_functions) %>%
   mutate(EWS = ifelse(EWS, "NPIs w/ EWS", "NPIs w/o EWS"))
-
 
 
 # 4. Tables ---------------------------------------------------------------
@@ -170,30 +176,107 @@ r$sup_table_2 <- r$table_1_long_all %>%
   mutate(Scenario = factor(Scenario, levels = unique(base_scenarios$Scenario), ordered = T)) %>%
   arrange(Scenario, EWS)
 
-writexl::write_xlsx(r$table_1, path = "./output/table_1.xlsx")
+writexl::write_xlsx(r$sup_table_2, path = "./output/sup_table_2.xlsx")
 
 # 4. Figures -----------------------------------------------------------------
-
-
-# 5. Additional figures ---------------------------------------------------
-
-# dot plot figure data
 
 r$fig_1_data <- r$table_1_long_numeric %>%
   mutate(EWS = ifelse(!NMB_comparator, "NPIs w/ EWS", "NPIs w/o EWS")) %>%
   filter(variable %in% c("CH", "CNPI", "C", "NMB", "deaths_per_100k")) %>%
   left_join(var.labels.df, by = join_by(variable)) %>%
-  filter(Section == "Scenarios") %>%
   mutate(variable = factor(variable,levels = c("CH", "CNPI", "C", "NMB", "deaths_per_100k"), ordered = T)) %>%
-  mutate(labels = factor(labels,levels = c("Health costs", "NPI costs", "Total costs", "Net monetary benefit", "Deaths per 100,000 people"), ordered = T)) %>%
+  mutate(labels = factor(labels,levels = rev(c("NPI costs", "Health costs", "Net monetary benefit", "Total costs", "Deaths per 100,000 people")), ordered = T)) %>%
   mutate(Scenario = factor(Scenario, levels = rev(unique(base_scenarios$Scenario)), ordered = T)) %>%
-  arrange(variable, Scenario) %>%
-  filter(!(variable == "NMB" & NMB_comparator))
+  arrange(variable, Scenario)
 
 
 colors = c("#8856a7", "#9ebcda")
 
-# Deaths & NMB figure -----------------------------------------------------
+
+## Fig 1 -------------------------------------------------------------------
+
+r$fig_1 <- r$fig_1_data %>%
+  filter(Section == "Base case") %>%
+  filter(Scenario != "No NPIs") %>%
+  filter(variable != "deaths_per_100k") %>%
+  ggplot() +
+  geom_segment(aes(x = Scenario, xend = Scenario, y = lower, yend = upper, color = EWS)) +
+  geom_point(aes(x = Scenario, y = mean, color = EWS), size = 3) +
+  coord_flip() +
+  lemon::facet_rep_wrap(~factor(labels, levels=c('Health costs', 'NPI costs', 'Total costs', 'Net monetary benefit')), scales = "free_x") +
+  #facet_wrap(~labels, scales = "free_x", nrow = 1, as.table = F) +
+  labs(x = "Scenario",
+       y = "Thousands of dollars per person",
+       color = "EWS system") +
+  scale_color_manual(values = colors) +
+  scale_y_continuous(labels = scales::dollar_format(scale = 1e-3,prefix = "", accuracy = 0.5)) +
+  theme(plot.margin = margin(t = 0,  # Top margin
+                             r = 0,  # Right margin
+                             b = 0,  # Bottom margin
+                             l = 0))
+
+r$fig_1
+
+ggsave(plot = r$fig_1, filename = "./output/fig_1.svg",units = "in", width = 6.5, height = 5, scale = 1.4, bg = "white", dpi = 300)
+
+## Fig 2 ----------------------------------------------------------------
+
+
+nmb_colors <- c("#FAAE7B", "#9F6976", "#432371")
+
+r$fig_2 <- r$tau_NMB_summary %>%
+  mutate(R0 = as.factor(R0)) %>%
+  ggplot() +
+  geom_line(mapping = aes(x = effectiveness, y = NMB_.mean, color = R0, group = R0)) +
+  geom_ribbon(mapping = aes(x = effectiveness, ymin = NMB_.lower, ymax = NMB_.upper, fill = R0, group = R0), alpha = 0.2) +
+  scale_fill_manual(values = nmb_colors) +
+  scale_color_manual(values = nmb_colors) +
+  scale_y_continuous(labels = scales::dollar_format()) +
+  scale_x_continuous(labels = scales::percent_format()) +
+  ylab("EWS net monetary benefit") +
+  xlab("Maximum NPI effectiveness") +
+  xlim(c(0,1)) +
+  geom_hline(yintercept = 0, color = "gray", alpha = 0.5) +
+  geom_vline(xintercept = model$inputs$tau * 5, color = nmb_colors[2], linetype = "dashed")
+
+r$fig_2
+
+ggsave(plot = r$fig_2, filename = "./output/fig_2.svg",units = "in", width = 6.5, height = 5, scale = 1.4, bg = "white", dpi = 300)
+
+
+## Sup Figure 1 ------------------------------------------------------------
+
+r$sup_fig_1 <- r$fig_1_data %>%
+  filter(!(variable == "NMB" & NMB_comparator)) %>%
+  filter(Section == "Scenarios") %>%
+  filter(variable != "deaths_per_100k") %>%
+  ggplot() +
+  geom_segment(aes(x = Scenario, xend = Scenario, y = lower, yend = upper, color = EWS)) +
+  geom_point(aes(x = Scenario, y = mean, color = EWS), size = 3) +
+  coord_flip() +
+  lemon::facet_rep_wrap(~factor(labels, levels=c('Health costs', 'NPI costs', 'Total costs', 'Net monetary benefit')), scales = "free_x") +
+  #facet_wrap(~labels, scales = "free_x", nrow = 1, as.table = F) +
+  labs(x = "Scenario",
+       y = "Thousands of dollars per person",
+       color = "EWS system") +
+  scale_color_manual(values = colors) +
+  scale_y_continuous(labels = scales::dollar_format(scale = 1e-3,prefix = "", accuracy = 1)) +
+  theme(plot.margin = margin(t = 0,  # Top margin
+                             r = 12,  # Right margin
+                             b = 0,  # Bottom margin
+                             l = 0))
+
+r$sup_fig_1
+
+ggsave(plot = r$sup_fig_1, filename = "./output/sup_fig_1.svg",units = "in", width = 6.5, height = 6.5, scale = 1.4, bg = "white", dpi = 300)
+
+
+
+
+
+# 5. Additional figures ---------------------------------------------------
+
+## Deaths & NMB figure -----------------------------------------------------
 
 r$deaths_figure <- r$fig_1_data %>%
   filter(variable %in% c("deaths_per_100k", "NMB")) %>%
@@ -215,124 +298,11 @@ r$deaths_figure <- r$fig_1_data %>%
   theme(legend.text=element_text(size=12)) +
   theme(panel.spacing = unit(1, "lines"))
 
+r$deaths_figure
+
 ggsave(plot = r$deaths_figure, filename = "./output/deaths_plot.svg",units = "in", width = 5, height = 7, scale = 1.2, bg = "white")
 
 
-# r$fig_A <- r$fig_1_data %>%
-#   filter(variable != "deaths_per_100k") %>%
-#   ggplot() +
-#   geom_segment(aes(x = Scenario, xend = Scenario, y = lower, yend = upper, color = EWS)) +
-#   geom_point(aes(x = Scenario, y = mean, color = EWS), size = 3) +
-#   #geom_hline(yintercept = 1500, color = "grey") +
-#   coord_flip() +
-#   #facet_grid(rows = vars(Class), cols = vars(labels), scales = "free", space = "free") +
-#   facet_wrap(~labels, scales = "free", nrow = 2, as.table = F) +
-#   labs(x = "Scenario",
-#        y = "",
-#        color = "EWS system") +
-#   scale_color_manual(values = colors) +
-#   scale_y_continuous(labels = scales::dollar_format(scale = 1e-3,prefix="$", suffix = "K"))
-
-
-r$fig_A_epi <- r$fig_1_data %>%
-  filter(Scenario %in% c("Base-case", "0.5x transmissible", "1.5x transmissible", "0.5x deadly", "1.5x deadly")) %>%
-  ggplot() +
-  geom_segment(aes(x = Scenario, xend = Scenario, y = lower, yend = upper, color = EWS)) +
-  geom_point(aes(x = Scenario, y = mean, color = EWS), size = 3) +
-  #geom_hline(yintercept = 1500, color = "grey") +
-  coord_flip() +
-  #facet_grid(rows = vars(Class), cols = vars(labels), scales = "free", space = "free") +
-  facet_wrap(~labels, scales = "free_x", nrow = 2, as.table = F) +
-  labs(x = "Scenario",
-       y = "",
-       color = "EWS system") +
-  scale_color_manual(values = colors) +
-  scale_y_continuous(labels = scales::dollar_format(scale = 1e-3,prefix="$", suffix = "K"))
-
-
-r$fig_A_other <- r$fig_1_data %>%
-  filter(Scenario %in% c("Base-case", "1.5x NPI costs", "0.5x NPI costs", "3-day decision lag", "2-week decision lag", "1.5x stringent", "0.5x stringent", "90% max NPI eff", "50% max NPI eff")) %>%
-  #filter(labels %in% c("Health costs", "NPI costs", "Net monetary benefit")) %>%
-  ggplot() +
-  geom_segment(aes(x = Scenario, xend = Scenario, y = lower, yend = upper, color = EWS)) +
-  geom_point(aes(x = Scenario, y = mean, color = EWS), size = 3) +
-  #geom_hline(yintercept = 1500, color = "grey") +
-  coord_flip() +
-  #facet_grid(rows = vars(Class), cols = vars(labels), scales = "free", space = "free") +
-  facet_wrap(~labels, scales = "free_x", nrow = 2, as.table = F) +
-  labs(x = "Scenario",
-       y = "",
-       color = "EWS system") +
-  scale_color_manual(values = colors) +
-  scale_y_continuous(labels = scales::dollar_format(scale = 1e-3,prefix="$", suffix = "K"))
-
-
-
-
-
-
-r$fig_effectiveness_data <- tau_results %>%
-  mutate(effectiveness = tau * 5) %>%
-  select(effectiveness, EWS, any_of(outcomes)) %>%
-  group_by(effectiveness, EWS) %>%
-  summarise_all(summary_functions) %>%
-  mutate(EWS = ifelse(EWS, "NPIs w/ EWS", "NPIs w/o EWS"))
-
-
-r$fig_effectiveness_total_cost <- r$fig_effectiveness_data %>%
-  ggplot() +
-  geom_line(mapping = aes(x = effectiveness, y = C_.mean, color = EWS)) +
-  geom_ribbon(mapping = aes(x = effectiveness, ymin = C_.lower, ymax = C_.upper, fill = EWS), alpha = 0.5) +
-  scale_y_continuous(labels = scales::dollar_format()) +
-  scale_x_continuous(labels = scales::percent_format()) +
-  ylab("Total cost") +
-  xlab("NPI effectiveness")
-
-r$fig_effectiveness_total_cost
-
-nmb_colors <- c("#FAAE7B", "#9F6976", "#432371")
-
-r$fig_effectiveness_NMB <- r$tau_NMB_summary %>%
-  mutate(R0 = as.factor(R0)) %>%
-  ggplot() +
-  geom_line(mapping = aes(x = effectiveness, y = NMB_.mean, color = R0, group = R0)) +
-  geom_ribbon(mapping = aes(x = effectiveness, ymin = NMB_.lower, ymax = NMB_.upper, fill = R0, group = R0), alpha = 0.2) +
-  scale_fill_manual(values = nmb_colors) +
-  scale_color_manual(values = nmb_colors) +
-  scale_y_continuous(labels = scales::dollar_format()) +
-  scale_x_continuous(labels = scales::percent_format()) +
-  ylab("EWS net monetary benefit") +
-  xlab("Maximum NPI effectiveness") +
-  xlim(c(0,1)) +
-  geom_hline(yintercept = 0, color = "gray", alpha = 0.5)
-
-
-r$fig_effectiveness <- r$fig_effectiveness_data %>%
-  ggplot() +
-  geom_line(mapping = aes(x = effectiveness, y = CH_.mean, color = EWS)) +
-  geom_ribbon(mapping = aes(x = effectiveness, ymin = CH_.lower, ymax = CH_.upper, fill = EWS), alpha = 0.5) +
-  scale_fill_manual(values = colors) +
-  scale_color_manual(values = colors) +
-  scale_y_continuous(labels = scales::dollar_format()) +
-  scale_x_continuous(labels = scales::percent_format()) +
-  ylab("Health cost") +
-  xlab("NPI effectiveness") +
-  xlim(c(0,1))
-
-
-r$fig_effectiveness <- r$fig_effectiveness_data %>%
-  ggplot() +
-  geom_line(mapping = aes(x = effectiveness, y = CNPI_.mean, color = EWS)) +
-  geom_ribbon(mapping = aes(x = effectiveness, ymin = CH_.lower, ymax = CNPI_.upper, fill = EWS), alpha = 0.5) +
-  scale_fill_manual(values = colors) +
-  scale_color_manual(values = colors) +
-  scale_y_continuous(labels = scales::dollar_format()) +
-  scale_x_continuous(labels = scales::percent_format()) +
-  ylab("NPI cost") +
-  xlab("NPI effectiveness") +
-  xlim(c(0,1))
-
-# save results object and table -------------------------------------------
+## Save results\ -----------------------------------------------------------
 
 saveRDS(object = r, file = "./output/r.rds")
-
