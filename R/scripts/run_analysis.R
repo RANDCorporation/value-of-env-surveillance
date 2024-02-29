@@ -11,13 +11,15 @@ if(!file.exists("./output/r.rds")) {
 }
 
 
-# create model and experiment ---------------------------------------------
+# 1. Set up experiments and constants ----------------------------------------
 
 model <- OdinMetapop$new("stochastic_metapopulation.R", s$data_file)
 
 model$set_param_dist(params_list = list(param_dist_a = data.frame(sample_param = 1, weights = 1)), use_average = T, param_dist_weights = "weights")
 
 base_scenarios <- readxl::read_xlsx("./data/scenarios.xlsx", sheet = "one-way-scenarios")
+
+outcomes <- c("deaths_per_100k", "CH_illness", "CH_deaths", "CH", "L5_days", "L1plus_days", "CNPI", "C", "epi_size")
 
 # counterfactual scenarios without enhanced EWS
 count_scenarios <- base_scenarios %>%
@@ -32,19 +34,31 @@ base_experiment <- R6Experiment$new(model)
 base_experiment$set_design(grid_design_df = all_scenarios)
 
 
+# tau vs R0 experimental design
 
-# run experiment ----------------------------------------------------------
+tau <- c(seq.default(from = 0, to = 1, by = 0.05)/5, 1-1/3)
+R0 <- 2.5 * c(0.5, 1, 1.5)
+
+EWS <- c(T,F)
+tau_design <- expand_grid(tau, EWS, R0) %>%
+  mutate(p = ifelse(EWS, 1, 0.3)) %>%
+  mutate(total_surv_lag = ifelse(EWS, 8,13))
+
+tau_experiment <- R6Experiment$new(model)
+
+tau_experiment$set_design(grid_design_df = tau_design)
+
+
+
+# 2. Run experiments ------------------------------------------------------
+
+## 2.1 Run main experiment -----------------------------------------------------
 
 base_results <- base_experiment$run(parallel = T,
                                     cluster_eval_script = "./R/scripts/cluster_eval.R",
                                     parallel::detectCores() - 2,
                                     model_from_cluster_eval = T)
 
-
-
-# compute outcomes --------------------------------------------------------
-
-outcomes <- c("deaths_per_100k", "CH_illness", "CH_deaths", "CH", "L5_days", "L1plus_days", "CNPI", "C", "epi_size")
 
 # Compute differences at the replication level:
 comp_results <- base_results %>%
@@ -70,7 +84,6 @@ base_results_rep_summaries <- base_res_diff %>%
   ungroup() %>%
   clear.labels()
 
-
 # Create posterior summaries for the parameters:
 r$base_results_long <- base_results_rep_summaries %>%
   group_by(Scenario, Section, Class, counterfactual.id) %>%
@@ -78,6 +91,38 @@ r$base_results_long <- base_results_rep_summaries %>%
   as.data.frame() %>%
   separate(col = statistic,into = c("variable", "stat"), sep = "_\\.")
 
+
+## 2.2 Run tau experiment ------------------------------------------------------
+
+tau_results <- tau_experiment$run(parallel = T,
+                                  cluster_eval_script = "./R/scripts/cluster_eval.R",
+                                  parallel::detectCores() - 2,
+                                  model_from_cluster_eval = T)
+
+
+# Comparator scenarios without EWS
+tau_comp <-  tau_results %>%
+  filter(!EWS) %>%
+  select(rep, tau, R0, C) %>%
+  rename(C_no_EWS = C)
+
+# Net monetary benefit
+tau_NMB <- tau_results %>%
+  filter(EWS) %>%
+  left_join(tau_comp, by = join_by(rep, tau, R0)) %>%
+  mutate(effectiveness = tau * 5) %>%
+  mutate(NMB = C_no_EWS - C)
+
+# Net monetary benefit summary stats
+r$tau_NMB_summary <- tau_NMB %>%
+  group_by(effectiveness, R0, EWS) %>%
+  select(effectiveness, R0, EWS, NMB, C) %>%
+  summarise_all(summary_functions) %>%
+  mutate(EWS = ifelse(EWS, "NPIs w/ EWS", "NPIs w/o EWS"))
+
+
+
+# 4. Tables ---------------------------------------------------------------
 
 # table_param_summaries
 r$table_1_long_all <- r$base_results_long %>%
@@ -88,21 +133,18 @@ r$table_1_long_all <- r$base_results_long %>%
   pivot_wider(id_cols = c(Scenario,Section, Class, NMB_comparator, counterfactual.id, variable), names_from = stat, values_from = value) %>%
   mutate(estimate = paste0(mean, " (", lower, "-", upper,")"))
 
-
 r$table_1_long_numeric <- r$base_results_long %>%
   pivot_wider(id_cols = c(Scenario,Section, Class, NMB_comparator, counterfactual.id, variable), names_from = stat, values_from = value)
 
-
-
-# create base-case table --------------------------------------------------
 
 r$table_1_long <- r$table_1_long_all %>%
   filter(Section == "Base case") %>%
   select(Scenario, variable, estimate)
 
 
+## Table 1 -----------------------------------------------------------------
+
 r$table_1 <- r$table_1_long %>%
-  #pivot_wider(id_cols = Scenario, names_from = variable, values_from = estimate)
   pivot_wider(id_cols = variable, names_from = Scenario, values_from = estimate) %>%
   mutate(variable = factor(variable, levels = c("epi_size", "CH_illness", "deaths_per_100k","deaths_per_100k_diff", "CH_deaths", "CH", "L1plus_days", "L5_days", "CNPI", "C", "NMB"), ordered = T)) %>%
   arrange(variable) %>%
@@ -113,15 +155,31 @@ r$table_1 <- r$table_1_long %>%
   filter(!is.na(Outcome)) %>%
   relocate(Outcome, `No NPIs`, `NPIs w/o EWS`, `NPIs + 2-day EWS`, `NPIs + 5-day EWS`, `NPIs + 10-day EWS`)
 
+writexl::write_xlsx(r$table_1, path = "./output/table_1.xlsx")
 
-# dot plot with differences -----------------------------------------------
+## Supplementary Table 2 ---------------------------------------------------
 
-colors = c("#8856a7", "#9ebcda")
+r$sup_table_2 <- r$table_1_long_all %>%
+  filter(Section == "Scenarios") %>%
+  mutate(EWS = ifelse(NMB_comparator, "N", "Y")) %>%
+  mutate(variable = factor(variable, levels = c("epi_size", "CH_illness", "deaths_per_100k","deaths_per_100k_diff", "CH_deaths", "CH", "L1plus_days", "L5_days", "CNPI", "C", "NMB"), ordered = T)) %>%
+  filter(variable %in% c("deaths_per_100k", "CH", "CNPI", "C", "NMB")) %>%
+  left_join(var.labels.df, by = join_by(variable)) %>%
+  select(Scenario, EWS, labels, estimate) %>%
+  pivot_wider(id_cols = c(Scenario, EWS), names_from = labels, values_from = estimate) %>%
+  mutate(Scenario = factor(Scenario, levels = unique(base_scenarios$Scenario), ordered = T)) %>%
+  arrange(Scenario, EWS)
+
+writexl::write_xlsx(r$table_1, path = "./output/table_1.xlsx")
+
+# 4. Figures -----------------------------------------------------------------
 
 
-# Deaths figure:
+# 5. Additional figures ---------------------------------------------------
 
-r$fig_A_data <- r$table_1_long_numeric %>%
+# dot plot figure data
+
+r$fig_1_data <- r$table_1_long_numeric %>%
   mutate(EWS = ifelse(!NMB_comparator, "NPIs w/ EWS", "NPIs w/o EWS")) %>%
   filter(variable %in% c("CH", "CNPI", "C", "NMB", "deaths_per_100k")) %>%
   left_join(var.labels.df, by = join_by(variable)) %>%
@@ -132,9 +190,12 @@ r$fig_A_data <- r$table_1_long_numeric %>%
   arrange(variable, Scenario) %>%
   filter(!(variable == "NMB" & NMB_comparator))
 
-# Simplified figure for presentation
 
-r$deaths_figure <- r$fig_A_data %>%
+colors = c("#8856a7", "#9ebcda")
+
+# Deaths & NMB figure -----------------------------------------------------
+
+r$deaths_figure <- r$fig_1_data %>%
   filter(variable %in% c("deaths_per_100k", "NMB")) %>%
   filter(Scenario %in% c("Base-case", "0.5x transmissible", "1.5x transmissible")) %>%
   ggplot() +
@@ -157,24 +218,24 @@ r$deaths_figure <- r$fig_A_data %>%
 ggsave(plot = r$deaths_figure, filename = "./output/deaths_plot.svg",units = "in", width = 5, height = 7, scale = 1.2, bg = "white")
 
 
-r$fig_A <- r$fig_A_data %>%
-  filter(variable != "deaths_per_100k") %>%
-  ggplot() +
-  geom_segment(aes(x = Scenario, xend = Scenario, y = lower, yend = upper, color = EWS)) +
-  geom_point(aes(x = Scenario, y = mean, color = EWS), size = 3) +
-  #geom_hline(yintercept = 1500, color = "grey") +
-  coord_flip() +
-  #facet_grid(rows = vars(Class), cols = vars(labels), scales = "free", space = "free") +
-  facet_wrap(~labels, scales = "free", nrow = 2, as.table = F) +
-  labs(x = "Scenario",
-       y = "",
-       color = "EWS system") +
-  scale_color_manual(values = colors) +
-  scale_y_continuous(labels = scales::dollar_format(scale = 1e-3,prefix="$", suffix = "K"))
+# r$fig_A <- r$fig_1_data %>%
+#   filter(variable != "deaths_per_100k") %>%
+#   ggplot() +
+#   geom_segment(aes(x = Scenario, xend = Scenario, y = lower, yend = upper, color = EWS)) +
+#   geom_point(aes(x = Scenario, y = mean, color = EWS), size = 3) +
+#   #geom_hline(yintercept = 1500, color = "grey") +
+#   coord_flip() +
+#   #facet_grid(rows = vars(Class), cols = vars(labels), scales = "free", space = "free") +
+#   facet_wrap(~labels, scales = "free", nrow = 2, as.table = F) +
+#   labs(x = "Scenario",
+#        y = "",
+#        color = "EWS system") +
+#   scale_color_manual(values = colors) +
+#   scale_y_continuous(labels = scales::dollar_format(scale = 1e-3,prefix="$", suffix = "K"))
 
-r$fig_A_epi <- r$fig_A_data %>%
+
+r$fig_A_epi <- r$fig_1_data %>%
   filter(Scenario %in% c("Base-case", "0.5x transmissible", "1.5x transmissible", "0.5x deadly", "1.5x deadly")) %>%
-  #filter(labels %in% c("Health costs", "NPI costs", "Net monetary benefit")) %>%
   ggplot() +
   geom_segment(aes(x = Scenario, xend = Scenario, y = lower, yend = upper, color = EWS)) +
   geom_point(aes(x = Scenario, y = mean, color = EWS), size = 3) +
@@ -189,8 +250,7 @@ r$fig_A_epi <- r$fig_A_data %>%
   scale_y_continuous(labels = scales::dollar_format(scale = 1e-3,prefix="$", suffix = "K"))
 
 
-
-r$fig_A_other <- r$fig_A_data %>%
+r$fig_A_other <- r$fig_1_data %>%
   filter(Scenario %in% c("Base-case", "1.5x NPI costs", "0.5x NPI costs", "3-day decision lag", "2-week decision lag", "1.5x stringent", "0.5x stringent", "90% max NPI eff", "50% max NPI eff")) %>%
   #filter(labels %in% c("Health costs", "NPI costs", "Net monetary benefit")) %>%
   ggplot() +
@@ -208,42 +268,7 @@ r$fig_A_other <- r$fig_A_data %>%
 
 
 
-# run experiment exploring effectiveness non-linearity --------------------
 
-tau <- c(seq.default(from = 0, to = 1, by = 0.05)/5, 1-1/3)
-R0 <- c(2,2.5,3)
-
-EWS <- c(T,F)
-tau_design <- expand_grid(tau, EWS, R0) %>%
-  mutate(p = ifelse(EWS, 1, 0.3)) %>%
-  mutate(total_surv_lag = ifelse(EWS, 8,13))
-
-tau_experiment <- R6Experiment$new(model)
-
-tau_experiment$set_design(grid_design_df = tau_design)
-
-tau_results <- tau_experiment$run(parallel = T,
-                                    cluster_eval_script = "./R/scripts/cluster_eval.R",
-                                    parallel::detectCores() - 2,
-                                    model_from_cluster_eval = T)
-
-tau_comp <-  tau_results %>%
-  filter(!EWS) %>%
-  select(rep, tau, R0, C) %>%
-  rename(C_no_EWS = C)
-
-
-tau_NMB <- tau_results %>%
-  filter(EWS) %>%
-  left_join(tau_comp, by = join_by(rep, tau, R0)) %>%
-  mutate(effectiveness = tau * 5) %>%
-  mutate(NMB = C_no_EWS - C)
-
-r$tau_NMB_summary <- tau_NMB %>%
-  group_by(effectiveness, R0, EWS) %>%
-  select(effectiveness, R0, EWS, NMB, C) %>%
-  summarise_all(summary_functions) %>%
-  mutate(EWS = ifelse(EWS, "NPIs w/ EWS", "NPIs w/o EWS"))
 
 
 r$fig_effectiveness_data <- tau_results %>%
@@ -258,8 +283,6 @@ r$fig_effectiveness_total_cost <- r$fig_effectiveness_data %>%
   ggplot() +
   geom_line(mapping = aes(x = effectiveness, y = C_.mean, color = EWS)) +
   geom_ribbon(mapping = aes(x = effectiveness, ymin = C_.lower, ymax = C_.upper, fill = EWS), alpha = 0.5) +
-  scale_fill_manual(values = colors) +
-  scale_color_manual(values = colors) +
   scale_y_continuous(labels = scales::dollar_format()) +
   scale_x_continuous(labels = scales::percent_format()) +
   ylab("Total cost") +
@@ -270,7 +293,6 @@ r$fig_effectiveness_total_cost
 nmb_colors <- c("#FAAE7B", "#9F6976", "#432371")
 
 r$fig_effectiveness_NMB <- r$tau_NMB_summary %>%
-  filter(R0 %in% c(2,2.5,3)) %>%
   mutate(R0 = as.factor(R0)) %>%
   ggplot() +
   geom_line(mapping = aes(x = effectiveness, y = NMB_.mean, color = R0, group = R0)) +
@@ -282,11 +304,7 @@ r$fig_effectiveness_NMB <- r$tau_NMB_summary %>%
   ylab("EWS net monetary benefit") +
   xlab("Maximum NPI effectiveness") +
   xlim(c(0,1)) +
-  #facet_wrap(~R0) +
-  geom_hline(yintercept = 0, color = "gray", alpha = 0.5) +
-  geom_vline(xintercept = 1-1/2, color = nmb_colors[1], alpha = 0.5, linetype = "dotted") +
-  geom_vline(xintercept = 1-1/2.5, color = nmb_colors[2], alpha = 0.5, linetype = "dotted") +
-  geom_vline(xintercept = 1-1/3, color = nmb_colors[3], alpha = 0.5, linetype = "dotted")
+  geom_hline(yintercept = 0, color = "gray", alpha = 0.5)
 
 
 r$fig_effectiveness <- r$fig_effectiveness_data %>%
@@ -318,4 +336,3 @@ r$fig_effectiveness <- r$fig_effectiveness_data %>%
 
 saveRDS(object = r, file = "./output/r.rds")
 
-writexl::write_xlsx(r$table_1, "./output/table_1.xlsx")
