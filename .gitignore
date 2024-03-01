@@ -17,4 +17,4 @@ paper/style-guide/*
 *.aux
 paper/manuscript_files/*
 *.pptx
-output/*.xlsx
+output/*

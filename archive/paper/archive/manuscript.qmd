@@ -1,0 +1,283 @@
+---
+title: On the value of early warning systems for outbreak response
+subtitle: A model-based analysis
+#author:
+#  - name: Pedro Nascimento de Lima
+#    email: plima@rand.org
+#    affiliations: 
+#        - id: rand
+#          name: RAND Corporation
+#          department: Engineering and Applied Sciences
+#          address: 1776 Main Street
+#          city: Santa Monica
+#          state: CA
+#          postal-code: 90401
+#    attributes:
+#        corresponding: true
+#  - name: and colleagues
+#    email: others@rand.org
+#    affiliations:
+#        - ref: rand
+abstract: |
+  While wastewater-based genomic surveillance (WBS) systems may provide an early warning system for pandemic response, its adoption is still incomplete and it is unclear whether public health departments should allocate a larger budget to those systems. This paper introduces a model to assess the value provided by wastewater genomic surveillance network and clarifies the conditions under which WBS systems provide the most value to public health decision makers.
+keywords: 
+  - Genomic Surveillance
+  - Pandemic Response
+# date: last-modified
+bibliography: bibliography.bib
+format:
+  elsevier-pdf:
+    keep-tex: true
+    journal:
+      #name: Journal Name
+      formatting: preprint
+      model: 3p
+      cite-style: super
+  elsevier-html:
+    keep-tex: true
+    mermaid:
+      theme: neutral
+    journal:
+      #name: Journal Name
+      formatting: preprint
+      model: 3p
+      cite-style: super
+  html:
+    keep-tex: true
+    mermaid:
+      theme: neutral
+  docx:
+      keep-tex: true
+---
+
+<!-- Template source: https://github.com/quarto-journals/elsevier download repository and place it within this folder.-->
+
+# Introduction
+
+While researchers have demonstrated that wastewater-based surveillance (WBS) systems can provide an early warning system for pandemic response [@zhu2021] and be used to support estimation of the latent number of infections in COVID-19 transmission models [@soller2022], the value of information provided by WBS has yet to be demonstrated.
+
+This paper develops a stochastic metapopulation disease transmission model and uses it to assess the conditions under which WBS systems can provide value to local public health decision makers who respond to a pandemic using surveillance data. In the model, WBS systems help decision-makers by reducing the lag between latent disease prevalence and the epidemiological time-series (i.e., case counts) decision-makers often use to introduce interventions targeted to reduce disease transmission. We evaluate a range of scenarios that represent different potential pathogens and highlight scenarios under which WBS systems may or may not be cost-effective.
+<!--
+Our results highlight that the value of WBS systems is contingent on a set of biological and societal parameters, including pathogen characteristics (i.e., transmissibility and severity), as well as the geographic scale of 
+-->
+
+# Methods
+
+## Disease Transmission Model
+
+Our analysis starts with a standard disease transmission model describing person-to-person transmission of an infectious pathogen across $n$ jurisdictions. The state-space of the model is comprised of a set of health statuses $\mathbf{S}, \mathbf{E}, \mathbf{P}, \mathbf{I}, \mathbf{R}$, each a $1 \times n$ vector representing the population in each of the following compartments: Susceptible, Exposed, Pre-Symptomatic, Infected and Removed, respectively[^1]. @eq-ode1 describes a system of differential equations representing the model, and @tbl-parameters contains parameter definitions, values and their sources.
+
+[^1]: This model specification includes only a minimal set of disease states before expanding the state-space of the model to include asymptomatic, mildly symptomatic and severely symptomatic compartments.
+
+$$ 
+\begin{align}
+\dot{\mathbf{S}} &=\ - \boldsymbol{\lambda}_t \odot \mathbf{S} + \mathbf{m}_S \\
+\dot{\mathbf{E}} &=\ \boldsymbol{\lambda}_t \odot \mathbf{S} - \sigma \mathbf{E} + \mathbf{m}_E \\
+\dot{\mathbf{P}} &=\ \sigma \mathbf{E} - \delta \mathbf{P} + \mathbf{m}_P \\
+\dot{\mathbf{I}} &=\ \delta \mathbf{P} - \gamma \mathbf{I} + \mathbf{m}_I \\
+\dot{\mathbf{R}} &=\ \gamma \mathbf{I} + \mathbf{m}_R \\
+\end{align}
+$$ {#eq-ode1}
+
+where $\dot{\mathbf{S}}, \dot{\mathbf{E}}, \dot{\mathbf{P}}, \dot{\mathbf{I}}, \dot{\mathbf{R}}$ represent the time derivatives of each disease status, greek letters represent progression rates and $\mathbf{m}_x$ terms represent net travel flows $\mathbf{m}_x$ at disease state $x \in \{S, E, P, I, R\}$.
+
+Force of infection $\boldsymbol{\lambda}_t$ is computed using a time-varying effective contact-rate vector $\boldsymbol{\beta}_t$ which will depend on contact rates within each strata as well as nonpharmaceutical interventions (discussed later). Infectiousness of each disease status $\mathbf{P}$ and $\mathbf{I}$ are modulated by constants $c_p$ and $c_i$.
+
+$$ 
+\boldsymbol{\lambda}_t = \boldsymbol{\beta}_t (c_p\mathbf{P}_t + c_i\mathbf{I}_t)
+$$ {#eq-force-inf}
+
+### Discrete-time stochastic implementation
+
+We implement the model as a discrete-time stochastic model using the following approach. We simulate outflows for each disease state vector $\mathbf{X}$ using drawing from a binomial distributions $\mathbf{out_{X_t}} \sim Binomial(\mathbf{X}, 1-exp(\mathbf{p}))$. We then carry over outflows from one disease state to the next. Hence, our disease state equations can be re-written as 
+
+$$ 
+\begin{align}
+\mathbf{S_t} &\sim \mathbf{S_{t-1}} 
+                    -B(\mathbf{S_{t-1}},1-\exp(-\boldsymbol{\lambda}_{t-1}/\mathbf{N}))
+                      + \mathbf{m_S} \\
+\mathbf{E_t} &\sim \mathbf{E_{t-1}} 
+                    +B(\mathbf{S_{t-1}},1-\exp(-\boldsymbol{\lambda}_{t-1}/\mathbf{N}))
+                    -B(E_{t-1},1-\exp(-\sigma)) 
+                    +\mathbf{m_E}\\
+\mathbf{P_t} &\sim \mathbf{P_{t-1}}
+                    +B(E_{t-1},1-\exp(-\sigma))
+                    -B(P_{t-1},1-\exp(-\delta)) +
+                    \mathbf{m_P}\\
+\mathbf{I_t} &\sim \mathbf{I_{t-1}}
+                    +B(P_{t-1},1-\exp(-\delta))
+                    -B(I_{t-1},1-\exp(-\gamma)) +
+                    \mathbf{m_I}\\
+\mathbf{R_t} &\sim \mathbf{R_{t-1}}
+                    -B(I_{t-1},1-\exp(-\gamma)) +
+                    \mathbf{m_R}
+\end{align}
+$$ {#eq-stochastic}
+
+where $B(\mathbf{n},p)$ results in a binomial draw from population vector $\mathbf{n}$ with probability $p$. The model simulates outflows and inflows such that the outflows from one disease state are the same as the inflows to a different state.
+
+### Travel
+
+Stochastic travel flows are modeled as follows. Mobility matrix $\mathbf{A}$ is an $n \times n$ matrix where $a_{ij}$ represent daily travel rates from jurisdiction $i$ to $j$ and $a_{i=j}$ is the probability of no travel. Travel between jurisdictions is modeled using multinomial draws for each source jurisdiction $i$:
+
+$$
+\mathbf{X'_{td}} \sim \sum_{j}{Multinom(\mathbf{X_{t-1}}, A_i )} \ \forall \ d \in \{S, E, P, I, R\}
+$$ {#eq-travel}
+where $\mathbf{X'_{td}}$ are disease state vectors after travel. Once travel is computed in the model, we back out net travel flows as $\mathbf{m_d} = \mathbf{X'_{td}} - \mathbf{X_{td}}$ and use those in @eq-stochastic. This formulation implies that travel is simulated before disease transitions *within* each time step.
+
+### Nonpharmaceutical interventions {#npi}
+
+Following mitigation plans adopted during the COVID-19 pandemic, nonpharmaceutical interventions (NPIs) are modeled as a set of intervention portfolios organized within intensity levels with a pre-specified marginal effectiveness $\tau$ at each intervention level $l \in L = \{1,2,3,...,l_{max}\}$. In this analysis, $\tau$ is specified as a percent reduction in infectious contacts induced by a set of interventions introduced by public health decision-makers. In principle, $\tau_l$ can be specified so that it is dependent on the intervention level as in [@nascimentodelima2021], but this analysis assumes a constant, additive marginal effectiveness of interventions. For instance, if $\tau = 0.15$, then introducing the first intervention level reduces potential infectious contacts by 15% relative to a no-intervention scenario and introducing the second intervention level reduces infectious contacts by 30%. Under this specification, $l_{max} \tau \in (0,1)$.
+
+$$ 
+\boldsymbol{\beta}_t = (1-\mathbf{L}_t\tau) \boldsymbol{\beta}_b
+$$ {#eq-betat}
+
+and the intervention level $\mathbf{l}_t$ is a jurisdiction-dependent nonpharmaceutical intervention level. $\mathbf{l}_t$ can be either specified as an exogenous variable or an endogenous variable controlled by local public health departments. Public health decision-makers follow epidemiological outcomes that are proportional to $\mathbf{I_t}$ (such as case counts) to decide the appropriate level of intervention. Thus, we specify a target NPI level $\mathbf{l}_t^*$ as a linear function of disease prevalence.
+
+$$ 
+\mathbf{L}_t^* = \min{(cI_{t-s_{lag}}, l_{max})}
+$$ {#eq-targetnpi}
+where $s_{lag}$ is a surveillance lag imposed by the surveillance method used to monitor the disease. This formulation approximates phased mitigation plans adopted during the COVID-19 pandemic, where policymakers introduce or remove interventions depending on disease prevalence or other severity indicators. While public health decision-makers strive to use up-to-date information to introduce and remove NPIs, they do not have perfect and instantaneous information on disease prevalence; hence actual policy behaviors lag epidemiological indicators. In continuous time, we represent this process with a stock vector $\mathbf{L}$ representing the NPI level in effect
+
+$$ 
+\dot{\mathbf{L}} = \frac{1}{a}(\mathbf{l}_t^*-\mathbf{L})
+$$ {#eq-actualnpi}
+
+where $a$ represents the adjustment time for NPIs for decision making and implementation reasons, whereas $s_{lag}$ represents the lag imposed by surveillance methods.
+
+### Information sharing and coordination
+
+During pandemics in the past, some jurisdictions have adjusted their NPI levels based on not only on local disease indicators, but based on the behavior and disease indicators of neighboring jurisdictions as well. For example, countries have restricted travel or required traveler quarantines for those arriving from areas with high disease prevalence. Additionally, they may coordinate efforts with other nearby cities, adding and lifting mandates in unison to reduce confusion, anticipate travel-based spread, and present unified messaging. 
+
+To simulate behavior, we have allowed for jurisdictions to coordinate and synchronize NPIs levels with other jurisdictions. They may choose to:
+1. Pick their NPI intervention level based exclusively on their own wastewater or other local indicators (their own target NPI level absent any coordination)
+2. Set their NPI intervention level based on the average target NPI level across their own and their neighboring jurisdictions.
+3. Set their NPI intervention level to the maximum indicated intervention level across all jurisdictions with which they coordinate. 
+
+# CITATION HERE
+### Time varying infection fatality rate
+
+During the course of a pandemic, the fatality rate of infection may vary for several reasons. We examine two of these:
+1. Health system capacity limitations
+2. Improved treatment (evolving standards of care)
+
+#### Health System Capacity Limitations: Fluctuating Infection Fatality Rates
+
+Health system capacity limitations were heavily discussed during the initial months of the COVID-19 pandemic. These calls to "flatten the curve" concentrated not just on limiting overall infection counts, but on ensuring that the need for medical resources, did not exceed supply. https://www.nytimes.com/2020/03/18/business/coronavirus-ventilator-shortage.html
+https://www.healthaffairs.org/doi/full/10.1377/hlthaff.2022.00643
+
+We have thus added a capacity limitation for care provisioning to our model: when the number of patients in need of hospital care exceeds the available supply (e.g. if there is an insufficient supply of supplemental oxygen, ventilators, extracorporeal membrane oxygenation machines, and medical staff to meet demand), the infection fatality rate, $r$, increases.
+
+#### Evolving Standards of Care: Decreasing Infection Fatality Rates
+
+During the course of a pandemic, providers may learn more about the pathogen and illness, developing improved standards of care, even absent pharmaceutical intervention. This has been the case for treatment of hypoxemia and acute respiratory distress syndrome (ARDS) during the COVID-19 pandemic. https://pubmed.ncbi.nlm.nih.gov/33156382/ For example, initially, patients suffering from hypoxemia were usually laid in a supine position with "aggressive airway management and intubation". However, in the Spring of 2020, evidence mounted that initially simply placing patients in a prone, rather than supine position, as well as less aggressive intubation, led to improved outcomes. https://nap.nationalacademies.org/cart/download.cgi?record_id=26573 pg 7 https://pubmed.ncbi.nlm.nih.gov/32569585/. Some extant pharmaceutical treatments, such as the provisioning of dexamethasone to patients with severe illness, proved to be useful while others were shown not to improve infection fatality rates ($r$). https://www.nature.com/articles/d41586-020-03132-4
+
+
+Implementation of these new protocols likely contributed to the decreasing fatality rates and health system burden in the months preceeding the introduction of the COVID-19 vaccine, as shown by [Covid forecasting team 2022 DOI:  10.1016/S0140-6736(21)02867-1], with the infection fatality rate dropping by approximately 33% over the first eight months, based on a meta-analysis of seroprevalence studies and reported fatalities.
+
+
+https://pubmed.ncbi.nlm.nih.gov/35219376/"During the pre-vaccine period, the estimated 33% decrease in median IFR over 8 months suggests that treatment for COVID-19 has improved over time. Estimating IFR for the pre-vaccine era provides an important baseline for describing the progression of COVID-19 mortality patterns.     "
+
+ 
+
+Lancet https://pubmed.ncbi.nlm.nih.gov/35219376/
+
+
+.  
+https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7253105/
+https://pubmed.ncbi.nlm.nih.gov/37016834/
+Similarly, the improvement in
+
+
+# CITATION HERE
+
+## Cost of interventions
+
+The cost of reducing infectious contacts over a time period $t_0$ to $t_f$ may be defined as a function of the effect of interventions
+
+$$
+C_{npi} = \int_{t_0}^{t_f}{f(\mathbf{l}_t\tau)}
+$${#eq-cost} 
+
+where $f(x)$ is a function that maps a percent reduction in potentially infectious contacts to a monetary cost. $f(x)$ is monotonically increasing with $\mathbf{l}_t\tau$, and may exhibity decreasing marginal returns to a reduction in transmissibility. At the time of the intervention, decision-makers do not have precise information on either the effects of interventions (expressed in our model as a percent reduction $100 * \tau$ in infectious contacts) or its costs represented by function $f(x)$. Even if public health decision makers could estimate the instantaneous costs of nonpharmaceutical interventions in real-time, they would not be able to observe the full costs of interventions that do not manifest during the time-frame of interventions (i.e., the life-time effect of school closures). Nevertheless, any attempt to value the benefits of surveillance systems requires the specification of the costs of nonpharmaceutical interventions.
+
+## Net monetary benefit (NMB) of the surveillance system
+
+The total expected cost the outbreak for a given set of parameters $\mathbf{\theta}$ and surveillance system $i$ can be expressed as the sum of health costs $E[CH_{i}|\mathbf{\theta}]$, nonpharmaceutical intervention costs $E[CNPI_{ti}|\mathbf{\theta}]$ and surveillance costs $CSURV_{it}|\mathbf{\theta}$, where the expectation is taken across stochastic model realizations. Note that we chose to condition the expected cost of the pandemic on $\mathbf{\theta}$ rather than assuming a probability distribution over it.
+
+$$
+E[C_{i}|\mathbf{\theta}] = E[CH_{i}|\mathbf{\theta}] + \sum_t{E[CNPI_{ti}|\mathbf{\theta}] + CSURV_{it}|\mathbf{\theta} } 
+$${#eq-costs}
+
+Health costs $CH_{i}$ are computed as a function of number of removed individuals $R$ in the simulation
+$$
+E[CH_{i}|\mathbf{\theta}] = E[R(rw+o) |\mathbf{\theta}]
+$${#eq-costs}
+where $r$ is the infection fatality rate, $w$ is the average cost per death (assuming a set willingness to pay), and $o$ are other costs per infection, including days absent from work and any potential long-term disability.
+
+In this analysis, WBS systems are not assumed not resolve uncertainty of any exogenous model parameter in $\boldsymbol \theta$. If WBS systems did resolve at least one of those uncertainties,  it would be possible to estimate the value of information (VOI) provided by wastewater surveillance systems using an expected value of partial perfect information (EVPPI) method. Rather, we assume that WBS systems change what signals are available to policymakers and hence *how* they respond to the pandemic. Hence, we define the net monetary benefit of wastewater surveillance information as the difference between the total cost of the pandemic with and without WBS surveillance.
+
+$$
+NMB_{surv} |\mathbf{\theta} = E[C_{conv surv}|\mathbf{\theta}]  - E[C_{meta surv}|\mathbf{\theta}]
+$$ {#eq-wbsvalue}
+
+
+```{=html}
+<!-- 
+Sections to complete
+
+
+## Genomic surveillance
+
+Genomic surveillance might provide an early signal to decision makers by providing an early signal of prevalence, hence effectively reducing $a$.
+
+## Travel
+
+Individuals travel from jurisdiction $i$ to $j$ at a daily rate $r_{ij}$. This baseline rate is multiplied by a factor  by a factor  The daily travel flows $t_{ij} \sim Pois(\lambda_{ij})$. We used data from {blank} to estimate travel flows between 
+
+### Information sharing and coordination
+
+Jurisdictions can share information and use each other's epidemiological indicators to decide when to introduce and remove Nonpharmaceutical interventions. 
+
+## Effect of genomic surveillance
+
+Genomic surveillance is assumed to provide benefits to public health decision makers by providing an early signal of surges that would be otherwise detected later via testing of symptomatic individuals.
+
+# Model parameters {#parameters}
+
+@tbl-parameters presents the set of model parameters used in this analysis, their meaning, and their baseline values and sources used.
+
+-->
+```
+
+
+# Results
+
+What follows is an outline of the results section.
+
+- Disease Elimination Scenarios
+
+First, we demonstrate the value of genomic surveillance scenarios in conditions under which temporary disease elimination is possible. These scenarios represent disease dynamics observed in small geographic regions (cite https://www.nejm.org/doi/full/10.1056/NEJMc2025203 New Zealand).
+
+{Figure with model dynamics with and without genomic surveillance system}
+
+- Disease Control Scenarios
+
+Early-warning systems can also be valuable in jurisdictions that do not achieve disease elimination.
+
+# Appendix
+
+## Tables
+
+```{r}
+#| label: tbl-parameters
+#| tbl-cap: Parameters and values
+#| echo: false
+
+params <- data.frame(Parameter = "$\\lambda_{ij}$ Travel rate", `Value` = "Mobility Matrix A", Source = "[@Feynman1963118]")
+
+knitr::kable(params)
+```
+
+# References {.unnumbered}
