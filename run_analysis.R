@@ -311,5 +311,4 @@ ggsave(plot = r$deaths_figure, filename = "./output/deaths_plot.svg",units = "in
 
 
 ## Save results -----------------------------------------------------------
-
 saveRDS(object = r, file = "./output/r.rds")

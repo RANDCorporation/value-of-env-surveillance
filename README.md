@@ -2,13 +2,19 @@
 
 ## About this repository
 
-This repository contains code to explore the Value of Information of Genomic sequencing technologies using infectious disease models.
+This repository contains code to reproduce *Nascimento de Lima et al. (2024). The value of environmental surveillance for pandemic response*. The `run_analysis.R` script produces the figures and tables in the paper. All our results can be reproduced with free software.
 
-## Dependencies:
+## Dependencies
 
-# Install `R6Sim`
+### Installing dependencies with `renv`
 
-[R6Sim](https://github.com/randcorporation/R6Sim/) is an R6-based R package that contains base classes and infrastructure for developing and running simulation models using the encaspsulated object-oriented approach offered by `R6`.
+The `renv.lock` file contains the packages and versions used in this project. If you have an up-to-date R Studio version, `renv` should do most of the work for you once you open the `genomic-surveillance-voi.Rproj` file. If you are unfamiliar with `renv, read [this](https://rstudio.github.io/renv/articles/renv.html). If that doesn't work, read on. 
+
+### Installing dependencies without `renv`
+
+#### Install `R6Sim`
+
+[R6Sim](https://github.com/randcorporation/R6Sim/) is an R6-based R package that contains base classes and infrastructure for developing and running simulation models using the encaspsulated object-oriented approach offered by `R6`. The model we use is an `R6Sim` model and, we use the `R6Experiment` class to organize and run our experiments in parallel.
 
 **Interim instructions while R6Sim is not open source:**
 
@@ -28,22 +34,22 @@ remotes::install_github("randcorporation/r6sim")
 
 ```
 
-# Install other R dependencies
+#### Install other R dependencies
 
 Open the `R/library.R` file with RStudio and install the missing packages Rstudio identifies. All dependencies should be listed in that file.
 
-If you prefer to use [`renv`](https://rstudio.github.io/renv/articles/renv.html) to install your packages, an `renv.lock` file is provided to ensure we have a registry of the dependencies used. To use `renv`, see the `.Rprofile`, uncomment the line indicated and re-start your R session.
 
 ## Where to start
 
-Use the `./R/scripts/01_single_run_test.R` file to run the model for a few specific scenarios. Then, use the `./R/scripts/02_sample_analysis.R` file to run a sample experimental design. Finally, the `.R\scripts\03_run_larger_exp_design` to run the experimental design we will use in our analysis.
+Use the `run_analysis.R` file to produce the tables and figures in our analysis.
 
 ## Organization
 
-- `./R`: Contains R `scripts`, `functions`, `scripts` and `odin_models`. The `dev` folder can contain work in progress scripts. The `odin_model` folder contains the [odin](https://mrc-ide.github.io/odin/index.html) model files; those are not R scripts and are saved with the `.R` extension for syntax highlighting.
+- `./R`: Contains R `scripts`, `functions`, `scripts` and `odin_models`. The `odin_model` folder contains the [odin](https://mrc-ide.github.io/odin/index.html) model files; those are not R scripts and are saved with the `.R` extension for syntax highlighting.
 - `settings.yml` contains settings that would otherwise be hard-coded. Settings are saved in the `s` list, which is a global variable.
 - `./cpp`: This folder will be created by `odin` and will house your compiled c++ models. You do not need to edit the files within that folder.
-- `./data`: Contains data inputs for all models.
+- `./data`: Contains data inputs.
+- `./archive`: Contains archive data.
 
 ## License
 TBD.
