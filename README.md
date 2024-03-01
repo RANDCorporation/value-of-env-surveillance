@@ -10,10 +10,9 @@ This repository contains code to explore the Value of Information of Genomic seq
 
 [R6Sim](https://github.com/randcorporation/R6Sim/) is an R6-based R package that contains base classes and infrastructure for developing and running simulation models using the encaspsulated object-oriented approach offered by `R6`.
 
-**Interim instructions while R6SIm is not open source*
-*
-First, make sure you have access to the [R6Sim](https://github.com/randcorporation/R6Sim/) code repository. If not, ask Pedro Nascimento de Lima to give access to your github account. Then, generate a [github personal access token (PAT)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) with access to your account. Once you do those steps, you can run on the R console:
+**Interim instructions while R6Sim is not open source:**
 
+First, make sure you have access to the [R6Sim](https://github.com/randcorporation/R6Sim/) code repository. If not, ask Pedro Nascimento de Lima to give access to your github account. Then, generate a [github personal access token (PAT)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) with access to your account. Once you do those steps, you can run on the R console:
 
 ```r
 Sys.setenv(GITHUB_PAT = "your_pat")

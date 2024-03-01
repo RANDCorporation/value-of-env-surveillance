@@ -1,8 +1,6 @@
 
-
-
 #------------------------------------------------------------------------------#
-# Code repository for Analysis of Genomic Sequencing information
+# Code for "The value of environmental surveillance for pandemic response"
 #
 # Author: Pedro Nascimento de Lima
 # See README.md for information on usage and licensing
@@ -10,19 +8,34 @@
 
 # load standard packages --------------------------------------------------
 
+# tidyverse
 library(dplyr)
 library(tidyr)
 library(lubridate)
-library(randplot)
 library(ggplot2)
-library(showtext)
+library(purrr)
+library(scales)
+library(readxl)
+library(writexl)
+library(parallel)
+
+# Miscelaneous
+library(R6)
+library(Hmisc)
+library(lemon)
 library(yaml)
+library(gt)
+
+# Simulation packages
 library(odin)
 library(dde)
-library(officer)
+
+# RAND packages
+# install with remotes::install_github("randcorporation/randplot")
+library(randplot)
+
+# install with remotes::install_github("randcorporation/r6sim")
 library(R6Sim)
-library(patchwork)
-library(purrr)
 
 # Load settings:
 s <- yaml::read_yaml("settings.yml")
