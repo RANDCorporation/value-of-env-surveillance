@@ -64,7 +64,7 @@ OdinSim <- R6::R6Class(
       self$pre_process_inputs()
 
       # Create odin constructor (this is an R6 class):
-      odin_constructor <- odin::odin(model_path, workdir = odin_workdir, debug_enable = F)
+      odin_constructor <- odin::odin(model_path, workdir = odin_workdir)
 
       # Create list of odin inputs
       self$odin_parms <- odin_constructor$private_fields$user
