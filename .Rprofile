@@ -6,4 +6,4 @@
 #------------------------------------------------------------------------------#
 
 # Uncomment line below to use renv:
-source("renv/activate.R")
+# source("renv/activate.R")
