@@ -114,7 +114,7 @@ r$fig_effectiveness_data <- tau_results %>%
 ## 2.2 Run tau experiment ------------------------------------------------------
 
 # Wait a little while so we can re-start another parallel session
-Sys.sleep(5)
+Sys.sleep(10)
 
 tau_results <- tau_experiment$run(
   parallel = T,
