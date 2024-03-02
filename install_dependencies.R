@@ -11,9 +11,11 @@
 # then run renv::restore() to install the same package versions we used or use renv::install().
 
 # CRAN packages
-cran_packages <- c("Hmisc", "R6", "tidyr", "odin", "dplyr", "ggplot2", "dde",
-                   "gt", "lemon", "lubridate", "parallel", "purrr", "readxl",
-                   "scales", "writexl", "yaml", "pkgbuild", "pkgload")
+cran_packages <- c(
+  "Hmisc", "R6", "tidyr", "odin", "dplyr", "ggplot2", "dde",
+  "gt", "lemon", "lubridate", "parallel", "purrr", "readxl",
+  "scales", "writexl", "yaml", "pkgbuild", "pkgload"
+)
 
 install.packages(cran_packages)
 
@@ -21,4 +23,3 @@ install.packages(cran_packages)
 remotes::install_github("https://github.com/RANDCorporation/randplot")
 
 remotes::install_github("https://github.com/RANDCorporation/R6Sim")
-
