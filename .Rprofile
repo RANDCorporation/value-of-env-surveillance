@@ -1,5 +1,3 @@
-
-
 #------------------------------------------------------------------------------#
 # Code repository for Analysis of Genomic Sequencing information
 #

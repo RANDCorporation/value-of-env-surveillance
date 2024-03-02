@@ -18,3 +18,6 @@ paper/style-guide/*
 paper/manuscript_files/*
 *.pptx
 output/*
+*.twbr
+*.hyper
+
