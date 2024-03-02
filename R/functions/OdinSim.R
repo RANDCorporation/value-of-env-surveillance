@@ -77,7 +77,7 @@ OdinSim <- R6::R6Class(
         stop(paste0("odin inputs missing: ", paste0(odin_inputs_missing, collapse = ", ")))
       }
 
-      # Build oding model:
+      # Build odin model:
       self$o <- do.call(odin_constructor$new, odin_inputs)
 
       # The model now should be ready to be simulated.

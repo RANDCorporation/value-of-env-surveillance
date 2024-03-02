@@ -13,7 +13,7 @@
 # CRAN packages
 cran_packages <- c("Hmisc", "R6", "tidyr", "odin", "dplyr", "ggplot2", "dde",
                    "gt", "lemon", "lubridate", "parallel", "purrr", "readxl",
-                   "scales", "writexl", "yaml")
+                   "scales", "writexl", "yaml", "pkgbuild", "pkgload")
 
 install.packages(cran_packages)
 
