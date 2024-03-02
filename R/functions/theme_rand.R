@@ -5,7 +5,7 @@
 #------------------------------------------------------------------------------#
 
 
-# Ths is a custom ggplot theme based off randplot. This increases fonts and is intended for use
+# This is a custom ggplot theme based off randplot. This increases fonts and is intended for use
 # in presentations.
 # Adapted from https://github.com/RANDCorporation/randplot/blob/main/R/theme-rand.R
 

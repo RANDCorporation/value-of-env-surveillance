@@ -6,6 +6,8 @@ This repository contains code to reproduce *Nascimento de Lima et al. (2024). Th
 
 ## Dependencies
 
+Use the `install_dependencies.R` script to install your dependencies. Alternatively, you can use `renv` to use the same package versions used in our paper.
+
 ### Installing dependencies with `renv`
 
 The `renv.lock` file contains the packages and versions used in this project. If you have an up-to-date R Studio version, you should be able to do the following to install the same package versions used in this project:

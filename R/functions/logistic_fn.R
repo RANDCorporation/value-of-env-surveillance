@@ -22,7 +22,7 @@
 # note that scale is related to the slope of the function at the midpoint,
 # but I do not know a closed-form solution that relates the scale parameter
 # to a desired "transition time" from zero to y_max.
-# Hence, I use the optim functino to find the scale parameter that produces
+# Hence, I use the optim function to find the scale parameter that produces
 # the desired logistic growth function.
 
 
