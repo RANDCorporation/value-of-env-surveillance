@@ -1,5 +1,3 @@
-
-
 #------------------------------------------------------------------------------#
 # Code for "The value of environmental surveillance for pandemic response"
 #
@@ -35,9 +33,11 @@
 #'   gapminder %>%
 #'   filter(continent == "Oceania")
 #'
-#' ggplot(gdp, aes(x = year,
-#'                 y = gdpPercap,
-#'                 color = country)) +
+#' ggplot(gdp, aes(
+#'   x = year,
+#'   y = gdpPercap,
+#'   color = country
+#' )) +
 #'   geom_line() +
 #'   scale_x_continuous(expand = c(0, 0)) +
 #'   scale_y_continuous(
@@ -80,8 +80,8 @@ theme_rand_ppt <- function(font = "Arial") {
     plot.subtitle = ggplot2::element_text(
       face = "bold",
       size = 12, # 12
-      family = "Arimo"#,
-      #margin = ggplot2::margin(t = 4)
+      family = "Arimo" # ,
+      # margin = ggplot2::margin(t = 4)
     ),
 
     # Caption
@@ -90,9 +90,11 @@ theme_rand_ppt <- function(font = "Arial") {
 
     # Axes
     axis.line = ggplot2::element_line(color = light_gray, linewidth = 0.5),
-    axis.line.y = ggplot2::element_line(color = light_gray, linewidth = 0.5), #ggplot2::element_blank(),
-    axis.text = ggplot2::element_text(size = 12,
-                                      color = dark_gray),
+    axis.line.y = ggplot2::element_line(color = light_gray, linewidth = 0.5), # ggplot2::element_blank(),
+    axis.text = ggplot2::element_text(
+      size = 12,
+      color = dark_gray
+    ),
     axis.text.x = ggplot2::element_text(margin = ggplot2::margin(t = 4)),
     axis.ticks.y = ggplot2::element_line(color = light_gray), # ggplot2::element_blank(),
     axis.ticks = ggplot2::element_line(color = light_gray),
@@ -112,14 +114,18 @@ theme_rand_ppt <- function(font = "Arial") {
     legend.spacing = ggplot2::unit(0, "cm"),
     legend.position = "top",
     legend.title = ggplot2::element_blank(),
-    legend.text = ggplot2::element_text(size = 10,
-                                        margin = ggplot2::margin(r = 8)),
+    legend.text = ggplot2::element_text(
+      size = 10,
+      margin = ggplot2::margin(r = 8)
+    ),
 
     # Strip
     strip.background = ggplot2::element_blank(),
     strip.text.y = ggplot2::element_text(angle = 0),
-    strip.text = ggplot2::element_text(face = "bold",
-                                       size = 14),
+    strip.text = ggplot2::element_text(
+      face = "bold",
+      size = 14
+    ),
 
     # Grid lines
     panel.border = ggplot2::element_blank(),
@@ -144,7 +150,7 @@ theme_rand_paper <- function(font = "Arial") {
 
   ggplot2::theme(
     # Plot
-    plot.margin = ggplot2::margin(4, 4, 4, 4) , # # PPT: ggplot2::margin(48, 48, 48, 16)
+    plot.margin = ggplot2::margin(4, 4, 4, 4), # # PPT: ggplot2::margin(48, 48, 48, 16)
 
     # Text
     text = ggplot2::element_text(
@@ -166,8 +172,8 @@ theme_rand_paper <- function(font = "Arial") {
     plot.subtitle = ggplot2::element_text(
       face = "bold",
       size = 12, # 12
-      family = "Arimo"#,
-      #margin = ggplot2::margin(t = 4)
+      family = "Arimo" # ,
+      # margin = ggplot2::margin(t = 4)
     ),
 
     # Caption
@@ -176,9 +182,11 @@ theme_rand_paper <- function(font = "Arial") {
 
     # Axes
     axis.line = ggplot2::element_line(color = light_gray, linewidth = 0.5),
-    axis.line.y = ggplot2::element_line(color = light_gray, linewidth = 0.5), #ggplot2::element_blank(),
-    axis.text = ggplot2::element_text(size = 10,
-                                      color = dark_gray),
+    axis.line.y = ggplot2::element_line(color = light_gray, linewidth = 0.5), # ggplot2::element_blank(),
+    axis.text = ggplot2::element_text(
+      size = 10,
+      color = dark_gray
+    ),
     axis.text.x = ggplot2::element_text(margin = ggplot2::margin(t = 4)),
     axis.ticks.y = ggplot2::element_line(color = light_gray), # ggplot2::element_blank(),
     axis.ticks = ggplot2::element_line(color = light_gray),
@@ -198,14 +206,18 @@ theme_rand_paper <- function(font = "Arial") {
     legend.spacing = ggplot2::unit(0, "cm"),
     legend.position = "top",
     legend.title = ggplot2::element_blank(),
-    legend.text = ggplot2::element_text(size = 10,
-                                        margin = ggplot2::margin(r = 8)),
+    legend.text = ggplot2::element_text(
+      size = 10,
+      margin = ggplot2::margin(r = 8)
+    ),
 
     # Strip
     strip.background = ggplot2::element_blank(),
     strip.text.y = ggplot2::element_text(angle = 0),
-    strip.text = ggplot2::element_text(face = "bold",
-                                       size = 10),
+    strip.text = ggplot2::element_text(
+      face = "bold",
+      size = 10
+    ),
 
     # Grid lines
     panel.border = ggplot2::element_blank(),
@@ -219,5 +231,3 @@ theme_rand_paper <- function(font = "Arial") {
     plot.background = ggplot2::element_blank()
   )
 }
-
-

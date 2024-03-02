@@ -1,4 +1,3 @@
-
 #------------------------------------------------------------------------------#
 # Code for "The value of environmental surveillance for pandemic response"
 #
@@ -12,7 +11,7 @@ source("./R/library.R")
 
 # Single run examples -----------------------------------------------------
 model <- OdinMetapop$new("stochastic_metapopulation.R", s$data_file, "model1")
-#model2 <- OdinMetapop$new("stochastic_metapopulation2.R", "./data/metapopulation-inputs-heterogeneous.xlsx")
+# model2 <- OdinMetapop$new("stochastic_metapopulation2.R", "./data/metapopulation-inputs-heterogeneous.xlsx")
 
 model$simulate()
 
@@ -30,7 +29,7 @@ get_outcome(model$summary, outcome_var = "CH")
 # all default model inputs are in the inputs object
 model$inputs$beta
 # IT looks like the mixing is not being partitioned correctly!
-#. it should be 0.1, 0.1
+# . it should be 0.1, 0.1
 
 # We can run the model with default inputs by using the simulate function
 # i.e., run for 100 days, for 100 replications
@@ -52,7 +51,7 @@ res2 <- model2$res_long %>%
   summarise(I = sum(E + P + I)) %>%
   mutate(model = "heterogeneous")
 
-all_res <-rbind(res1, res2)
+all_res <- rbind(res1, res2)
 
 rep_model <- all_res %>%
   select(rep, model) %>%
@@ -60,10 +59,10 @@ rep_model <- all_res %>%
   mutate(rep_model_id = row_number())
 
 all_res %>%
-  #left_join(rep_model) %>%
+  # left_join(rep_model) %>%
   ggplot() +
   geom_line(mapping = aes(x = step, y = I, group = interaction(model, rep), color = model)) #+
-  #facet_wrap(~model)
+# facet_wrap(~model)
 
 
 
@@ -74,16 +73,16 @@ all_res %>%
 model$inputs$R
 model$inputs$beta
 
-View(model$res_long %>% mutate(E_perc = E/(E+P+I), P_perc = P/(E+P+I), I_perc = I/(E+P+I)))
+View(model$res_long %>% mutate(E_perc = E / (E + P + I), P_perc = P / (E + P + I), I_perc = I / (E + P + I)))
 
 # Compute R0 from the first 60 days:
 cases_ts <- model$res_long %>%
   filter(jurisdiction.id == 1) %>%
   group_by(rep, jurisdiction.id) %>%
-  mutate(cases = -c(0,diff(S))) %>%
+  mutate(cases = -c(0, diff(S))) %>%
   group_by(rep, step) %>%
   summarise(cases = sum(cases)) %>%
-  #dplyr::filter(step >= 30 & step <= 60) %>%
+  # dplyr::filter(step >= 30 & step <= 60) %>%
   mutate(log_outcome = log(cases))
 
 
@@ -92,7 +91,7 @@ library(ggplot2)
 
 r_model <- lm(formula = log_outcome ~ step, data = cases_ts)$coefficients["step"]
 
-tau.eff <- (1/model$inputs$delta + 1/model$inputs$gamma)
+tau.eff <- (1 / model$inputs$delta + 1 / model$inputs$gamma)
 
 R0 <- 1 + r_model * tau.eff
 

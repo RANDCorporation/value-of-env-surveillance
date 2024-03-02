@@ -1,5 +1,3 @@
-
-
 #------------------------------------------------------------------------------#
 # Code for "The value of environmental surveillance for pandemic response"
 #
@@ -13,7 +11,7 @@
 source("./R/library.R")
 
 
-scenarios <- readxl::read_xlsx("./data/scenarios.xlsx",sheet = "policy_profile")
+scenarios <- readxl::read_xlsx("./data/scenarios.xlsx", sheet = "policy_profile")
 
 
 # Instantiate model -------------------------------------------------------
@@ -25,13 +23,10 @@ all_long_res <- list()
 
 # Run the couple of scenarios and recover long results, under baseline assumptions
 
-for(i in 1:nrow(scenarios)) {
-
+for (i in 1:nrow(scenarios)) {
   # Set inputs:
-  for(var in colnames(scenarios)) {
-
-    model$set_input(name = var, value = scenarios[[i,var]])
-
+  for (var in colnames(scenarios)) {
+    model$set_input(name = var, value = scenarios[[i, var]])
   }
 
   model$simulate(reps = 200)
@@ -39,7 +34,6 @@ for(i in 1:nrow(scenarios)) {
   all_long_res[[i]] <- model$res_long
 
   all_long_res[[i]]$policy_profile <- scenarios$policy_profile[i]
-
 }
 
 

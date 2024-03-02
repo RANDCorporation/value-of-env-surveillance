@@ -122,7 +122,7 @@ Tables can also be generated using R chunks, as shown in @tbl-simple example.
 #| label: tbl-simple
 #| tbl-cap: Caption centered above table
 #| echo: true
-knitr::kable(head(mtcars)[,1:4])
+knitr::kable(head(mtcars)[, 1:4])
 ```
 
 # References {-}

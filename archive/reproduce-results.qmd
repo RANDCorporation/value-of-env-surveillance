@@ -20,13 +20,12 @@ The following code block uses results stored in the `./output/r.rds` file or run
 
 ```{r}
 # The r object contains the results objects used in this file
-if(!file.exists("./output/r.rds")) {
+if (!file.exists("./output/r.rds")) {
   source("./R/scripts/run_analysis.R")
 } else {
   source("./R/library.R")
   r <- readRDS("./output/r.rds")
 }
-
 ```
 
 # Scenarios

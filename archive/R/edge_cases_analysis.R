@@ -1,5 +1,3 @@
-
-
 #------------------------------------------------------------------------------#
 # Code for "The value of environmental surveillance for pandemic response"
 #
@@ -32,7 +30,7 @@ model$set_input("c", 10000)$
   simulate()
 
 
-#model$res_long %>% View()
+# model$res_long %>% View()
 
 # Strict and Stringent scenario
 # In this scenario disease elimination is achieved
@@ -61,4 +59,3 @@ fig_prevalence <- reps_data %>%
 
 
 fig_intlevel / fig_prevalence
-

@@ -8,7 +8,15 @@ This repository contains code to reproduce *Nascimento de Lima et al. (2024). Th
 
 ### Installing dependencies with `renv`
 
-The `renv.lock` file contains the packages and versions used in this project. If you have an up-to-date R Studio version, `renv` should do most of the work for you once you open the `genomic-surveillance-voi.Rproj` file. If you are unfamiliar with `renv, read [this](https://rstudio.github.io/renv/articles/renv.html). If that doesn't work, read on. 
+The `renv.lock` file contains the packages and versions used in this project. If you have an up-to-date R Studio version, you should be able to do the following to install the same package versions used in this project:
+
+```r
+# install renv in case you do not have it:
+# install.packages("renv")
+renv::restore()
+```
+
+should do most of the work for you once you open the `genomic-surveillance-voi.Rproj` file. If you are unfamiliar with `renv, read [this](https://rstudio.github.io/renv/articles/renv.html). If that doesn't work, read on. 
 
 ### Installing dependencies without `renv`
 
@@ -31,7 +39,6 @@ Install [R6Sim](https://github.com/randcorporation/R6Sim/) from github:
 # install.packages("remotes")
 
 remotes::install_github("randcorporation/r6sim")
-
 ```
 
 #### Install other R dependencies

@@ -1,4 +1,3 @@
-
 #------------------------------------------------------------------------------#
 # Code for "The value of environmental surveillance for pandemic response"
 #
@@ -42,10 +41,16 @@ s <- yaml::read_yaml("settings.yml")
 
 
 # Source all functions
-invisible(sapply(setdiff(list.files(path = s$lib_path, pattern = "*.R",full.names = T),
-                         s$lib_file),
-                 source,
-                 echo = F)
-)
+invisible(sapply(
+  setdiff(
+    list.files(path = s$lib_path, pattern = "*.R", full.names = T),
+    s$lib_file
+  ),
+  source,
+  echo = F
+))
 
-ggplot <- function(...) ggplot2::ggplot(...) + theme_rand_ppt(font = "Helvetica")
+ggplot <- function(...) {
+  ggplot2::ggplot(...) +
+    theme_rand_ppt(font = "Helvetica")
+}

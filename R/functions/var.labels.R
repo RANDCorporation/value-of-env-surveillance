@@ -1,7 +1,3 @@
-
-
-
-
 # Variale labels for consistent naming and labeling in tables and within the model.
 # Names can be re-used across data.frames
 

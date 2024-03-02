@@ -1,6 +1,3 @@
-
-
-
 #------------------------------------------------------------------------------#
 # Code for "The value of environmental surveillance for pandemic response"
 #
@@ -42,9 +39,9 @@
 #' @param scale_factor scaling_factor so that the x_transition time can be achieved
 #'
 #' @return a vector or a number for y
-logistic_fn <- function(y_max, x_mid_point, x_trans, x, scale_factor = 1/6) {
+logistic_fn <- function(y_max, x_mid_point, x_trans, x, scale_factor = 1 / 6) {
   # note scale_factor*x_trans *is* the scale parameter in the logistic growth function.
-  y_max / (1+exp((x_mid_point - x)*(scale_factor*x_trans)))
+  y_max / (1 + exp((x_mid_point - x) * (scale_factor * x_trans)))
 }
 
 # x is the scale_factor
@@ -57,7 +54,6 @@ logistic_fn <- function(y_max, x_mid_point, x_trans, x, scale_factor = 1/6) {
 #' @param x_trans transition duration in terms of x values
 #' @param x_vector a vector of x's over which the scale will be evaluated
 log_calib_obj_fn <- function(x, y_max, x_mid_point, x_trans, x_vector) {
-
   # compute ys for this scale factor
   ys <- logistic_fn(y_max, x_mid_point, x_trans, x = x_vector, scale_factor = x)
 
@@ -67,7 +63,6 @@ log_calib_obj_fn <- function(x, y_max, x_mid_point, x_trans, x_vector) {
   # target is to get the transition range right
   # Hence, we minimize objective function:
   (x_trans - (trans_range[2] - trans_range[1]))^2
-
 }
 
 
@@ -79,8 +74,6 @@ log_calib_obj_fn <- function(x, y_max, x_mid_point, x_trans, x_vector) {
 #' @param x_vector a vector of x's over which the scale will be evaluated
 #'
 calib_logistic_fn <- function(y_max, x_mid_point, x_trans, x_vector = seq.default(from = 0, to = x_mid_point * 3, by = 0.01)) {
-
-
   # The optimization routine does not work very well without a good
   # starting point and ranges for the search. Hence, I provide a
   # good starting point for the function, and verified that it worked.
@@ -103,22 +96,23 @@ calib_logistic_fn <- function(y_max, x_mid_point, x_trans, x_vector = seq.defaul
 
   # Then, solving for scale, we have that a good guess for the scale factor is:
 
-  scale_guess = 4/(x_trans^2)
+  scale_guess <- 4 / (x_trans^2)
 
   # And we impose a range around it for the search.
   # This approach has proven to produce stable results.
 
-  solution <- optim(par = scale_guess, method = "Brent", # "L-BFGS-B",
-                    fn = log_calib_obj_fn,
-                    lower = scale_guess * 0.1,
-                    upper = scale_guess * 3,
-                    y_max = y_max,
-                    x_mid_point = x_mid_point,
-                    x_trans = x_trans,
-                    x_vector = x_vector)
+  solution <- optim(
+    par = scale_guess, method = "Brent", # "L-BFGS-B",
+    fn = log_calib_obj_fn,
+    lower = scale_guess * 0.1,
+    upper = scale_guess * 3,
+    y_max = y_max,
+    x_mid_point = x_mid_point,
+    x_trans = x_trans,
+    x_vector = x_vector
+  )
 
-  #print(solution)
+  # print(solution)
 
   solution$par
-
 }

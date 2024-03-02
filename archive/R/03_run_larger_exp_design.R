@@ -1,6 +1,3 @@
-
-
-
 #------------------------------------------------------------------------------#
 # Code for "The value of environmental surveillance for pandemic response"
 #
@@ -37,15 +34,15 @@ experiment <- R6Experiment$new(model)
 # Create an experimental design combining decision-maker characteristics and epi/social characteristics
 
 # Policy scenarios represent potential decision makers
-policy_scenarios <- readxl::read_xlsx("./data/scenarios.xlsx",sheet = "policy_profile") %>%
+policy_scenarios <- readxl::read_xlsx("./data/scenarios.xlsx", sheet = "policy_profile") %>%
   mutate(policy.id = row_number())
 
 
 # Other variables
-total_surv_lag <- c(13,11,8,3)
-R0 <- c(1.5,2.5,3)
-cost_max_npi <- c(0.1,0.25,0.87, 1.25)
-#L_c <- c(0,1)
+total_surv_lag <- c(13, 11, 8, 3)
+R0 <- c(1.5, 2.5, 3)
+cost_max_npi <- c(0.1, 0.25, 0.87, 1.25)
+# L_c <- c(0,1)
 r <- c(0.01, 0.001, 0.02)
 
 # Surveillance design
@@ -55,10 +52,10 @@ surv_design <- data.frame(total_surv_lag = total_surv_lag) %>%
 
 # Other variables design:
 other_vars_design <- expand_grid(
-  R0
-  ,cost_max_npi
-#  ,L_c
-  ,r
+  R0,
+  cost_max_npi
+  #  ,L_c
+  , r
 ) %>%
   mutate(other.vars.id = row_number())
 
@@ -82,7 +79,7 @@ full_design <- expand_grid(policy_scenarios, surv_design, other_vars_design)
 experiment$set_design(grid_design_df = full_design)
 
 # Run experiment (parallel option not available with odin at this time):
-exp_results <- experiment$run(parallel = T,cluster_eval_script = "./R/scripts/cluster_eval.R", n_cores = parallel::detectCores() - 3, model_from_cluster_eval = T)
+exp_results <- experiment$run(parallel = T, cluster_eval_script = "./R/scripts/cluster_eval.R", n_cores = parallel::detectCores() - 3, model_from_cluster_eval = T)
 
 
 # Compute NMB counterfactuals:
@@ -92,7 +89,10 @@ ref_costs <- exp_results %>%
   select(policy.id, other.vars.id, ref_C)
 
 # Do we have the right number of rows?
-ref_costs %>% select(policy.id, other.vars.id) %>% distinct() %>% nrow() == nrow(ref_costs)
+ref_costs %>%
+  select(policy.id, other.vars.id) %>%
+  distinct() %>%
+  nrow() == nrow(ref_costs)
 
 # Compute net monetary benefit of surveillance relative to 10-day lag:
 exp_results_augm <- exp_results %>%
@@ -101,10 +101,9 @@ exp_results_augm <- exp_results %>%
 
 # Save output (but do not push this file):
 
-date_time <- paste0(gsub(pattern = ":| |-", replacement = "_", Sys.time()),"_", gsub("/", "_",Sys.timezone()))
+date_time <- paste0(gsub(pattern = ":| |-", replacement = "_", Sys.time()), "_", gsub("/", "_", Sys.timezone()))
 
 # We read this file and current figures are made with tableau
 write.csv(exp_results_augm, paste0("./output/", "exp_results.csv"), row.names = F)
 
-write.csv(exp_results_augm, paste0("./output/", "exp_results_",date_time,".csv"), row.names = F)
-
+write.csv(exp_results_augm, paste0("./output/", "exp_results_", date_time, ".csv"), row.names = F)

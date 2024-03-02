@@ -1,4 +1,3 @@
-
 # Source all dependencies and model scripts
 source("./R/library.R")
 
@@ -36,12 +35,12 @@ deaths_target <- augm_inputs$locationtimeseries %>%
 
 median_days_near_max_intervention <- read.csv("./data/OxCGRT_USA_latest.txt") %>%
   dplyr::filter(Jurisdiction == "STATE_TOTAL") %>%
-  mutate(day = lubridate::as_date( as.character(Date))) %>%
+  mutate(day = lubridate::as_date(as.character(Date))) %>%
   filter(day <= as.Date("2021-03-01"), day >= as.Date("2020-03-01")) %>%
   select(RegionName, Date, StringencyIndex_Average) %>%
   group_by(RegionName) %>%
   mutate(max_stringency = max(StringencyIndex_Average)) %>%
-  mutate(max_intervention = StringencyIndex_Average >= (max_stringency * (1-(1/5)))) %>%
+  mutate(max_intervention = StringencyIndex_Average >= (max_stringency * (1 - (1 / 5)))) %>%
   summarise(days_max_intervention = sum(max_intervention), max_stringency = mean(max_stringency)) %>%
   .$days_max_intervention %>%
   median()
@@ -55,11 +54,10 @@ model <- OdinMetapop$new("stochastic_metapopulation.R", s$data_file)
 
 # Create a calibration objective functio, with some notional defaults for testing
 calib_tau_c_obj_fn <- function(x = c(c = 15, tau = 0.15), target_deaths = 160, target_l5_days = 100, deaths_weight = 0.5) {
-
   set.seed(1234)
 
   model$set_input("c", x[1])$
-        set_input("tau", x[2])
+    set_input("tau", x[2])
 
   model$simulate(reps = 100)
 
@@ -67,16 +65,15 @@ calib_tau_c_obj_fn <- function(x = c(c = 15, tau = 0.15), target_deaths = 160, t
   l5days_sim <- as.numeric(model$summary_all$L5_days_.mean[1])
 
 
-  sq_distance <- deaths_weight * (target_deaths - deaths_sim)^2 + (1-deaths_weight) * (target_l5_days - l5days_sim)^2
-  deaths_ape <- round(100*(deaths_sim - target_deaths)/target_deaths, 2)
-  l5days_ape <- round(100*(l5days_sim - target_l5_days)/target_l5_days, 2)
+  sq_distance <- deaths_weight * (target_deaths - deaths_sim)^2 + (1 - deaths_weight) * (target_l5_days - l5days_sim)^2
+  deaths_ape <- round(100 * (deaths_sim - target_deaths) / target_deaths, 2)
+  l5days_ape <- round(100 * (l5days_sim - target_l5_days) / target_l5_days, 2)
 
   print(paste0("Params: tau: ", signif(x[2], 3), ". c: ", signif(x[1], 3)))
   print(paste0("Abs Perc Error: Deaths: ", deaths_ape, ". L5 days: ", l5days_ape))
 
   return(sq_distance)
-
-  }
+}
 
 # Test function:
 calib_tau_c_obj_fn(x = c(c = 5, tau = 0.115))
@@ -84,16 +81,17 @@ calib_tau_c_obj_fn(x = c(c = 5, tau = 0.115))
 # Calibrate:
 set.seed(1234)
 
-solution <- optim(par = c(c = 15, tau = 0.15),
-                  control = list(maxit = 50, abstol = 5^2),
-                  #method = "Brent", # "L-BFGS-B",
-                  fn = calib_tau_c_obj_fn,
-                  lower = c(5, 0.1),
-                  upper = c(25, 0.18),
-                  target_deaths = deaths_target,
-                  target_l5_days = median_days_near_max_intervention,
-                  deaths_weight = 0.5)
+solution <- optim(
+  par = c(c = 15, tau = 0.15),
+  control = list(maxit = 50, abstol = 5^2),
+  # method = "Brent", # "L-BFGS-B",
+  fn = calib_tau_c_obj_fn,
+  lower = c(5, 0.1),
+  upper = c(25, 0.18),
+  target_deaths = deaths_target,
+  target_l5_days = median_days_near_max_intervention,
+  deaths_weight = 0.5
+)
 
 # These are the solutions we use as default values for c and tau
 solution$par
-
