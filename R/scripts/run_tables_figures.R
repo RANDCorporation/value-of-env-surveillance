@@ -12,15 +12,27 @@
 
 # Source all dependencies and model scripts
 
-
 # 2. Run experiments ------------------------------------------------------
 
 # The following two steps will take about 30 minutes to run on a macbook pro.
 
-source("./R/scripts/run_tau_experiment.R")
+#source("./R/scripts/run_main_experiment.R")
 
-source("./R/scripts/run_main_experiment.R")
+#source("./R/scripts/run_tau_experiment.R")
 
+source("./R/library.R")
+
+msg_time("Post-processing analysis")
+
+# results list contains the results we want to save
+if (!file.exists("./output/r.rds")) {
+  r <- list()
+} else {
+  r <- readRDS("./output/r.rds")
+}
+
+
+msg_time("Creating and saving tables and figures")
 
 # 3. Tables ---------------------------------------------------------------
 
@@ -65,7 +77,7 @@ r$sup_table_2 <- r$table_1_long_all %>%
   left_join(var.labels.df, by = join_by(variable)) %>%
   select(Scenario, EWS, labels, estimate) %>%
   pivot_wider(id_cols = c(Scenario, EWS), names_from = labels, values_from = estimate) %>%
-  mutate(Scenario = factor(Scenario, levels = unique(base_scenarios$Scenario), ordered = T)) %>%
+  mutate(Scenario = factor(Scenario, levels = unique(r$base_scenarios$Scenario), ordered = T)) %>%
   arrange(Scenario, EWS)
 
 writexl::write_xlsx(r$sup_table_2, path = "./output/sup_table_2.xlsx")
@@ -78,7 +90,7 @@ r$fig_1_data <- r$table_1_long_numeric %>%
   left_join(var.labels.df, by = join_by(variable)) %>%
   mutate(variable = factor(variable, levels = c("CH", "CNPI", "C", "NMB", "deaths_per_100k"), ordered = T)) %>%
   mutate(labels = factor(labels, levels = rev(c("NPI costs", "Health costs", "Net monetary benefit", "Total costs", "Deaths per 100,000 people")), ordered = T)) %>%
-  mutate(Scenario = factor(Scenario, levels = rev(unique(base_scenarios$Scenario)), ordered = T)) %>%
+  mutate(Scenario = factor(Scenario, levels = rev(unique(r$base_scenarios$Scenario)), ordered = T)) %>%
   arrange(variable, Scenario)
 
 
@@ -116,7 +128,6 @@ ggsave(plot = r$fig_1, filename = "./output/fig_1.svg", units = "in", width = 6.
 
 ## Fig 2 ----------------------------------------------------------------
 
-
 nmb_colors <- c("#FAAE7B", "#9F6976", "#432371")
 
 r$fig_2 <- r$tau_NMB_summary %>%
@@ -132,7 +143,8 @@ r$fig_2 <- r$tau_NMB_summary %>%
   xlab("Maximum NPI effectiveness") +
   xlim(c(0, 1)) +
   geom_hline(yintercept = 0, color = "gray", alpha = 0.5) +
-  geom_vline(xintercept = model$inputs$tau * 5, color = nmb_colors[2], linetype = "dashed")
+  # Showing calibrated tau as a dashed line
+  geom_vline(xintercept = 0.1422919 * 5, color = nmb_colors[2], linetype = "dashed")
 
 r$fig_2
 
@@ -190,11 +202,6 @@ r$deaths_figure <- r$fig_1_data %>%
     color = "EWS system"
   ) +
   scale_color_manual(values = colors) +
-  theme(panel.grid.major.y = element_line(
-    color = "gray",
-    linewidth = 0.2,
-    linetype = 1
-  )) +
   theme(legend.text = element_text(size = 12)) +
   theme(panel.spacing = unit(1, "lines"))
 
@@ -202,6 +209,9 @@ r$deaths_figure
 
 ggsave(plot = r$deaths_figure, filename = "./output/deaths_plot.svg", units = "in", width = 5, height = 7, scale = 1.2, bg = "white")
 
-
+msg_time("Save plots and figures")
 ## Save results -----------------------------------------------------------
 saveRDS(object = r, file = "./output/r.rds")
+
+
+msg_time("Finished!")

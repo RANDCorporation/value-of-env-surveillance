@@ -1,18 +1,27 @@
 
-# Use this file to set global project settings:
+# Increase n_reps to 1,000 for a real-scale run.
+# Only do that in a capable machines
+# n_reps - use 1,000 for real runs, use 50 to just test the code.
+n_reps: 10
 
-data_file: "./data/metapopulation-inputs-master.xlsx"
-
-lib_path: "./R/functions"
+# How many cores to use if running simulations in parallel
+n_cores: 6
 
 # Whether to run simulations in parallel
 parallel: TRUE
 
-# How many cores to use if running simulations in parallel
-n_cores: 4
+# If running model in parallel, create experiment from the cluster_eval file
+model_from_cluster_eval: TRUE
+
+# If model_from_cluster_eval is TRUE, this file must instiate a cluster_experiment object
+# This object will be instantiated in each parallel process *once* before running all simualations
+# This appears to be the only way to run the model in parallel with odin at the moment.
+cluster_eval_script: "./R/scripts/cluster_eval.R"
+
+# Use this file to set global project settings:
+data_file: "./data/metapopulation-inputs-master.xlsx"
+
+lib_path: "./R/functions"
 
 # FALSE if loading from installed package
-r6sim_load_all: TRUE
-
-# n_reps - use 1,000 for real runs, use 50 to just test the code.
-n_reps: 10
+r6sim_load_all: FALSE
