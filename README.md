@@ -17,9 +17,6 @@ The `renv.lock` file contains the packages and versions used in this project. If
 # install.packages("renv")
 renv::restore()
 ```
-
-should do most of the work for you once you open the `genomic-surveillance-voi.Rproj` file. If you are unfamiliar with `renv, read [this](https://rstudio.github.io/renv/articles/renv.html). If that doesn't work, read on. 
-
 ### Installing dependencies without `renv`
 
 #### Install `R6Sim`

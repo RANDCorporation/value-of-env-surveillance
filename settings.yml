@@ -4,3 +4,15 @@
 data_file: "./data/metapopulation-inputs-master.xlsx"
 
 lib_path: "./R/functions"
+
+# Whether to run simulations in parallel
+parallel: TRUE
+
+# How many cores to use if running simulations in parallel
+n_cores: 4
+
+# FALSE if loading from installed package
+r6sim_load_all: TRUE
+
+# n_reps - use 1,000 for real runs, use 50 to just test the code.
+n_reps: 10

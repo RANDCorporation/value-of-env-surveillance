@@ -11,138 +11,15 @@
 #------------------------------------------------------------------------------#
 
 # Source all dependencies and model scripts
-source("./R/library.R")
-
-# results list contains the results we want to save
-if (!file.exists("./output/r.rds")) {
-  r <- list()
-} else {
-  r <- readRDS("./output/r.rds")
-}
-
-
-# 1. Set up experiments and constants ----------------------------------------
-
-model <- OdinMetapop$new("stochastic_metapopulation.R", s$data_file)
-
-model$set_param_dist(params_list = list(param_dist_a = data.frame(sample_param = 1, weights = 1)), use_average = T, param_dist_weights = "weights")
-
-base_scenarios <- readxl::read_xlsx("./data/scenarios.xlsx", sheet = "one-way-scenarios")
-
-outcomes <- c("deaths_per_100k", "CH_illness", "CH_deaths", "CH", "L5_days", "L1plus_days", "CNPI", "C", "epi_size")
-
-# counterfactual scenarios without enhanced EWS
-count_scenarios <- base_scenarios %>%
-  filter(Section == "Scenarios") %>%
-  mutate(total_surv_lag = 13, p = 0.3, NMB_comparator = T)
-
-all_scenarios <- rbind(base_scenarios, count_scenarios)
-
-# create experiment
-base_experiment <- R6Experiment$new(model)
-
-base_experiment$set_design(grid_design_df = all_scenarios)
-
-
-# tau vs R0 experimental design
-
-tau <- c(seq.default(from = 0, to = 1, by = 0.025) / 5)
-R0 <- 2.5 * c(0.5, 1, 1.5)
-
-EWS <- c(T, F)
-tau_design <- expand_grid(tau, EWS, R0) %>%
-  mutate(p = ifelse(EWS, 1, 0.3)) %>%
-  mutate(total_surv_lag = ifelse(EWS, 8, 13))
-
-tau_experiment <- R6Experiment$new(model)
-
-tau_experiment$set_design(grid_design_df = tau_design)
-
 
 
 # 2. Run experiments ------------------------------------------------------
 
-## 2.1 Run main experiment -----------------------------------------------------
+# The following two steps will take about 30 minutes to run on a macbook pro.
 
-base_results <- base_experiment$run(
-  parallel = T,
-  cluster_eval_script = "./R/scripts/cluster_eval.R",
-  parallel::detectCores() - 4,
-  model_from_cluster_eval = T
-)
+source("./R/scripts/run_tau_experiment.R")
 
-
-# Compute differences at the replication level:
-comp_results <- base_results %>%
-  filter(NMB_comparator) %>%
-  select(rep, counterfactual.id, any_of(outcomes)) %>%
-  clear.labels() %>%
-  rename_at(vars(any_of(outcomes)), function(x) paste0(x, "_no_ews"))
-
-
-base_res_diff <- base_results %>%
-  clear.labels() %>%
-  left_join(comp_results, by = join_by(rep, counterfactual.id))
-
-base_res_diff <- base_res_diff %>%
-  mutate(across(any_of(outcomes), ~ pull(base_res_diff, paste0(cur_column(), "_no_ews")) - ., .names = "{.col}_diff")) %>%
-  rename(NMB = C_diff)
-
-
-base_results_rep_summaries <- base_res_diff %>%
-  select(-c(rep, grid.id, lhs.id, params_design.id, param.id, model.id, all.params.id, c, p, total_surv_lag, a_up, a_down, p, R0, r, cost_max_npi, tau, policy.exp.id)) %>%
-  group_by(Scenario, Section, Class, counterfactual.id, NMB_comparator) %>%
-  summarise_all(summary_functions) %>%
-  ungroup() %>%
-  clear.labels()
-
-# Create posterior summaries for the parameters:
-r$base_results_long <- base_results_rep_summaries %>%
-  group_by(Scenario, Section, Class, counterfactual.id) %>%
-  pivot_longer(cols = -c(Scenario, Section, Class, NMB_comparator, counterfactual.id), names_to = "statistic", values_to = "value") %>%
-  as.data.frame() %>%
-  separate(col = statistic, into = c("variable", "stat"), sep = "_\\.")
-
-
-r$fig_effectiveness_data <- tau_results %>%
-  mutate(effectiveness = tau * 5) %>%
-  select(effectiveness, EWS, any_of(outcomes)) %>%
-  group_by(effectiveness, EWS) %>%
-  summarise_all(summary_functions) %>%
-  mutate(EWS = ifelse(EWS, "NPIs w/ EWS", "NPIs w/o EWS"))
-
-## 2.2 Run tau experiment ------------------------------------------------------
-
-# Wait a little while so we can re-start another parallel session
-Sys.sleep(10)
-
-tau_results <- tau_experiment$run(
-  parallel = T,
-  cluster_eval_script = "./R/scripts/cluster_eval.R",
-  parallel::detectCores() - 4,
-  model_from_cluster_eval = T
-)
-
-
-# Comparator scenarios without EWS
-tau_comp <- tau_results %>%
-  filter(!EWS) %>%
-  select(rep, tau, R0, C) %>%
-  rename(C_no_EWS = C)
-
-# Net monetary benefit
-tau_NMB <- tau_results %>%
-  filter(EWS) %>%
-  left_join(tau_comp, by = join_by(rep, tau, R0)) %>%
-  mutate(effectiveness = tau * 5) %>%
-  mutate(NMB = C_no_EWS - C)
-
-# Net monetary benefit summary stats
-r$tau_NMB_summary <- tau_NMB %>%
-  group_by(effectiveness, R0, EWS) %>%
-  select(effectiveness, R0, EWS, NMB, C) %>%
-  summarise_all(summary_functions) %>%
-  mutate(EWS = ifelse(EWS, "NPIs w/ EWS", "NPIs w/o EWS"))
+source("./R/scripts/run_main_experiment.R")
 
 
 # 3. Tables ---------------------------------------------------------------
