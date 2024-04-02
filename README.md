@@ -1,8 +1,8 @@
-# Genomic Surveillance Value of Information Code Repository
+# The Value of Environmental Surveillance for Pandemic Response
 
 ## About this repository
 
-This repository contains code to reproduce *Nascimento de Lima et al. (forthcoming). The value of environmental surveillance for pandemic response*. The `run_analysess.R` script runs the model and produces the figures and tables in the paper. All our results can be reproduced with free software.
+This repository contains code to reproduce *Nascimento de Lima et al. (forthcoming). The value of environmental surveillance for pandemic response*. The `run_analyses.R` script runs the model and produces the figures and tables in the paper. All our results can be reproduced with free software.
 
 ## Dependencies
 
@@ -13,7 +13,7 @@ You can use `renv` to use the same package versions we used to produce our resul
 
 ## Where to start
 
-*After* installing R dependencies, use the `run_all_analyses.R` file or run `bash run_all_analyses.sh` to run all scripts. Once they do run, open the `settings.yml` file and increase the `n_reps` setting to 1,000 to use the actual settings used to produce our results.
+*After* installing R dependencies, use the `run_all_analyses.R` file or run `bash run_all_analyses.sh` on your terminal to run all scripts. This should take one minute with the default small sample size. After it runs, open the `settings.yml` file and increase the `n_reps` setting to 1,000 to use the actual settings used to produce our results.
 
 ## Organization
 
@@ -30,6 +30,4 @@ questions related to this repository.
 
 ## License
 
-Copyright (C) 2024 by The [RAND Corporation](https://www.rand.org). This
-repository is released as open-source software under a GPL-3.0 license.
-See the LICENSE file.
+Copyright (C) 2024 by The [RAND Corporation](https://www.rand.org). This repository is released as open-source software under a GPL-3.0 license. See the LICENSE.md file.
