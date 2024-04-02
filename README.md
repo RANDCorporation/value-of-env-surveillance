@@ -6,18 +6,11 @@ This repository contains code to reproduce *Nascimento de Lima et al. (2024). Th
 
 ## Dependencies
 
-Use the `install_dependencies.sh` script (or step through the `install_dependencies.R`) to install your dependencies using your local library. Alternatively, you can use `renv` to use the same package versions used in our paper by setting the `use_renv` variable in the `settings.yml` file and doing the same.
+Use the `install_dependencies.sh` script (or step through the `install_dependencies.R`) to install your dependencies using your local library. 
 
-### Installing dependencies with `renv`
+# Using `renv`
+You can use `renv` to use the same package versions used in our paper by setting the `use_renv` variable in the `settings.yml` file and doing the same. If you do use `renv`, activate the renv by uncommenting the `source("renv/activate.R")` line in the `.Rprofile` script.
 
-The `renv.lock` file contains the packages and versions used in this project. If you have an up-to-date R Studio version, you should be able to do the following to install the same package versions used in this project:
-
-```r
-# install renv in case you do not have it:
-# install.packages("renv")
-renv::restore()
-```
-### Installing dependencies without `renv`
 
 #### Install `R6Sim`
 
@@ -40,14 +33,9 @@ Install [R6Sim](https://github.com/randcorporation/R6Sim/) from github:
 remotes::install_github("randcorporation/r6sim")
 ```
 
-#### Install other R dependencies
-
-Open the `R/library.R` file with RStudio and install the missing packages Rstudio identifies. All dependencies should be listed in that file.
-
-
 ## Where to start
 
-Use the `run_analysis.R` file to produce the tables and figures in our analysis.
+Use the `run_all_analyses.R` file or the `run_all_analyses.sh` to run all analytical scripts. Once they do run and after you work through any other dependency issues, open the `settings.yml` file and increase the `n_reps` setting to 1,000 to use the actual settings used to produce our results.
 
 ## Organization
 
@@ -57,5 +45,13 @@ Use the `run_analysis.R` file to produce the tables and figures in our analysis.
 - `./data`: Contains data inputs.
 - `./archive`: Contains archive data.
 
+## Contact
+
+Reach out to [Pedro Nascimento de Lima](https://www.rand.org/about/people/l/lima_pedro_nascimento_de.html) for
+questions related to this repository.
+
 ## License
-TBD.
+
+Copyright (C) 2024 by The [RAND Corporation](https://www.rand.org). This
+repository is released as open-source software under a GPL-3.0 license.
+See the LICENSE file.
