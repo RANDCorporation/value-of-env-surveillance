@@ -5,21 +5,34 @@
 # See README.md for information on usage and licensing
 #------------------------------------------------------------------------------#
 
+# Pre-requisite packages:
+
+pre_packages <- c("renv", "yaml", "remotes")
+
+install.packages(pre_packages, repos = "https://cran.rstudio.com")
+
 # Use this script to install dependencies for this project.
 
-# Alternatively, first install the renv package with install.packages("renv"),
-# then run renv::restore() to install the same package versions we used or use renv::install().
+s <- yaml::read_yaml("settings.yml")
 
-# CRAN packages
-cran_packages <- c(
-  "Hmisc", "R6", "tidyr", "odin", "dplyr", "ggplot2", "dde",
-  "gt", "lemon", "lubridate", "parallel", "purrr", "readxl",
-  "scales", "writexl", "yaml", "pkgbuild", "pkgload"
-)
+# install a fresh version from CRAN if not using renv
+if(!s$use_renv) {
 
-install.packages(cran_packages)
+  # CRAN packages
+  cran_packages <- c("Hmisc", "R6", "tidyr", "odin", "dplyr", "ggplot2", "dde",
+                     "gt", "lemon", "lubridate", "purrr", "readxl",
+                     "scales", "writexl", "pkgbuild", "pkgload"
+  )
 
-# github packages
-remotes::install_github("https://github.com/RANDCorporation/randplot")
+  install.packages(cran_packages, repos = "https://cran.rstudio.com")
 
-remotes::install_github("https://github.com/RANDCorporation/R6Sim")
+ #remotes::install_github("https://github.com/RANDCorporation/randplot")
+
+ # To be uncommented once R6Sim is public on Github
+ # remotes::install_github("https://github.com/RANDCorporation/R6Sim")
+
+} else {
+
+  renv::restore()
+
+}

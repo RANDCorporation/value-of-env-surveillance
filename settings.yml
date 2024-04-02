@@ -25,3 +25,6 @@ lib_path: "./R/functions"
 
 # FALSE if loading from installed package
 r6sim_load_all: FALSE
+
+# Whether to use renv: only used when installing packages
+use_renv: FALSE
