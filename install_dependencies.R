@@ -29,10 +29,12 @@ if(!s$use_renv) {
  #remotes::install_github("https://github.com/RANDCorporation/randplot")
 
  # To be uncommented once R6Sim is public on Github
- # remotes::install_github("https://github.com/RANDCorporation/R6Sim")
+ # remotes::install_github("https://github.com/RANDCorporation/R6Sim@v1.0.0")
 
 } else {
 
   renv::restore()
 
 }
+
+
