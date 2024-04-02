@@ -13,6 +13,12 @@
 
 #showConnections()
 
+# Load settings:
+s <- yaml::read_yaml("settings.yml")
+
+if(s$use_renv) {
+  source("renv/activate.R")
+}
 
 # tidyverse
 library(dplyr)
@@ -52,8 +58,7 @@ library(R6Sim)
 
 
 
-# Load settings:
-s <- yaml::read_yaml("settings.yml")
+
 
 
 # Source all functions
