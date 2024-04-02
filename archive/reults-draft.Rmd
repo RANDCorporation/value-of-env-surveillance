@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE, warning = F, message = F)
 
 # Reproducibility notes
 
-This `quarto` document produces the results presented in *Nascimento de Lima et al. (2024). The value of environmental surveillance for pandemic response*. For details on how to install dependencies, see the `README.md` file. Before attempting to run this document, install all dependencies and run the `run_analysis.R` script. You should be able to reproduce all figures and tables from our paper using this document on a modern laptop within 30 minutes.
+This document is an early draft of the results section in *Nascimento de Lima et al. (2024). The value of environmental surveillance for pandemic response*. We use it to pull results from the results object programmatically. For details on how to install dependencies, see the `README.md` file. Before attempting to run this document, install all dependencies and run the `run_analysis.R` script. You should be able to reproduce all figures and tables from our paper using this document on a modern laptop within 30 minutes.
 
 # Running the model
 
@@ -27,28 +27,8 @@ if (!file.exists("./output/r.rds")) {
 }
 ```
 
-# Scenarios
-Supplementary Table 1 provides details on parameter values used under our baseline scenario. The baseline scenario with conventional surveillance assumes a syndromic surveillance system based upon confirmed case counts, and there is a thirteen-day time span from exposure to the pathogen to detection by the public health authority. This thirteen-day lag covers the disease incubation phase (6.6 days)(cite) and testing and reporting delays (6 days).(cite) Consistent with estimates from the COVID-19 pandemic, the conventional surveillance system has a 30% case ascertainment rate.(cite) We assume the environmental sampling system can provide absolute, unbiased disease incidence estimates that lead the case counts by five days in the base-case scenario. We explore longer and shorter lead times, as this lag depends on two to ten days. We use 5 days as the base-case scenario, as wastewater surveillance systems have been able to demonstrate. (cite) Moreover, this analysis assumed that all the populations within the jurisdictions are covered by the EWS (or equivalently, that the sampled population is a representative sample of all the population).
-
-# Population
-The model simulates disease percolating through six interconnected jurisdictions that independently make nonpharmaceutical decisions. Individuals can travel and work across jurisdiction lines, and the six jurisdictions each have a population of 10^6 individuals. Mortality parameters were chosen to reflect mortality rates observed in the United States during the first year of the COVID-19 pandemic; hence, our results can be interpreted as expected outcomes for a cluster of US counties.
-
-# Outcomes
-The average mortality per 100,000 population across the jurisdiction is the primary health outcome in this study. We also compute the cost of illness due to disease, using SARS-Cov-2 as the base-case scenario. We also account for economic costs caused by the nonpharmaceutical interventions introduced (discussed in the Supplementary Appendix). All outcomes are computed over one year from the pandemic onset and are averages computed across the jurisdictions in our model. Since the model is stochastic, we simulate the model 1,000 times and present means and 95% prediction intervals (calculated with the 2.5% and the 97.5% percentiles) of each outcome.
-
-# Calibration
-We used parameter estimates from the literature whenever possible (Supplementary Table 1). However, two of our model parameters need calibration so that model outcomes in our base-case surveillance scenario match the number of deaths observed in the US during the first year of the COVID-19 pandemic. We calibrate two parameters that cannot be directly observed from data: $tau$ and $c$. Our calibration procedure uses two data targets: i) the average number of COVID-19 deaths per 100,000 population from March 1st 2020 to March 1st 2021 in US states, and ii) the median number of days spent at the highest intervention level adopted in US states, defined as a Policy Stringency of 95% or more relative to the maximum NPI stringency level, as measured by the Oxford COVID-19 NPI policy database. We compute a mean square error distance function, equally weighing the deaths and the days under maximum intervention level,  choosing $tau$ and $c$ to minimize that distance function. In this calibration exercise, $tau = 0.14$, and $c = 17.8$, which are plausible values. As a validation target, we observed taht the epidemic size at the end of the first year of the pandemic was on the order of 30% (cite specific numbers), which is above US-level seroprevalence survey estimates at that point in time (~20%). Since seroprevalence surveys only provide a lower bound to the epidemic size due to waning immunity, we found our calibration to appropriately capture the order of magnitude of reduction in mixing caused by NPI policies, under the assumption that the baseline R0 in the US was 2.5.
-
- the optimization search    R0 is computed based on disease progression rates. We calibrate only the $tau$ parameter, which is highly heterogeneous and context-dependent (cite Laura), to match the number of deaths observed during the first year in the United States. We find that $tau = 0.137$. We explore the implication of a wider range of policy effectiveness in sensitivity analyses and explore this particular parameter in more detail.
-
-## Sensitivity Analyses
-We explore the performance of the EWS under conditions that depart from COVID-19 by varying model parameters one at a time, aiming to represent a new emerging pathogen for which the population has no immunity.
 
 # Results
-
-## Early warning systems can shape disease and policy dynamics
-
-An early warning system that shifts the epidemiological time series used to inform non-pharmaceutical decisions can change the course of the pandemic with effective interventions (Figure 1). We consider a network of jurisdictions managed by independent public health departments. For simplicity, we consider two cases: One in which the jurisdictions base their decisions upon syndromic surveillance and another (counterfactual) scenario where they can use data from environmental sampling sources (i.e., without loss of generality, wastewater surveillance), which leads syndromic surveillance data by a few days. The two sets of jurisdictions are otherwise equal and face the same pandemic. 
 
 ## Value of EWS under baseline assumptions
 

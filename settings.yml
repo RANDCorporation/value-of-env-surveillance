@@ -23,10 +23,10 @@
 # Increase n_reps to 1,000 for a real-scale run.
 # Only do that in a capable machines
 # n_reps - use 1,000 for real runs, use 50 to just test the code.
-n_reps_main: 1000
+n_reps_main: 50
 
-# This number of replications can be smaller since we don't report prediction intervals in-text; only in figures.
-n_reps_tau: 100
+# Use at least 500 for the real runs
+n_reps_tau: 10
 
 # How many cores to use if running simulations in parallel
 n_cores: 5
