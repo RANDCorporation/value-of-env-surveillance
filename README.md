@@ -2,14 +2,14 @@
 
 ## About this repository
 
-This repository contains code to reproduce *Nascimento de Lima et al. (forthcoming). The value of environmental surveillance for pandemic response*. The `run_analysess.R` script runs the model and produces the figures and tables in the paper. All our results can be reproduced with R and only use free software.
+This repository contains code to reproduce *Nascimento de Lima et al. (forthcoming). The value of environmental surveillance for pandemic response*. The `run_analysess.R` script runs the model and produces the figures and tables in the paper. All our results can be reproduced with free software.
 
 ## Dependencies
 
 First, install the [R6Sim](https://github.com/randcorporation/R6Sim/) R package. Then, install the remaining dependencies by running `bash install_dependencies.sh` or step through the `install_dependencies.R` script using RStudio.
 
 ### Using `renv`
-You can use `renv` to use the same package versions used in our paper by setting the `use_renv` variable in the `settings.yml` file. If you do use `renv`, activate it by uncommenting the `source("renv/activate.R")` line in the `.Rprofile` script.
+You can use `renv` to use the same package versions we used to produce our results by setting the `use_renv` variable in the `settings.yml` file. If you do use `renv`, activate it by uncommenting the `source("renv/activate.R")` line in the `.Rprofile` script.
 
 ## Where to start
 

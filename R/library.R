@@ -1,24 +1,42 @@
 #------------------------------------------------------------------------------#
-# Code for "The value of environmental surveillance for pandemic response"
+# Code for "The value of environmental sampling surveillance"
+# Copyright (C) 2024 by The RAND Corporation
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# See LICENSE.md and README.md for more information on usage and licensing
 #
 # Author: Pedro Nascimento de Lima
-# See README.md for information on usage and licensing
 #------------------------------------------------------------------------------#
 
 # load standard packages --------------------------------------------------
 
 # unfortunately, this is necessary so that we can run experiments one after the other
-#rm(list = ls(all.names = TRUE)) #will clear all objects includes hidden objects.
-#gc() #free up memrory and report the memory usage.
+# rm(list = ls(all.names = TRUE)) #will clear all objects includes hidden objects.
+# gc() #free up memrory and report the memory usage.
 
-#showConnections()
+# showConnections()
 
 # Load settings:
 s <- yaml::read_yaml("settings.yml")
 
-if(s$use_renv) {
+if (s$use_renv) {
   source("renv/activate.R")
 }
+
+# Set seed
+set.seed(s$seed)
 
 # tidyverse
 library(dplyr)
@@ -78,9 +96,8 @@ ggplot <- function(...) {
 
 # into the parent folder of the c19-paths repository
 # this will be necessary until we release the package externally
-if(s$r6sim_load_all) {
+if (s$r6sim_load_all) {
   devtools::load_all("../R6Sim")
 } else {
   library(R6Sim)
 }
-

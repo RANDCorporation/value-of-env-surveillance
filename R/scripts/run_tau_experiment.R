@@ -1,4 +1,24 @@
-
+#------------------------------------------------------------------------------#
+# Code for "The value of environmental sampling surveillance"
+# Copyright (C) 2024 by The RAND Corporation
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# See LICENSE.md and README.md for more information on usage and licensing
+#
+# Author: Pedro Nascimento de Lima
+#------------------------------------------------------------------------------#
 
 # Source all dependencies and model scripts
 source("./R/library.R")
@@ -37,14 +57,13 @@ tau_experiment$set_design(grid_design_df = tau_design)
 
 msg_time("Running tau experiment")
 
-msg_time("This should take up to a minute to run for testing, but around 30 minutes to run on a macbookpro 2022.")
-
 tau_results <- tau_experiment$run(
   parallel = s$parallel,
   cluster_eval_script = s$cluster_eval_script,
   n_cores = s$n_cores,
   model_from_cluster_eval = s$model_from_cluster_eval,
-  reps = s$n_reps
+  reps = s$n_reps,
+  seed = s$seed
 )
 
 msg_time("Post-processing tau experiment.")

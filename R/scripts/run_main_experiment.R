@@ -1,4 +1,26 @@
+#------------------------------------------------------------------------------#
+# Code for "The value of environmental sampling surveillance"
+# Copyright (C) 2024 by The RAND Corporation
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# See LICENSE.md and README.md for more information on usage and licensing
+#
+# Author: Pedro Nascimento de Lima
+#------------------------------------------------------------------------------#
 
+# Run main results experiments
 
 source("./R/library.R")
 
@@ -39,14 +61,12 @@ base_experiment$set_design(grid_design_df = all_scenarios)
 ## 2.1 Run main experiment -----------------------------------------------------
 
 
-#cl <- snow::makeCluster(n_cores)
-#doSNOW::registerDoSNOW(cl)
-#snow::clusterExport(cl, "cluster_eval_script", envir = environment())
-#snow::clusterEvalQ(cl, source(cluster_eval_script))
+# cl <- snow::makeCluster(n_cores)
+# doSNOW::registerDoSNOW(cl)
+# snow::clusterExport(cl, "cluster_eval_script", envir = environment())
+# snow::clusterEvalQ(cl, source(cluster_eval_script))
 
 msg_time("Running main results experiment")
-
-msg_time("this should take up to a minute with 50 replications (for testing) and about 15 minutes on a macbook pro for 1000 replications")
 
 # Adjust settings in the settings.yml file
 base_results <- base_experiment$run(
@@ -54,7 +74,8 @@ base_results <- base_experiment$run(
   cluster_eval_script = s$cluster_eval_script,
   n_cores = s$n_cores,
   model_from_cluster_eval = s$model_from_cluster_eval,
-  reps = s$n_reps
+  reps = s$n_reps,
+  seed = s$seed
 )
 
 msg_time("Finishing post-processing")
