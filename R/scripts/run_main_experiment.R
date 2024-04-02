@@ -74,7 +74,7 @@ base_results <- base_experiment$run(
   cluster_eval_script = s$cluster_eval_script,
   n_cores = s$n_cores,
   model_from_cluster_eval = s$model_from_cluster_eval,
-  reps = s$n_reps,
+  reps = s$n_reps_main,
   seed = s$seed
 )
 

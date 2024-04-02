@@ -21,7 +21,8 @@ You can use `renv` to use the same package versions we used to produce our resul
 - `settings.yml` contains settings that would otherwise be hard-coded. Settings are saved in the `s` list, which is a global variable.
 - `./cpp`: This folder will be created by `odin` and will house your compiled c++ models. You do not need to edit the files within that folder.
 - `./data`: Contains data inputs.
-- `./archive`: Contains archive data.
+- `./output`: Model outputs are saved to this folder. File names map to the tables and figures in our paper.
+- `./archive`: Contains archive data or scripts.
 
 ## Contact
 
