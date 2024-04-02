@@ -6,7 +6,7 @@ This repository contains code to reproduce *Nascimento de Lima et al. (2024). Th
 
 ## Dependencies
 
-Use the `install_dependencies.R` script to install your dependencies. Alternatively, you can use `renv` to use the same package versions used in our paper.
+Use the `install_dependencies.sh` script (or step through the `install_dependencies.R`) to install your dependencies using your local library. Alternatively, you can use `renv` to use the same package versions used in our paper by setting the `use_renv` variable in the `settings.yml` file and doing the same.
 
 ### Installing dependencies with `renv`
 

@@ -25,6 +25,7 @@ library(readxl)
 library(writexl)
 library(parallel)
 library(yaml)
+library(svglite)
 
 # Miscelaneous
 library(R6)

@@ -21,7 +21,7 @@ if(!s$use_renv) {
   # CRAN packages
   cran_packages <- c("Hmisc", "R6", "tidyr", "odin", "dplyr", "ggplot2", "dde",
                      "gt", "lemon", "lubridate", "purrr", "readxl",
-                     "scales", "writexl", "pkgbuild", "pkgload"
+                     "scales", "writexl", "pkgbuild", "pkgload", "svglite"
   )
 
   install.packages(cran_packages, repos = "https://cran.rstudio.com")
