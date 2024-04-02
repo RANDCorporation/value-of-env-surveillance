@@ -2,40 +2,18 @@
 
 ## About this repository
 
-This repository contains code to reproduce *Nascimento de Lima et al. (2024). The value of environmental surveillance for pandemic response*. The `run_analysis.R` script produces the figures and tables in the paper. All our results can be reproduced with free software.
+This repository contains code to reproduce *Nascimento de Lima et al. (forthcoming). The value of environmental surveillance for pandemic response*. The `run_analysess.R` script runs the model and produces the figures and tables in the paper. All our results can be reproduced with R and only use free software.
 
 ## Dependencies
 
-Use the `install_dependencies.sh` script (or step through the `install_dependencies.R`) to install your dependencies using your local library. 
+First, install the [R6Sim](https://github.com/randcorporation/R6Sim/) R package. Then, install the remaining dependencies by running `bash install_dependencies.sh` or step through the `install_dependencies.R` script using RStudio.
 
-# Using `renv`
-You can use `renv` to use the same package versions used in our paper by setting the `use_renv` variable in the `settings.yml` file and doing the same. If you do use `renv`, activate the renv by uncommenting the `source("renv/activate.R")` line in the `.Rprofile` script.
-
-
-#### Install `R6Sim`
-
-[R6Sim](https://github.com/randcorporation/R6Sim/) is an R6-based R package that contains base classes and infrastructure for developing and running simulation models using the encaspsulated object-oriented approach offered by `R6`. The model we use is an `R6Sim` model and, we use the `R6Experiment` class to organize and run our experiments in parallel.
-
-**Interim instructions while R6Sim is not open source:**
-
-First, make sure you have access to the [R6Sim](https://github.com/randcorporation/R6Sim/) code repository. If not, ask Pedro Nascimento de Lima to give access to your github account. Then, generate a [github personal access token (PAT)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) with access to your account. Once you do those steps, you can run on the R console:
-
-```r
-Sys.setenv(GITHUB_PAT = "your_pat")
-```
-
-Install [R6Sim](https://github.com/randcorporation/R6Sim/) from github:
-
-```r
-# install the remotes package you do not have it yet
-# install.packages("remotes")
-
-remotes::install_github("randcorporation/r6sim")
-```
+### Using `renv`
+You can use `renv` to use the same package versions used in our paper by setting the `use_renv` variable in the `settings.yml` file. If you do use `renv`, activate it by uncommenting the `source("renv/activate.R")` line in the `.Rprofile` script.
 
 ## Where to start
 
-Use the `run_all_analyses.R` file or the `run_all_analyses.sh` to run all analytical scripts. Once they do run and after you work through any other dependency issues, open the `settings.yml` file and increase the `n_reps` setting to 1,000 to use the actual settings used to produce our results.
+*After* installing R dependencies, use the `run_all_analyses.R` file or run `bash run_all_analyses.sh` to run all scripts. Once they do run, open the `settings.yml` file and increase the `n_reps` setting to 1,000 to use the actual settings used to produce our results.
 
 ## Organization
 
