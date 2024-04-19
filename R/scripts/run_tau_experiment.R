@@ -46,10 +46,10 @@ model$set_param_dist(params_list = list(param_dist_a = data.frame(sample_param =
 tau <- c(seq.default(from = 0, to = 1, by = 0.025) / 5)
 R0 <- 2.5 * c(0.5, 1, 1.5)
 
-EWS <- c(T, F)
-tau_design <- expand_grid(tau, EWS, R0) %>%
-  mutate(p = ifelse(EWS, 1, 0.3)) %>%
-  mutate(total_surv_lag = ifelse(EWS, 8, 13))
+ESS <- c(T, F)
+tau_design <- expand_grid(tau, ESS, R0) %>%
+  mutate(p = ifelse(ESS, 1, 0.3)) %>%
+  mutate(total_surv_lag = ifelse(ESS, 8, 13))
 
 tau_experiment <- R6Experiment$new(model)
 
@@ -70,30 +70,30 @@ msg_time("Post-processing tau experiment.")
 
 r$fig_effectiveness_data <- tau_results %>%
   mutate(effectiveness = tau * 5) %>%
-  select(effectiveness, EWS, any_of(r$outcomes)) %>%
-  group_by(effectiveness, EWS) %>%
+  select(effectiveness, ESS, any_of(r$outcomes)) %>%
+  group_by(effectiveness, ESS) %>%
   summarise_all(summary_functions) %>%
-  mutate(EWS = ifelse(EWS, "NPIs w/ EWS", "NPIs w/o EWS"))
+  mutate(ESS = ifelse(ESS, "NPIs w/ ESS", "NPIs w/o ESS"))
 
-# Comparator scenarios without EWS
+# Comparator scenarios without ESS
 tau_comp <- tau_results %>%
-  filter(!EWS) %>%
+  filter(!ESS) %>%
   select(rep, tau, R0, C) %>%
-  rename(C_no_EWS = C)
+  rename(C_no_ESS = C)
 
 # Net monetary benefit
 tau_NMB <- tau_results %>%
-  filter(EWS) %>%
+  filter(ESS) %>%
   left_join(tau_comp, by = join_by(rep, tau, R0)) %>%
   mutate(effectiveness = tau * 5) %>%
-  mutate(NMB = C_no_EWS - C)
+  mutate(NMB = C_no_ESS - C)
 
 # Net monetary benefit summary stats
 r$tau_NMB_summary <- tau_NMB %>%
-  group_by(effectiveness, R0, EWS) %>%
-  select(effectiveness, R0, EWS, NMB, C) %>%
+  group_by(effectiveness, R0, ESS) %>%
+  select(effectiveness, R0, ESS, NMB, C) %>%
   summarise_all(summary_functions) %>%
-  mutate(EWS = ifelse(EWS, "NPIs w/ EWS", "NPIs w/o EWS"))
+  mutate(ESS = ifelse(ESS, "NPIs w/ ESS", "NPIs w/o ESS"))
 
 msg_time("Wrapping up and saving results.")
 

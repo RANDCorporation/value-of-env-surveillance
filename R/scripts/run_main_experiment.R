@@ -45,7 +45,7 @@ r$base_scenarios <- readxl::read_xlsx("./data/scenarios.xlsx", sheet = "one-way-
 
 r$outcomes <- c("deaths_per_100k", "CH_illness", "CH_deaths", "CH", "L5_days", "L1plus_days", "CNPI", "C", "epi_size")
 
-# counterfactual scenarios without enhanced EWS
+# counterfactual scenarios without enhanced ESS
 count_scenarios <- r$base_scenarios %>%
   filter(Section == "Scenarios") %>%
   mutate(total_surv_lag = 13, p = 0.3, NMB_comparator = T)
@@ -85,7 +85,7 @@ comp_results <- base_results %>%
   filter(NMB_comparator) %>%
   select(rep, counterfactual.id, any_of(r$outcomes)) %>%
   clear.labels() %>%
-  rename_at(vars(any_of(r$outcomes)), function(x) paste0(x, "_no_ews"))
+  rename_at(vars(any_of(r$outcomes)), function(x) paste0(x, "_no_ESS"))
 
 
 base_res_diff <- base_results %>%
@@ -93,7 +93,7 @@ base_res_diff <- base_results %>%
   left_join(comp_results, by = join_by(rep, counterfactual.id))
 
 base_res_diff <- base_res_diff %>%
-  mutate(across(any_of(r$outcomes), ~ pull(base_res_diff, paste0(cur_column(), "_no_ews")) - ., .names = "{.col}_diff")) %>%
+  mutate(across(any_of(r$outcomes), ~ pull(base_res_diff, paste0(cur_column(), "_no_ESS")) - ., .names = "{.col}_diff")) %>%
   rename(NMB = C_diff)
 
 
