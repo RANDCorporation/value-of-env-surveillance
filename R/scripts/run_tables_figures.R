@@ -129,17 +129,11 @@ r$fig_1 <- r$fig_1_data %>%
     color = "ESS system"
   ) +
   scale_color_manual(values = colors) +
-  scale_y_continuous(labels = scales::dollar_format(scale = 1e-3, prefix = "", accuracy = 0.5)) +
-  theme(plot.margin = margin(
-    t = 0,
-    r = 0,
-    b = 0,
-    l = 0
-  ))
+  scale_y_continuous(labels = scales::dollar_format(scale = 1e-3, prefix = "", accuracy = 0.1))
 
 r$fig_1
 
-ggsave(plot = r$fig_1, filename = "./output/fig_1.svg", units = "in", width = 6.5, height = 5, scale = 1.4, bg = "white", dpi = 300)
+ggsave(plot = r$fig_1, filename = "./output/fig_1.pdf", units = "in", width = 6.5, height = 5, scale = 1.4, bg = "white", dpi = 300)
 
 ## Fig 2 ----------------------------------------------------------------
 
@@ -163,7 +157,7 @@ r$fig_2 <- r$tau_NMB_summary %>%
 
 r$fig_2
 
-ggsave(plot = r$fig_2, filename = "./output/fig_2.svg", units = "in", width = 6.5, height = 5, scale = 1.4, bg = "white", dpi = 300)
+ggsave(plot = r$fig_2, filename = "./output/fig_2.pdf", units = "in", width = 6.5, height = 5, scale = 1.4, bg = "white", dpi = 300)
 
 
 ## Sup Figure 1 ------------------------------------------------------------
@@ -183,25 +177,14 @@ r$sup_fig_1 <- r$fig_1_data %>%
     color = "ESS system"
   ) +
   scale_color_manual(values = colors) +
-  scale_y_continuous(labels = scales::dollar_format(scale = 1e-3, prefix = "", accuracy = 1)) +
-  theme(plot.margin = margin(
-    t = 0,
-    r = 12,
-    b = 0,
-    l = 0
-  ))
+  scale_y_continuous(labels = scales::dollar_format(scale = 1e-3, prefix = "", accuracy = 1))
 
 r$sup_fig_1
 
-ggsave(plot = r$sup_fig_1, filename = "./output/sup_fig_1.svg", units = "in", width = 6.5, height = 6.5, scale = 1.4, bg = "white", dpi = 300)
+ggsave(plot = r$sup_fig_1, filename = "./output/sup_fig_1.pdf", units = "in", width = 6.5, height = 6.5, scale = 1.4, bg = "white", dpi = 300)
 
 
 ## Sup figure 2
-
-
-nmb_to_period <- function(nmb, cost) {
-  cost / nmb
-}
 
 costs <- data.frame(cost = c(5,10,50,100))
 
@@ -226,16 +209,10 @@ r$sup_fig_2 <- r$sup_fig_2_data  %>%
   ) +
   #scale_color_manual(values = colors) +
   #scale_y_continuous(labels = scales::number_format(accuracy = 1)) +
-  theme(plot.margin = margin(
-    t = 0,
-    r = 12,
-    b = 0,
-    l = 0
-  ))
 
 r$sup_fig_2
 
-ggsave(plot = r$sup_fig_2, filename = "./output/sup_fig_2.svg", units = "in", width = 6.5, height = 6.5, scale = 1.4, bg = "white", dpi = 300)
+ggsave(plot = r$sup_fig_2, filename = "./output/sup_fig_2.pdf", units = "in", width = 6.5, height = 6.5, scale = 1.4, bg = "white", dpi = 300)
 
 
 # 5. Additional figures ---------------------------------------------------
@@ -261,7 +238,7 @@ r$deaths_figure <- r$fig_1_data %>%
 
 r$deaths_figure
 
-ggsave(plot = r$deaths_figure, filename = "./output/deaths_plot.svg", units = "in", width = 5, height = 7, scale = 1.2, bg = "white")
+ggsave(plot = r$deaths_figure, filename = "./output/deaths_plot.pdf", units = "in", width = 5, height = 7, scale = 1.2, bg = "white")
 
 msg_time("Save plots and figures")
 ## Save results -----------------------------------------------------------

@@ -131,7 +131,7 @@ eff_c <- if (step <= t_o) c else 100000
 # Note that L_star can be > L_max so that the target intervention can remain at the lockdown level.
 L_star_ind[] <- min(100000 * (lagged_incidence[i] / N[i]) / (eff_c * p), L_max + 0.01)
 
-# Target NPI considering other jurisdictions:
+# Target NPI considering other jurisdictions (in case they coordinate policies)
 L_star_matrix[, ] <- C[i, j] * L_star_ind[j]
 
 # Stores the maximum target level at the last column for each row:
