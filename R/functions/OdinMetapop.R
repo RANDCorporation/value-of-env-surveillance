@@ -345,10 +345,12 @@ OdinMetapop <- R6::R6Class(
     },
 
     # Simulate function
-    simulate = function(step = 0:365, y = NULL, use_names = TRUE, reps = 20, seed = 1) {
+    simulate = function(step = 0:365, y = NULL, use_names = TRUE, reps = 20, seed = 1, set_seed = T) {
 
       # Seed needs to be set here so that it is the same across each simulation.
-      set.seed(seed)
+      if(set_seed) {
+        set.seed(seed)
+        }
 
       self$pre_process_inputs()
 

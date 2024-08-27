@@ -42,10 +42,13 @@ if (!s$use_renv) {
 
   install.packages(cran_packages, repos = "https://cran.rstudio.com")
 
-  # remotes::install_github("https://github.com/RANDCorporation/randplot")
+  remotes::install_github("https://github.com/RANDCorporation/randplot")
 
   # To be uncommented once R6Sim is public on Github
-  # remotes::install_github("https://github.com/RANDCorporation/R6Sim@v1.0.0")
+  remotes::install_github("https://github.com/RANDCorporation/R6Sim@v1.0.0")
+
+  # install specific version of IMABC from UserScaling branch:
+  remotes::install_github("https://github.com/c-rutter/imabc/commit/ba2eb5e2f8ba07f5746c66dc64cdba3281f41312")
 } else {
   renv::restore()
 }

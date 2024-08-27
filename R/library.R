@@ -75,7 +75,8 @@ library(randplot)
 library(R6Sim)
 
 
-
+# install with remotes::install_github("https://github.com/c-rutter/imabc/commit/ba2eb5e2f8ba07f5746c66dc64cdba3281f41312")
+library(imabc)
 
 
 
