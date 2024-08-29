@@ -297,7 +297,7 @@ OdinMetapop <- R6::R6Class(
         # The new_removed is the difference in the recovered count at each step.
         mutate(new_removed = c(0, diff(R))) %>%
         ungroup() %>%
-        # Compute expected deaths - since IFR is low, we compute expecte deaths
+        # Compute expected deaths - since IFR is low, we compute expected deaths
         # Expected deaths:
         # mutate(deaths = IFR * new_removed) %>%
         # Stochastic deaths:
@@ -313,14 +313,22 @@ OdinMetapop <- R6::R6Class(
         mutate(L5_days = as.integer(NPI == 5)) %>%
         mutate(L1plus_days = as.integer(NPI >= 1))
 
+      # We use the estimated epidemic size from the paper "Burden and characteristics of COVID-19 in the United States during 2020"
+      # As of 2020-12-31 as a calibration target.
+      # The calibration target comes from the supplementary file underlying figure 2, where they estimate the national population susceptibility.
+      # Which is calibrated to seroprevalence date but adjusted for "immunity attenuation".
+      # They only report the date until the end of 2020, hence I have to filter my results to get the epidemic size at that point in time.
+
+      step_epi_size_2020 <- as.integer(as.Date("2020-12-31") - as.Date("2020-02-21"))
+
       # Summarize costs by jurisdiction over time:
       self$summary_jurisdiction <- self$res_long %>%
-        select(rep, jurisdiction.id, population, new_removed, deaths_per_100k, CH_illness, CH_deaths, CH, L5_days, L1plus_days, CNPI, C) %>%
+        select(rep, step, jurisdiction.id, population, new_removed, deaths_per_100k, CH_illness, CH_deaths, CH, L5_days, L1plus_days, CNPI, C) %>%
         mutate(epi_size = 100 * new_removed / population) %>%
-        select(-c(new_removed, population)) %>%
+        mutate(epi_size_2020 = ifelse(step <= step_epi_size_2020, epi_size, 0)) %>%
+        select(-c(new_removed, population, step)) %>%
         group_by(rep, jurisdiction.id) %>%
         summarise(across(everything(), .fns = ~ sum(.x)), .groups = "keep")
-
 
       # Summarize across all jurisdictions
       self$summary <- self$summary_jurisdiction %>%

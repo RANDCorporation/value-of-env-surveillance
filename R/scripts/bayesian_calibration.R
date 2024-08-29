@@ -94,7 +94,7 @@ priors <- imabc::define_priors(
 )
 
 # targets
-target_df <- data.frame(target_names = c("deaths", "days_max_intervention", "epi_size"), targets = c(deaths_target, median_days_near_max_intervention, 69.02)) %>%
+target_df <- data.frame(target_names = c("deaths", "days_max_intervention", "epi_size"), targets = c(deaths_target, median_days_near_max_intervention, 100-69.02)) %>%
   mutate(
     current_lower_bounds = 0.1 * targets,
     current_upper_bounds = 2 * targets,
@@ -104,8 +104,8 @@ target_df <- data.frame(target_names = c("deaths", "days_max_intervention", "epi
     scales = 1
   ) %>%
   mutate(
-    stopping_lower_bounds = if_else(target_names == "epi_size", 63.63, stopping_lower_bounds),
-    stopping_upper_bounds = if_else(target_names == "epi_size", 75.44, stopping_upper_bounds)
+    stopping_lower_bounds = if_else(target_names == "epi_size", 100-75.44, stopping_lower_bounds),
+    stopping_upper_bounds = if_else(target_names == "epi_size", 100-63.63, stopping_upper_bounds)
   )
 
 targets_imabc = imabc::as.targets(target_df)
@@ -124,20 +124,32 @@ target_function <- function(c, tau, R0) {
   # Seed can be passed here:
   model$simulate(reps = 1, set_seed = F)
 
-  browser()
-
   return(c(deaths = as.numeric(model$summary_all$deaths_per_100k_.mean[1]),
-           days_max_intervention = as.numeric(model$summary_all$L5_days_.mean[1])))
+           days_max_intervention = as.numeric(model$summary_all$L5_days_.mean[1]),
+           epi_size_2020 = as.numeric(model$summary_all$epi_size_2020_.mean[1])
+           ))
 
 }
 
 # Model seems deterministic
-target_function(c = 15, tau = 0.15, R0 = 2.5)
+target_function(c = 17.3, tau = 0.142, R0 = 3)
 
 # imabc call
 imabc_target_fun <- imabc::define_target_function(targets = targets_imabc,priors = priors, FUN = target_function, use_seed = FALSE)
 
 # posterior distribution
+
+# Trying to run this in parallel:
+
+library(doParallel)
+
+cl <- parallel::makeCluster(4)
+registerDoParallel(cl)
+parallel::clusterEvalQ(cl, source("./R/scripts/cluster_eval.R"))
+
+# cl <- snow::makeCluster(n_cores)
+# doSNOW::registerDoSNOW(cl)
+# snow::clusterEvalQ(cl, source(s$cluster_eval_script))
 
 imabc_results <- imabc(
   # improve_method = "direct",
