@@ -76,20 +76,20 @@ priors <- imabc::define_priors(
   c = add_prior(
     parameter_name = "c",
     dist_base_name = "unif",
-    min = 10,
-    max = 25
+    min = 5,
+    max = 30
   ),
   tau = add_prior(
     parameter_name = "tau",
     dist_base_name = "unif",
-    min = 0.1,
+    min = 0.05,
     max = 0.2
   ),
   R0 = add_prior(
     parameter_name = "R0",
     dist_base_name = "unif",
-    min = 2.4,
-    max = 2.6
+    min = 1.5,
+    max = 3.5
   )
 )
 
@@ -143,12 +143,14 @@ imabc_target_fun <- imabc::define_target_function(targets = targets_imabc,priors
 
 library(doParallel)
 
-cl <- parallel::makeCluster(7)
-registerDoParallel(cl)
+cl <- parallel::makeCluster(6)
+
 #parallel::clusterEvalQ(cl, source("./R/scripts/cluster_eval.R"))
 
 # Specify the full path to the R executable (For cluster:)
 #clusterEvalQ(cl, system("/usr/bin/Rscript ./R/scripts/cluster_eval.R"))
+
+registerDoParallel(cl)
 
 clusterEvalQ(cl, {
   # Add the path to R and Rscript to the PATH environment variable
@@ -172,12 +174,12 @@ imabc_results <- imabc(
   targets = targets_imabc,
   target_fun = imabc_target_fun,
   seed = 54321,
-  N_start = 1000,
-  max_iter = 20,
+  N_start = 2000,
+  max_iter = 30,
   #max_fail_iter = 5,
-  N_centers = 3,
+  N_centers = 4,
   Center_n = 200,
-  N_cov_points = 50,
+  N_cov_points = 100,
   N_post = 1000#,
   #output_directory = "./imabc-results"
 )
@@ -186,7 +188,9 @@ parallel::stopCluster(cl)
 
 # Save posterior:
 
-write.csv(imabc_results$good_parm_draws, file = "./output/posterior.csv")
+write.csv(imabc_results$good_parm_draws, file = "./output/posterior_wide_priors.csv", row.names = F)
+
+
 
 
 # Visualize posterior:
@@ -195,7 +199,7 @@ model$set_param_dist(params_list = list(a = as.data.frame(imabc_results$good_par
                      param_dist_weights = "sample_wt",
                      cols_to_ignore = c("iter", "draw", "step", "seed"),
                      #use_average = T #,
-                     n_sample = 900
+                     n_sample = 500
                      )
 
 # Summarise calibration results:
