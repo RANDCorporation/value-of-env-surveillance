@@ -23,7 +23,7 @@
 # Increase n_reps to 1,000 for a real-scale run.
 # Only do that in a capable machines
 # n_reps - use 1,000 for real runs, use 50 to just test the code.
-n_reps_main: 1000
+n_reps_main: 20
 
 # Use 1,000 for the real runs
 n_reps_tau: 1000

@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, warning = F, message = F)
+knitr::opts_chunk$set(echo = TRUE, warning = F, message = F, root.dir = here::here())
 ```
 
 # Reproducibility notes
@@ -18,13 +18,10 @@ This document is an early draft of the results section in *Nascimento de Lima et
 The following code block uses results stored in the `./output/r.rds` file or runs the script that generates this file.
 
 ```{r}
-# The r object contains the results objects used in this file
-if (!file.exists("./output/r.rds")) {
-  source("./R/scripts/run_analysis.R")
-} else {
-  source("./R/library.R")
-  r <- readRDS("./output/r.rds")
-}
+# read results:
+source("./R/library.R")
+
+r <- readRDS("./output/r.rds")
 ```
 
 

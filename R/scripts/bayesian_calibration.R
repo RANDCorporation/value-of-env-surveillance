@@ -84,11 +84,17 @@ priors <- imabc::define_priors(
     dist_base_name = "unif",
     min = 0.1,
     max = 0.2
+  ),
+  R0 = add_prior(
+    parameter_name = "R0",
+    dist_base_name = "unif",
+    min = 2,
+    max = 3
   )
 )
 
 # targets
-target_df <- data.frame(target_names = c("deaths", "days_max_intervention"), targets = c(deaths_target, median_days_near_max_intervention)) %>%
+target_df <- data.frame(target_names = c("deaths", "days_max_intervention", "epi_size"), targets = c(deaths_target, median_days_near_max_intervention, 69.02)) %>%
   mutate(
     current_lower_bounds = 0.1 * targets,
     current_upper_bounds = 2 * targets,
@@ -96,6 +102,10 @@ target_df <- data.frame(target_names = c("deaths", "days_max_intervention"), tar
     stopping_upper_bounds = 1.025 * targets,
     target_groups = paste0(target_names, "_group"),
     scales = 1
+  ) %>%
+  mutate(
+    stopping_lower_bounds = if_else(target_names == "epi_size", 63.63, stopping_lower_bounds),
+    stopping_upper_bounds = if_else(target_names == "epi_size", 75.44, stopping_upper_bounds)
   )
 
 targets_imabc = imabc::as.targets(target_df)
@@ -105,13 +115,16 @@ model <- OdinMetapop$new("stochastic_metapopulation.R", s$data_file)
 
 
 # target_fn
-target_function <- function(c, tau) {
+target_function <- function(c, tau, R0) {
   model$set_input("c", c)$
-    set_input("tau", tau)
+    set_input("tau", tau)$
+    set_input("R0", R0)
 
   # Can perform this with multiple replications:
   # Seed can be passed here:
   model$simulate(reps = 1, set_seed = F)
+
+  browser()
 
   return(c(deaths = as.numeric(model$summary_all$deaths_per_100k_.mean[1]),
            days_max_intervention = as.numeric(model$summary_all$L5_days_.mean[1])))
@@ -119,7 +132,7 @@ target_function <- function(c, tau) {
 }
 
 # Model seems deterministic
-target_function(c = 15, tau = 0.15)
+target_function(c = 15, tau = 0.15, R0 = 2.5)
 
 # imabc call
 imabc_target_fun <- imabc::define_target_function(targets = targets_imabc,priors = priors, FUN = target_function, use_seed = FALSE)
