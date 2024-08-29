@@ -88,8 +88,8 @@ priors <- imabc::define_priors(
   R0 = add_prior(
     parameter_name = "R0",
     dist_base_name = "unif",
-    min = 2,
-    max = 3
+    min = 2.4,
+    max = 2.6
   )
 )
 
@@ -143,13 +143,28 @@ imabc_target_fun <- imabc::define_target_function(targets = targets_imabc,priors
 
 library(doParallel)
 
-cl <- parallel::makeCluster(4)
+cl <- parallel::makeCluster(7)
 registerDoParallel(cl)
-parallel::clusterEvalQ(cl, source("./R/scripts/cluster_eval.R"))
+#parallel::clusterEvalQ(cl, source("./R/scripts/cluster_eval.R"))
 
-# cl <- snow::makeCluster(n_cores)
+# Specify the full path to the R executable (For cluster:)
+#clusterEvalQ(cl, system("/usr/bin/Rscript ./R/scripts/cluster_eval.R"))
+
+clusterEvalQ(cl, {
+  # Add the path to R and Rscript to the PATH environment variable
+  Sys.setenv(PATH = paste("/usr/bin/R", Sys.getenv("PATH"), sep = ":"))
+
+  # Verify that R and Rscript are now in the PATH
+  system("which R")
+
+  # Now source the R script
+  source("./R/scripts/cluster_eval.R")
+})
+
+
+# cl <- snow::makeCluster(4)
 # doSNOW::registerDoSNOW(cl)
-# snow::clusterEvalQ(cl, source(s$cluster_eval_script))
+# snow::clusterEvalQ(cl, source("./R/scripts/cluster_eval.R"))
 
 imabc_results <- imabc(
   # improve_method = "direct",
@@ -157,15 +172,17 @@ imabc_results <- imabc(
   targets = targets_imabc,
   target_fun = imabc_target_fun,
   seed = 54321,
-  N_start = 100,
+  N_start = 1000,
   max_iter = 20,
   #max_fail_iter = 5,
   N_centers = 3,
-  Center_n = 100,
+  Center_n = 200,
   N_cov_points = 50,
-  N_post = 500#,
+  N_post = 1000#,
   #output_directory = "./imabc-results"
 )
+
+parallel::stopCluster(cl)
 
 # Save posterior:
 
@@ -178,14 +195,14 @@ model$set_param_dist(params_list = list(a = as.data.frame(imabc_results$good_par
                      param_dist_weights = "sample_wt",
                      cols_to_ignore = c("iter", "draw", "step", "seed"),
                      #use_average = T #,
-                     n_sample = 500
+                     n_sample = 900
                      )
 
 # Summarise calibration results:
 
 
 calibration_summaries <- model$params_df %>%
-  select(param_dist.df.id,c,tau) %>%
+  select(param_dist.df.id,c,tau, R0) %>%
   group_by(param_dist.df.id) %>%
   summarise_all(summary_functions) %>%
   ungroup() %>%
@@ -215,4 +232,11 @@ model$params_df %>%
   ylab("Marginal intervention effectiveness (tau, percent)") +
   xlab("Intervention threshold (c, cases per 100,000)")
 
+
+model$params_df %>%
+  ggplot(mapping = aes(x = R0, y = tau * 100)) +
+  ggdensity::geom_hdr() +
+  geom_point() +
+  ylab("Marginal intervention effectiveness (tau, percent)") +
+  xlab("R0")
 
