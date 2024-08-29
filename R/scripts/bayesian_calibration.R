@@ -98,8 +98,8 @@ target_df <- data.frame(target_names = c("deaths", "days_max_intervention", "epi
   mutate(
     current_lower_bounds = 0.1 * targets,
     current_upper_bounds = 2 * targets,
-    stopping_lower_bounds = 0.975 * targets,
-    stopping_upper_bounds = 1.025 * targets,
+    stopping_lower_bounds = 0.99 * targets,
+    stopping_upper_bounds = 1.01 * targets,
     target_groups = paste0(target_names, "_group"),
     scales = 1
   ) %>%
@@ -122,7 +122,7 @@ target_function <- function(c, tau, R0) {
 
   # Can perform this with multiple replications:
   # Seed can be passed here:
-  model$simulate(reps = 1, set_seed = F)
+  model$simulate(reps = 10, set_seed = F)
 
   return(c(deaths = as.numeric(model$summary_all$deaths_per_100k_.mean[1]),
            days_max_intervention = as.numeric(model$summary_all$L5_days_.mean[1]),
@@ -180,7 +180,7 @@ imabc_results <- imabc(
   N_centers = 4,
   Center_n = 200,
   N_cov_points = 100,
-  N_post = 1000#,
+  N_post = 2000#,
   #output_directory = "./imabc-results"
 )
 
@@ -188,9 +188,11 @@ parallel::stopCluster(cl)
 
 # Save posterior:
 
-write.csv(imabc_results$good_parm_draws, file = "./output/posterior_wide_priors.csv", row.names = F)
+write.csv(imabc_results$good_parm_draws, file = "./output/posterior_wide_priors_tighter_stopping_bounds.csv", row.names = F)
 
+saveRDS(imabc_results, file = "./output/imabc_results.rds")
 
+# read back results:
 
 
 # Visualize posterior:
