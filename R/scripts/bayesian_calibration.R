@@ -42,10 +42,14 @@ source("./R/library.R")
 # Across US states
 augm_inputs <- readRDS("./data/archive/augm_inputs.rds")
 
+max_calibration_date <- "2020-12-31"
+
+calibration_duration <- as.integer(as.Date(max_calibration_date) - as.Date("2020-02-21"))
+
 # Deaths target:
 # Average deaths per 100,000 population across US states:
 deaths_target <- augm_inputs$locationtimeseries %>%
-  filter(Date <= as.Date("2021-03-01")) %>%
+  filter(Date <= as.Date(max_calibration_date)) %>%
   group_by(LocationID) %>%
   summarise(DeathsPer100K = sum(DeathsPer100K)) %>%
   .$DeathsPer100K %>%
@@ -61,7 +65,7 @@ deaths_target <- augm_inputs$locationtimeseries %>%
 median_days_near_max_intervention <- read.csv("./data/OxCGRT_USA_latest.txt") %>%
   dplyr::filter(Jurisdiction == "STATE_TOTAL") %>%
   mutate(day = lubridate::as_date(as.character(Date))) %>%
-  filter(day <= as.Date("2021-03-01"), day >= as.Date("2020-03-01")) %>%
+  filter(day <= as.Date(max_calibration_date), day >= as.Date("2020-03-01")) %>%
   select(RegionName, Date, StringencyIndex_Average) %>%
   group_by(RegionName) %>%
   mutate(max_stringency = max(StringencyIndex_Average)) %>%
@@ -69,6 +73,8 @@ median_days_near_max_intervention <- read.csv("./data/OxCGRT_USA_latest.txt") %>
   summarise(days_max_intervention = sum(max_intervention), max_stringency = mean(max_stringency)) %>%
   .$days_max_intervention %>%
   median()
+
+
 
 
 # priors
@@ -94,18 +100,18 @@ priors <- imabc::define_priors(
 )
 
 # targets
-target_df <- data.frame(target_names = c("deaths", "days_max_intervention", "epi_size"), targets = c(deaths_target, median_days_near_max_intervention, 100-69.02)) %>%
+target_df <- data.frame(target_names = c("deaths", "days_max_intervention", "epi_size_2020"), targets = c(deaths_target, median_days_near_max_intervention, 100-69.02)) %>%
   mutate(
     current_lower_bounds = 0.1 * targets,
     current_upper_bounds = 2 * targets,
-    stopping_lower_bounds = 0.99 * targets,
-    stopping_upper_bounds = 1.01 * targets,
+    stopping_lower_bounds = 0.98 * targets,
+    stopping_upper_bounds = 1.02 * targets,
     target_groups = paste0(target_names, "_group"),
     scales = 1
   ) %>%
   mutate(
-    stopping_lower_bounds = if_else(target_names == "epi_size", 100-75.44, stopping_lower_bounds),
-    stopping_upper_bounds = if_else(target_names == "epi_size", 100-63.63, stopping_upper_bounds)
+    stopping_lower_bounds = if_else(target_names == "epi_size_2020", 100-75.44, stopping_lower_bounds),
+    stopping_upper_bounds = if_else(target_names == "epi_size_2020", 100-63.63, stopping_upper_bounds)
   )
 
 targets_imabc = imabc::as.targets(target_df)
@@ -122,7 +128,7 @@ target_function <- function(c, tau, R0) {
 
   # Can perform this with multiple replications:
   # Seed can be passed here:
-  model$simulate(reps = 10, set_seed = F)
+  model$simulate(reps = 10, set_seed = F, step = 0:314)
 
   return(c(deaths = as.numeric(model$summary_all$deaths_per_100k_.mean[1]),
            days_max_intervention = as.numeric(model$summary_all$L5_days_.mean[1]),
@@ -132,7 +138,7 @@ target_function <- function(c, tau, R0) {
 }
 
 # Model seems deterministic
-target_function(c = 17.3, tau = 0.142, R0 = 3)
+target_function(c = 17.3, tau = 0.142, R0 = 2.5)
 
 # imabc call
 imabc_target_fun <- imabc::define_target_function(targets = targets_imabc,priors = priors, FUN = target_function, use_seed = FALSE)
@@ -143,7 +149,7 @@ imabc_target_fun <- imabc::define_target_function(targets = targets_imabc,priors
 
 library(doParallel)
 
-cl <- parallel::makeCluster(6)
+cl <- parallel::makeCluster(7)
 
 #parallel::clusterEvalQ(cl, source("./R/scripts/cluster_eval.R"))
 
@@ -154,10 +160,10 @@ registerDoParallel(cl)
 
 clusterEvalQ(cl, {
   # Add the path to R and Rscript to the PATH environment variable
-  Sys.setenv(PATH = paste("/usr/bin/R", Sys.getenv("PATH"), sep = ":"))
+  #Sys.setenv(PATH = paste("/usr/bin/R", Sys.getenv("PATH"), sep = ":"))
 
   # Verify that R and Rscript are now in the PATH
-  system("which R")
+  #system("which R")
 
   # Now source the R script
   source("./R/scripts/cluster_eval.R")
@@ -180,7 +186,7 @@ imabc_results <- imabc(
   N_centers = 4,
   Center_n = 200,
   N_cov_points = 100,
-  N_post = 2000#,
+  N_post = 500#,
   #output_directory = "./imabc-results"
 )
 
