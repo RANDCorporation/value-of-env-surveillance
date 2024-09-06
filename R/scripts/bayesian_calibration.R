@@ -42,9 +42,7 @@ source("./R/library.R")
 # Across US states
 augm_inputs <- readRDS("./data/archive/augm_inputs.rds")
 
-max_calibration_date <- "2020-12-31"
-
-calibration_duration <- as.integer(as.Date(max_calibration_date) - as.Date("2020-02-21"))
+max_calibration_date <- "2021-03-01"
 
 # Deaths target:
 # Average deaths per 100,000 population across US states:
@@ -78,24 +76,29 @@ median_days_near_max_intervention <- read.csv("./data/OxCGRT_USA_latest.txt") %>
 
 
 # priors
+
 priors <- imabc::define_priors(
+  # Largely uninformative prior, covers a wide range of plausible thresholds:
   c = add_prior(
     parameter_name = "c",
     dist_base_name = "unif",
-    min = 5,
+    min = 10,
     max = 30
   ),
+  # Uninformative prior, covers the whole range of tau:
   tau = add_prior(
     parameter_name = "tau",
     dist_base_name = "unif",
     min = 0.05,
     max = 0.2
   ),
+  # Informative prior: Covers 90% CI of
+  # This study posterior distribution for R0, which informed CDC's average scenario of 2.5.
   R0 = add_prior(
     parameter_name = "R0",
     dist_base_name = "unif",
-    min = 1.5,
-    max = 3.5
+    min = 2.37,
+    max = 2.78
   )
 )
 
@@ -107,6 +110,7 @@ target_df <- data.frame(target_names = c("deaths", "days_max_intervention", "epi
     stopping_lower_bounds = 0.98 * targets,
     stopping_upper_bounds = 1.02 * targets,
     target_groups = paste0(target_names, "_group"),
+    # Here I am using equal scaling across the three targets:
     scales = 1
   ) %>%
   mutate(
@@ -123,12 +127,12 @@ model <- OdinMetapop$new("stochastic_metapopulation.R", s$data_file)
 # target_fn
 target_function <- function(c, tau, R0) {
   model$set_input("c", c)$
-    set_input("tau", tau)$
-    set_input("R0", R0)
+    set_input("tau", tau)#$
+    #set_input("R0", R0)
 
   # Can perform this with multiple replications:
   # Seed can be passed here:
-  model$simulate(reps = 10, set_seed = F, step = 0:314)
+  model$simulate(reps = 10, set_seed = F, step = 0:365)
 
   return(c(deaths = as.numeric(model$summary_all$deaths_per_100k_.mean[1]),
            days_max_intervention = as.numeric(model$summary_all$L5_days_.mean[1]),
@@ -137,18 +141,17 @@ target_function <- function(c, tau, R0) {
 
 }
 
-# Model seems deterministic
+# Test target function
 target_function(c = 17.3, tau = 0.142, R0 = 2.5)
 
 # imabc call
 imabc_target_fun <- imabc::define_target_function(targets = targets_imabc,priors = priors, FUN = target_function, use_seed = FALSE)
 
-# posterior distribution
 
-# Trying to run this in parallel:
-
+# Running calibration in parallel:
 library(doParallel)
 
+# Adjust number of cores as needed:
 cl <- parallel::makeCluster(7)
 
 #parallel::clusterEvalQ(cl, source("./R/scripts/cluster_eval.R"))
@@ -180,13 +183,13 @@ imabc_results <- imabc(
   targets = targets_imabc,
   target_fun = imabc_target_fun,
   seed = 54321,
-  N_start = 2000,
+  N_start = 1000,
   max_iter = 30,
   #max_fail_iter = 5,
   N_centers = 4,
   Center_n = 200,
   N_cov_points = 100,
-  N_post = 500#,
+  N_post = 1000#,
   #output_directory = "./imabc-results"
 )
 
@@ -194,7 +197,7 @@ parallel::stopCluster(cl)
 
 # Save posterior:
 
-write.csv(imabc_results$good_parm_draws, file = "./output/posterior_wide_priors_tighter_stopping_bounds.csv", row.names = F)
+write.csv(imabc_results$good_parm_draws, file = "./output/posterior.csv", row.names = F)
 
 saveRDS(imabc_results, file = "./output/imabc_results.rds")
 
@@ -207,11 +210,10 @@ model$set_param_dist(params_list = list(a = as.data.frame(imabc_results$good_par
                      param_dist_weights = "sample_wt",
                      cols_to_ignore = c("iter", "draw", "step", "seed"),
                      #use_average = T #,
-                     n_sample = 500
+                     n_sample = 1000
                      )
 
 # Summarise calibration results:
-
 
 calibration_summaries <- model$params_df %>%
   select(param_dist.df.id,c,tau, R0) %>%
@@ -232,23 +234,4 @@ calibration_pretty_summary <- calibration_summaries %>%
 
 
 calibration_pretty_summary
-
-
-library(ggplot2)
-
-# Visualizing posterior - c and tau correlated as expected:
-model$params_df %>%
-  ggplot(mapping = aes(x = c, y = tau * 100)) +
-  ggdensity::geom_hdr() +
-  geom_point() +
-  ylab("Marginal intervention effectiveness (tau, percent)") +
-  xlab("Intervention threshold (c, cases per 100,000)")
-
-
-model$params_df %>%
-  ggplot(mapping = aes(x = R0, y = tau * 100)) +
-  ggdensity::geom_hdr() +
-  geom_point() +
-  ylab("Marginal intervention effectiveness (tau, percent)") +
-  xlab("R0")
 
