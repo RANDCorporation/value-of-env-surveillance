@@ -23,13 +23,19 @@
 # Increase n_reps to 1,000 for a real-scale run.
 # Only do that in a capable machines
 # n_reps - use 1,000 for real runs, use 50 to just test the code.
-n_reps_main: 20
+n_reps_main: 100
+
+# Number of posterior samples
+n_posterior_sample_main: 100
 
 # Use 1,000 for the real runs
 n_reps_tau: 1000
 
 # How many cores to use if running simulations in parallel
-n_cores: 5
+n_cores: 7
+
+# Parallel mode
+cluster_type: "FORK"
 
 # Set random seed:
 seed: 1234

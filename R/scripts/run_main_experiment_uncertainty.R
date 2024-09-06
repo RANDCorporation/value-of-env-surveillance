@@ -42,7 +42,7 @@ model <- OdinMetapop$new("stochastic_metapopulation.R", s$data_file)
 # set posterior distribution
 
 posterior <- read.csv("./output/posterior.csv") %>%
-  select(c, tau, sample_wt, draw)
+  select(c, tau, R0, sample_wt, draw)
 
 
 # Visualize posterior:
@@ -51,7 +51,7 @@ model$set_param_dist(params_list = list(a = posterior),
                      param_dist_weights = "sample_wt",
                      cols_to_ignore = c("iter", "draw", "step", "seed"),
                      #use_average = T #,
-                     n_sample = 20
+                     n_sample = s$n_posterior_sample_main
 )
 
 r$base_scenarios <- readxl::read_xlsx("./data/scenarios.xlsx", sheet = "one-way-scenarios-uncertainty")
@@ -73,11 +73,14 @@ base_experiment$set_design(grid_design_df = all_scenarios)
 # Include parameters from the bayesian calibration in the policy design:
 base_experiment$policy_design <- base_experiment$policy_design %>%
   left_join(base_experiment$models[[1]]$params_df, by = join_by(param.id, model.id)) %>%
-  mutate(R0 = 2.5) %>% # remove this once R0 is also calibrated
   # Modify parameters according to the experimental design:
   mutate(R0 = R0 * R0_mult,
          c = c * c_mult,
          tau = ifelse(fixed_tau, tau_set, tau))
+
+# Check length of policy design
+
+stopifnot(nrow(base_experiment$policy_design) == s$n_posterior_sample_main * nrow(all_scenarios))
 
 ## 2.1 Run main experiment -----------------------------------------------------
 
@@ -93,6 +96,7 @@ msg_time("Running main results experiment")
 base_results <- base_experiment$run(
   parallel = s$parallel,
   cluster_eval_script = s$cluster_eval_script,
+  cluster_type = s$cluster_type,
   n_cores = s$n_cores,
   model_from_cluster_eval = s$model_from_cluster_eval,
   reps = s$n_reps_main,
@@ -100,6 +104,15 @@ base_results <- base_experiment$run(
 )
 
 msg_time("Finishing post-processing")
+
+# Check length of results
+stopifnot(nrow(base_results) == s$n_reps_main * s$n_posterior_sample_main * nrow(all_scenarios))
+
+# Check length of parameters, reps and scenarios
+stopifnot(length(unique(base_results$param.id)) == s$n_posterior_sample_main)
+
+stopifnot(length(unique(base_results$rep)) == s$n_reps_main)
+
 
 # Compute differences at the replication-parameter level:
 comp_results <- base_results %>%
@@ -131,7 +144,6 @@ r$base_results_long <- base_results_rep_summaries %>%
   pivot_longer(cols = -c(Scenario, Section, Class, NMB_comparator, counterfactual.id), names_to = "statistic", values_to = "value") %>%
   as.data.frame() %>%
   separate(col = statistic, into = c("variable", "stat"), sep = "_\\.")
-
 
 msg_time("Saving results")
 

@@ -71,9 +71,6 @@ library(pkgload)
 # install with remotes::install_github("randcorporation/randplot")
 library(randplot)
 
-# install with remotes::install_github("randcorporation/r6sim")
-library(R6Sim)
-
 
 # install with remotes::install_github("https://github.com/c-rutter/imabc/commit/ba2eb5e2f8ba07f5746c66dc64cdba3281f41312")
 library(imabc)
@@ -98,6 +95,7 @@ ggplot <- function(...) {
 # into the parent folder of the c19-paths repository
 # this will be necessary until we release the package externally
 if (s$r6sim_load_all) {
+  # install with remotes::install_github("randcorporation/r6sim")
   devtools::load_all("../R6Sim")
 } else {
   library(R6Sim)
